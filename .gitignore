@@ -1,0 +1,79 @@
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Environment variables & secrets
+.env
+.env*.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+*.cert
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts.bak
+
+# Vercel
+.vercel
+
+# Editor & OS files
+.DS_Store
+*.pem
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Python / Local scratch (if any scratch scripts are run)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Testing & Coverage
+coverage/
+.nyc_output/
+*.lcov
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+*.bak
