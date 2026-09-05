@@ -14,12 +14,12 @@ demo beat and to exactly one owner.
 
 ## 1. How to use this document
 
-1. Read §3 (contracts). They are frozen at hour 2. Everything else is parallelizable
+1. Read §3 (contracts). They are frozen upfront before deep implementation. Everything else is parallelizable
    only because these types are agreed before code.
 2. Find your charter in §5. That is your directory. You own it; nobody edits it but you.
 3. Consume other builders' modules **through the contract only**. If you need something
    that does not exist yet, stub it against the contract (§6) and keep moving.
-4. Hit the integration checkpoints in §7. They are hard gates with named cut decisions.
+4. Hit the milestone checkpoints in §7. They are progression gates with named cut decisions.
 
 ---
 
@@ -31,7 +31,7 @@ Owner tags: **A** = finance kernel, **B** = agent + learning loop, **C** = produ
 ```text
 src/
   lib/
-    contracts/            *   types.ts, events.ts, errors.ts   <- frozen hour 2
+    contracts/            *   types.ts, events.ts, errors.ts   <- frozen upfront
     data/                 A   frozen dataset, policy pack, loader, generator
     matcher/              A   normalize.ts, match.ts
     controls/             A   engine.ts, three families, packs/v1.json, packs/v2.json
@@ -54,7 +54,7 @@ bench/                    A   frozen cases, expected labels (never shipped to th
 docs/                     C   README, diagrams, AO evidence, Devpost copy
 ```
 
-Toolchain additions (owner A, hour 2, one PR, no debate): `vitest` for control and
+Toolchain additions (owner A, setup phase, one PR, no debate): `vitest` for control and
 replay tests, `tsx` for the `bench` runner. Scripts: `npm run bench`, `npm run replay`,
 `npm test`. No other dependencies without all three agreeing.
 
@@ -62,8 +62,8 @@ replay tests, `tsx` for the `bench` runner. Scripts: `npm run bench`, `npm run r
 
 ## 3. Frozen contracts — write these first
 
-`src/lib/contracts/types.ts`. Drafted by A, reviewed by B and C in the first two hours,
-frozen at hour 2. After freezing, a change needs explicit three-way agreement and a
+`src/lib/contracts/types.ts`. Drafted by A, reviewed by B and C upfront,
+frozen before parallel coding begins. After freezing, a change needs explicit three-way agreement and a
 single PR that updates all consumers.
 
 ```ts
@@ -223,8 +223,8 @@ the ledger closes; expected labels never leave `bench/` into any agent prompt.
 
 **Do not:** call a model, write React, or edit `lib/agent`.
 
-**First 90 minutes:** draft `contracts/types.ts`, get B and C to sign off, then the
-policy pack and six cases — one of them the EUR-invoice / USD-settlement FX case.
+**First priority (immediate start):** draft `contracts/types.ts`, get B and C to sign off, then the
+policy pack and six cases — one of them the EUR-invoice / USD-settlement FX case. As soon as done, move immediately to the deterministic matcher and control checks.
 
 ---
 
@@ -259,8 +259,8 @@ model emit code. If the live model gets the FX case right on the first pass, sho
 pre-recorded failed trace **from the same frozen benchmark** and say plainly on camera
 that it is pre-recorded.
 
-**First 90 minutes:** `model.ts` plus the four tool signatures against A's stubs, and one
-end-to-end call that returns a schema-valid `Proposal` for a single hand-written case.
+**First priority (immediate start):** `model.ts` plus the four tool signatures against A's stubs, and one
+end-to-end call that returns a schema-valid `Proposal` for a single hand-written case. As soon as done, move immediately to the worker runtime and repair routing.
 
 ---
 
@@ -292,15 +292,15 @@ plus a reset button; and every number on screen traces to an event in the store.
 **Do not:** invent controller-minutes-saved, present synthetic data as practitioner-
 reviewed, or add a second dashboard. Never label a live run as pre-recorded or the reverse.
 
-**First 90 minutes:** the Finance PR view as a static component against a fixture JSON
-matching `Proposal` + `ControlReport`. Real data lands later; the layout must not.
+**First priority (immediate start):** the Finance PR view as a static component against a fixture JSON
+matching `Proposal` + `ControlReport`. Real data lands later; the layout must not. As soon as done, move immediately to the exception queue and controller actions.
 
 ---
 
 ## 6. Working in parallel without blocking
 
-- **Stub, don't wait.** Every module exports its contract type from day one. A ships
-  `controls/engine.ts` returning a hard-coded `ControlReport` in hour 2 so B can build
+- **Stub, don't wait.** Continuous flow: builders proceed immediately without waiting on clock hours. Every module exports its contract type from day one. A ships
+  `controls/engine.ts` returning a hard-coded `ControlReport` immediately so B can build
   repair routing before the real checks exist. B ships a fixture `Proposal` so C can build
   the PR view before the model works. C ships fixture JSON in `bench/fixtures/` that A and
   B both read.
@@ -308,28 +308,29 @@ matching `Proposal` + `ControlReport`. Real data lands later; the layout must no
   not an edit.
 - **Branches:** `a/<topic>`, `b/<topic>`, `c/<topic>`. PR into `main`. No direct pushes to
   `main`. Every PR body names the demo beat it serves.
-- **AO from hour 0.** Each substantial task runs as its own AO session with its own
+- **AO from the very start.** Each substantial task runs as its own AO session with its own
   worktree and PR. Capture the orchestration, focused sessions, failed tests, review
-  comments, and routed feedback as they happen — this cannot be reconstructed at hour 27.
-- **Frozen means frozen.** After hour 14 the benchmark, policy pack, model, temperature,
+  comments, and routed feedback as they happen — this cannot be reconstructed after the fact.
+- **Frozen means frozen.** Once baseline integration begins, the benchmark, policy pack, model, temperature,
   and core prompt do not change. Changing them invalidates every metric.
 
 ---
 
-## 7. Checkpoints and cut decisions
+## 7. Milestone checkpoints and cut decisions
 
-| Hour | Gate | If missed |
+Progress is gated by functional completion, not clock hours. As soon as a builder finishes their task, they immediately advance to the next part:
+
+| Milestone | Gate | If blocked / delayed |
 |---|---|---|
-| 2 | Contracts frozen, AO running, dataset contract exists, demo drafted | Stop building and finish the contract — nothing parallelizes without it |
-| 8 | One case end to end: tools → Finance PR → real block → repair → approval | **Cut Control PR discovery** (§8). Everyone moves to the core loop |
-| 14 | Matching + queue + three control families + sandbox posting + one reconciliation closed | **Stop all integrations and UI polish.** No exceptions |
-| 20 | Benchmark frozen, baseline run, traces captured, reject reasons stored, Control PR + replay working | Ship the Finance PR loop alone and cut the Control PR beats from the demo |
-| 23 | Counterexamples validated, final metrics, controller review obtained | Present as synthetic and say so explicitly |
-| 26 | Neatlogs stable, demo screens polished, README + diagrams, AO evidence captured | Drop Neatlogs, meter inside Verity |
-| 28 | Video recorded, uploaded, permissions verified public | Record one unedited take rather than miss the deadline |
-| 30 | Devpost complete, repo tested from a clean clone, links checked in incognito, submitted | — |
+| M1: Foundation | Contracts frozen, AO running, dataset contract exists, demo drafted | Stop building and finish the contract — nothing parallelizes without it |
+| M2: Single-case core loop | One case end to end: tools → Finance PR → real block → repair → approval | **Cut Control PR discovery** (§8). Everyone moves to the core loop |
+| M3: Complete pipeline | Matching + queue + three control families + sandbox posting + one reconciliation closed | **Stop all integrations and UI polish.** Focus strictly on reliability |
+| M4: Evaluation & learning | Benchmark frozen, baseline run, traces captured, reject reasons stored, Control PR + replay working | Ship the Finance PR loop alone and cut the Control PR beats from the demo |
+| M5: Validation & metrics | Counterexamples validated, final metrics, controller review obtained | Present as synthetic and say so explicitly |
+| M6: Observability & assets | Neatlogs stable, demo screens polished, README + diagrams, AO evidence captured | Drop Neatlogs, meter inside Verity |
+| M7: Final demo & submission | Video recorded, uploaded, repo tested from a clean clone, links checked in incognito, submitted | Record one unedited take rather than miss the deadline |
 
-TensorMux: if routing is not working by **hour 10**, delete it and meter calls inside
+TensorMux: if routing setup encounters friction or delays, delete it immediately and meter calls inside
 Verity. Dodo: not integrated, by decision.
 
 ---
@@ -349,7 +350,7 @@ approval, sandbox posting, or the reconciliation close. That sequence *is* the p
 
 ---
 
-## 9. Demo beat → owner → surface
+## 9. Demo beat → owner → surface (5-minute video presentation runtime)
 
 | Beat | Owner | What must work |
 |---|---|---|
