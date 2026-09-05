@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { PinnedScrollytelling } from '../components/landing/PinnedScrollytelling';
 
-export default function AttioExactLandingPage() {
+export default function VerityLandingPage() {
   const heroSectionRef = useRef<HTMLElement | null>(null);
   const heroTextRef = useRef<HTMLDivElement | null>(null);
   const macWindowRef = useRef<HTMLDivElement | null>(null);
@@ -104,7 +104,7 @@ export default function AttioExactLandingPage() {
             href="/cases/CASE-2049"
             className="inline-flex items-center gap-1.5 px-3 py-1 mb-6 rounded-full border border-black/[0.08] bg-white text-zinc-600 text-[11px] font-medium shadow-2xs hover:border-black/20 transition-colors"
           >
-            <span>Controller insights: Read the 2026 Merge Control Benchmark</span>
+            <span>Merge control for finance agents: Read the 2026 Benchmark</span>
             <ArrowRight className="h-3 w-3 text-zinc-400" />
           </Link>
 
@@ -114,8 +114,8 @@ export default function AttioExactLandingPage() {
           </h1>
 
           {/* Subtitle */}
-          <p className="mt-4 text-sm sm:text-[15px] text-zinc-500 max-w-md leading-relaxed">
-            Verity is the change-control plane that governs agent decisions, blocks unverified entries, and guarantees a zero-variance reconciliation around the clock.
+          <p className="mt-4 text-sm sm:text-[15px] text-zinc-500 max-w-lg leading-relaxed">
+            &ldquo;Don&apos;t trust the agent&apos;s confidence. Trust what passed.&rdquo; Verity is the change-control plane that gives finance agents isolated decisions, evidence-backed controls, repair loops, and human controller approval.
           </p>
 
           {/* Action buttons */}
@@ -182,46 +182,61 @@ export default function AttioExactLandingPage() {
               </div>
 
               <div className="space-y-0.5 text-zinc-600">
-                <div className="px-2 py-1 rounded hover:bg-black/[0.03] flex items-center gap-2 font-medium">
-                  <span>Home</span>
+                <div className="px-2 py-1 rounded bg-black/[0.04] text-zinc-900 font-semibold flex items-center justify-between">
+                  <span>Exceptions Queue</span>
+                  <span className="px-1.5 py-0.2 rounded-full text-[9px] font-mono bg-blue-100 text-blue-700">14</span>
+                </div>
+                <div className="px-2 py-1 rounded hover:bg-black/[0.03] flex items-center justify-between">
+                  <span>Finance PRs</span>
+                  <span className="px-1.5 py-0.2 rounded-full text-[9px] font-mono bg-amber-100 text-amber-700">3</span>
                 </div>
                 <div className="px-2 py-1 rounded hover:bg-black/[0.03] flex items-center gap-2">
-                  <span>Notifications</span>
+                  <span>CI Control Gates</span>
                 </div>
                 <div className="px-2 py-1 rounded hover:bg-black/[0.03] flex items-center gap-2">
-                  <span>Tasks</span>
+                  <span>Sandbox Ledger</span>
                 </div>
                 <div className="px-2 py-1 rounded hover:bg-black/[0.03] flex items-center gap-2">
-                  <span>Ledger Notes</span>
+                  <span>Bank Feeds (MT940)</span>
                 </div>
                 <div className="px-2 py-1 rounded hover:bg-black/[0.03] flex items-center gap-2">
-                  <span>Bank Feeds</span>
-                </div>
-                <div className="px-2 py-1 rounded hover:bg-black/[0.03] flex items-center gap-2">
-                  <span>Reports</span>
+                  <span>ECB Rate Oracles</span>
                 </div>
               </div>
 
               <div className="pt-2 border-t border-black/[0.06] space-y-1">
-                <div className="text-[10px] uppercase font-semibold text-zinc-400 px-2 tracking-wider">Automations</div>
-                <div className="px-2 py-1 rounded hover:bg-black/[0.03] text-zinc-600">Sequences</div>
-                <div className="px-2 py-1 rounded hover:bg-black/[0.03] text-zinc-600">Workflows</div>
-              </div>
-
-              <div className="pt-2 border-t border-black/[0.06] space-y-1">
-                <div className="text-[10px] uppercase font-semibold text-zinc-400 px-2 tracking-wider">Reconcile Workflows</div>
-                <div className="px-2 py-1 rounded bg-black/[0.04] text-zinc-900 font-semibold flex items-center gap-1.5">
+                <div className="text-[10px] uppercase font-semibold text-zinc-400 px-2 tracking-wider">Control Families</div>
+                <div className="px-2 py-1 rounded hover:bg-black/[0.03] text-zinc-600 flex items-center gap-1.5">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  Pipeline Deals
+                  Evidence Lineage
                 </div>
-                <div className="px-2 py-1 rounded hover:bg-black/[0.03] text-zinc-600">Outreach</div>
-                <div className="px-2 py-1 rounded hover:bg-black/[0.03] text-zinc-600">Lead triage</div>
+                <div className="px-2 py-1 rounded hover:bg-black/[0.03] text-zinc-600 flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  Accounting Integrity
+                </div>
+                <div className="px-2 py-1 rounded hover:bg-black/[0.03] text-zinc-600 flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                  Policy Provenance
+                </div>
               </div>
 
               <div className="pt-2 border-t border-black/[0.06] space-y-1">
-                <div className="text-[10px] uppercase font-semibold text-zinc-400 px-2 tracking-wider">Records</div>
-                <div className="px-2 py-1 rounded hover:bg-black/[0.03] text-zinc-600">Bank Lines</div>
-                <div className="px-2 py-1 rounded hover:bg-black/[0.03] text-zinc-600">GL Accounts</div>
+                <div className="text-[10px] uppercase font-semibold text-zinc-400 px-2 tracking-wider">Recent Closes</div>
+                <div className="px-2 py-1 rounded hover:bg-black/[0.03] text-zinc-600 truncate">
+                  EUR/USD Settlement #2049
+                </div>
+                <div className="px-2 py-1 rounded hover:bg-black/[0.03] text-zinc-600 truncate">
+                  Stripe Payout Batch #8812
+                </div>
+                <div className="px-2 py-1 rounded hover:bg-black/[0.03] text-zinc-600 truncate">
+                  Mercury Wire Rec #9021
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-black/[0.06] space-y-1">
+                <div className="text-[10px] uppercase font-semibold text-zinc-400 px-2 tracking-wider">Ledger State</div>
+                <div className="px-2 py-1 rounded hover:bg-black/[0.03] text-zinc-600">Double-Entry Journals</div>
+                <div className="px-2 py-1 rounded hover:bg-black/[0.03] text-zinc-600">Cryptographic Hashes</div>
               </div>
             </div>
 
@@ -239,37 +254,37 @@ export default function AttioExactLandingPage() {
                 <div className="space-y-4 max-w-xl">
                   <div className="text-xs font-semibold text-zinc-900">
                     Strategy to clear variance:
-                    <div className="text-[11px] text-zinc-400 font-normal">Deal context:</div>
+                    <div className="text-[11px] text-zinc-400 font-normal">Evidence & Ledger Context:</div>
                   </div>
 
-                  {/* Video / Call Preview Card (Exact replica from Attio screenshot) */}
+                  {/* Document & Evidence Preview Card */}
                   <div className="flex items-center justify-between p-3 rounded-xl border border-black/[0.08] bg-[#f9fafb] hover:bg-[#f3f4f6] transition-colors cursor-pointer group">
                     <div className="flex items-center gap-3">
                       <div className="relative h-10 w-10 rounded-lg overflow-hidden bg-zinc-900 flex items-center justify-center text-white">
-                        <Play className="h-4 w-4 fill-white ml-0.5" />
+                        <FileText className="h-4 w-4 text-white" />
                         <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-emerald-400 border border-white" />
                       </div>
                       <div>
                         <div className="text-xs font-semibold text-zinc-900 group-hover:text-blue-600 transition-colors">
-                          Acme Europe B.V. Remittance & Wire Audio
+                          Acme Europe B.V. Remittance Advice & MT103 Swift Wire
                         </div>
                         <div className="text-[11px] text-zinc-500 flex items-center gap-1.5 mt-0.5">
-                          <span>Sep 5, 08:14 – 08:45 AM</span>
+                          <span>Aug 28, 2026 • Verified ECB Rate 1.0820</span>
                           <span>•</span>
-                          <span>31m</span>
+                          <span>Hash: #7f89a2</span>
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center -space-x-1.5">
-                      <div className="h-6 w-6 rounded-full bg-amber-400 border-2 border-white flex items-center justify-center text-[10px] font-bold text-white">A</div>
-                      <div className="h-6 w-6 rounded-full bg-blue-500 border-2 border-white flex items-center justify-center text-[10px] font-bold text-white">V</div>
+                      <div className="h-6 w-6 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-[10px] font-bold text-white">✓</div>
+                      <div className="h-6 w-6 rounded-full bg-blue-600 border-2 border-white flex items-center justify-center text-[10px] font-bold text-white">V</div>
                     </div>
                   </div>
 
-                  {/* Key opportunity signals */}
+                  {/* Deterministic Verification Plan */}
                   <div className="space-y-1.5 text-xs text-zinc-700 leading-relaxed font-sans">
-                    <p className="font-semibold text-zinc-900">Key opportunity signals:</p>
-                    <p>1. Ingested €13,000.00 EUR invoice with $14,200.00 USD bank wire settlement.</p>
+                    <p className="font-semibold text-zinc-900">Deterministic verification plan:</p>
+                    <p>1. Ingest €13,000.00 EUR invoice with $14,200.00 USD bank wire settlement.</p>
                     <p>2. Query approved European Central Bank oracle for official reference rate 1.0820.</p>
                     <p>3. Propose balanced double-entry journal ($14,066 AR + $134 Realized FX Gain).</p>
                     <p>4. Pass 3 control families before human controller sign-off.</p>
@@ -317,10 +332,10 @@ export default function AttioExactLandingPage() {
 
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-8 text-center space-y-3">
           <p className="text-[#8e96a4] text-sm sm:text-base font-normal tracking-normal">
-            The only CRM with
+            The only change-control plane with
           </p>
           <h2 className="text-4xl sm:text-6xl md:text-7xl lg:text-[76px] font-semibold tracking-[-0.04em] text-white leading-none">
-            Universal Context<span className="text-2xl sm:text-3xl md:text-4xl font-normal align-super ml-0.5 text-white/90">™</span>
+            Universal Financial Context<span className="text-2xl sm:text-3xl md:text-4xl font-normal align-super ml-0.5 text-white/90">™</span>
           </h2>
         </div>
 
@@ -411,36 +426,36 @@ export default function AttioExactLandingPage() {
                   <path d="M7 13v4M12 9v8M17 11v6" />
                 </svg>
               </div>
-              <div className="font-bold text-white text-sm">It logs itself.</div>
+              <div className="font-bold text-white text-sm">It audits itself.</div>
               <p className="text-[#8896a6] leading-relaxed text-xs">
-                Emails, calls, product, billing, captured automatically.
+                Every bank wire, MT940 line, invoice, and FX fix captured with immutable cryptographic lineage.
               </p>
             </div>
 
             {/* Card 2 */}
             <div className="p-6 sm:p-8 space-y-3">
               <Globe className="h-4 w-4 text-zinc-400" />
-              <div className="font-bold text-white text-sm">Your tools finally talk.</div>
+              <div className="font-bold text-white text-sm">Your ledger tools talk.</div>
               <p className="text-[#8896a6] leading-relaxed text-xs">
-                Granola, Slack, your whole stack, always in sync.
+                Stripe, NetSuite, Mercury, SAP, and bank feeds unified into one deterministic close engine.
               </p>
             </div>
 
             {/* Card 3 */}
             <div className="p-6 sm:p-8 space-y-3">
               <BookOpen className="h-4 w-4 text-zinc-400" />
-              <div className="font-bold text-white text-sm">Gets to know you.</div>
+              <div className="font-bold text-white text-sm">Gets sharper with every PR.</div>
               <p className="text-[#8896a6] leading-relaxed text-xs">
-                So each play is sharper than the last.
+                Rejected entries produce versioned Control PRs so the same accounting mistake never happens twice.
               </p>
             </div>
 
             {/* Card 4 */}
             <div className="p-6 sm:p-8 space-y-3">
               <MessageSquare className="h-4 w-4 text-zinc-400" />
-              <div className="font-bold text-white text-sm">Ask, and it&apos;s there.</div>
+              <div className="font-bold text-white text-sm">Ask, and the citation is there.</div>
               <p className="text-[#8896a6] leading-relaxed text-xs">
-                Any record, any answer, in a second.
+                Every journal proposal backed by clickable source invoices and approved ECB rate fixes.
               </p>
             </div>
 
@@ -449,7 +464,7 @@ export default function AttioExactLandingPage() {
               <Headphones className="h-4 w-4 text-zinc-400" />
               <div className="font-bold text-white text-sm">No agent left guessing.</div>
               <p className="text-[#8896a6] leading-relaxed text-xs">
-                Working from the same facts as your team.
+                Deterministic gates catch FX drift, missing receipts, and unbalanced debits before human review.
               </p>
             </div>
           </div>
@@ -461,30 +476,30 @@ export default function AttioExactLandingPage() {
             {/* Left Column: Signals text & navigation */}
             <div className="lg:col-span-6 p-8 sm:p-12 lg:p-16 space-y-6">
               <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#131b2e] text-[#60a5fa] border border-[#1e3a8a]">
-                Signals
+                Deterministic Gates
               </span>
               <h3 className="text-3xl sm:text-4xl lg:text-[44px] font-semibold tracking-[-0.03em] text-white leading-[1.15]">
-                All of the signals, none of the noise.{' '}
-                <span className="text-[#8896a6] font-normal">Ready to act on.</span>
+                All of the evidence, none of the hallucinations.{' '}
+                <span className="text-[#8896a6] font-normal">Ready to merge.</span>
               </h3>
               <div>
                 <button className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-white/[0.15] text-xs font-medium text-white hover:bg-white/[0.08] transition-colors">
-                  See more →
+                  Explore Control Rules →
                 </button>
               </div>
 
               {/* Interactive Context Tabs */}
               <div className="pt-10 space-y-5">
                 <div className="text-xs sm:text-sm font-medium text-[#64748b] hover:text-white cursor-pointer transition-colors">
-                  Context
+                  Evidence Lineage
                 </div>
 
                 <div className="space-y-2">
                   <div className="text-sm sm:text-base font-semibold text-white">
-                    Agents + automations
+                    Agents + automated repair
                   </div>
                   <p className="text-xs text-[#8896a6] leading-relaxed max-w-sm">
-                    An always-on revenue engine. Prospect, follow-up, research, running 24/7.
+                    An always-on finance gatekeeper. Deterministic matching, FX variance repair, citation verification, running 24/7.
                   </p>
                   <div className="w-full max-w-sm h-0.5 bg-white/10 mt-3 rounded-full overflow-hidden">
                     <div className="w-[45%] h-full bg-white rounded-full" />
@@ -492,7 +507,7 @@ export default function AttioExactLandingPage() {
                 </div>
 
                 <div className="text-xs sm:text-sm font-medium text-[#64748b] hover:text-white cursor-pointer transition-colors pt-2">
-                  Ecosystem
+                  Audit Sandbox
                 </div>
               </div>
             </div>
@@ -568,13 +583,13 @@ export default function AttioExactLandingPage() {
           {/* Top Header */}
           <div className="space-y-3 max-w-2xl mx-auto">
             <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#131b2e] text-[#60a5fa] border border-[#1e3a8a]">
-              Connectivity
+              Integrations &amp; Stack
             </span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-[-0.035em] text-white">
-              Your whole stack, connected.
+              Your entire financial stack, unified.
             </h2>
             <p className="text-xs sm:text-sm text-[#8896a6] max-w-md mx-auto leading-relaxed">
-              Claude, Slack, Clay, Linear, Notion, and anything your team and agents run on.
+              Stripe, NetSuite, SAP, Mercury, Brex, Claude, OpenAI, and your core enterprise ledgers.
             </p>
             <div className="pt-1">
               <button className="px-3.5 py-1.5 rounded-lg border border-white/[0.15] text-xs font-medium text-white hover:bg-white/[0.08] transition-colors">
@@ -688,13 +703,19 @@ export default function AttioExactLandingPage() {
                     SDK. API. MCP.
                   </h3>
                   <div className="text-xl sm:text-2xl font-normal text-[#60a5fa]">
-                    Build anything on Attio.
+                    Govern any agent on Verity.
                   </div>
+                  <p className="text-xs text-[#8896a6] leading-relaxed pt-1">
+                    Expose deterministic control gates, citation inspectors, and sandbox ledgers via REST, Python SDK, and Model Context Protocol.
+                  </p>
                 </div>
                 <div className="pt-2">
-                  <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/[0.2] text-xs font-medium text-white hover:bg-white/[0.08] transition-colors">
-                    View docs →
-                  </button>
+                  <Link
+                    href="/controls"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/[0.2] text-xs font-medium text-white hover:bg-white/[0.08] transition-colors"
+                  >
+                    View control docs →
+                  </Link>
                 </div>
               </div>
 
@@ -863,7 +884,7 @@ export default function AttioExactLandingPage() {
                   15M
                 </div>
                 <div className="text-[12px] sm:text-[13px] text-[#64748b] mt-1.5 font-normal">
-                  emails synced/day
+                  ledger lines verified/day
                 </div>
               </div>
             </div>
@@ -940,9 +961,9 @@ export default function AttioExactLandingPage() {
 
           <div className="relative z-10 text-center space-y-6 max-w-3xl px-4 mx-auto">
             <h2 className="text-4xl sm:text-5xl md:text-[56px] font-bold tracking-[-0.035em] text-white leading-[1.08]">
-              Agentic revenue
+              Agentic finance
               <br />
-              runs on Attio.
+              runs on Verity.
             </h2>
             <div className="flex items-center justify-center gap-3 pt-2">
               <Link
@@ -955,7 +976,7 @@ export default function AttioExactLandingPage() {
                 href="/queue"
                 className="px-4 py-2 rounded-lg border border-white/10 bg-[#25272e] text-xs font-medium text-white hover:bg-[#2f323a] transition-colors shadow-xs"
               >
-                Start for free
+                Launch Verity
               </Link>
             </div>
           </div>
@@ -964,111 +985,116 @@ export default function AttioExactLandingPage() {
         {/* Main Multi-Column Navigation */}
         <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 pt-20 pb-12">
           <div className="grid grid-cols-2 md:grid-cols-12 gap-10 lg:gap-8">
-            {/* Column 1: Attio Logo */}
+            {/* Column 1: Verity Logo & Mission */}
             <div className="col-span-2 md:col-span-12 lg:col-span-3">
               <div className="flex items-center gap-2.5">
-                {/* Signature Attio Angled Twin-Pebble Mark */}
-                <svg width="24" height="24" viewBox="0 0 28 28" fill="none" className="text-white">
-                  <rect x="4" y="11" width="13" height="6.5" rx="3.25" transform="rotate(-45 4 11)" fill="currentColor" />
-                  <rect x="12" y="19" width="11" height="6.5" rx="3.25" transform="rotate(-45 12 19)" fill="currentColor" />
-                </svg>
-                <span className="text-2xl font-bold tracking-tight text-white lowercase">attio</span>
+                {/* Verity Signature Layered Prism Mark */}
+                <div className="relative flex h-8 w-8 items-center justify-center rounded-xl bg-white text-black shadow-xs">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-black">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <span className="text-2xl font-bold tracking-tight text-white lowercase">verity</span>
               </div>
+              <p className="text-xs text-zinc-500 mt-3 leading-relaxed max-w-xs">
+                The change-control plane &amp; merge gate for agent-generated finance work.
+              </p>
             </div>
 
-            {/* Column 2: Platform & Company */}
+            {/* Column 2: Platform & Governance */}
             <div className="col-span-1 md:col-span-3 lg:col-span-2 space-y-9 text-[13px]">
               <div>
                 <h4 className="text-[13px] font-medium text-[#60a5fa] mb-3.5">Platform</h4>
                 <ul className="space-y-2.5 text-zinc-400 font-normal">
                   <li>
-                    <Link href="/queue" className="hover:text-white transition-colors inline-flex items-center">
-                      Refer a team
+                    <Link href="/cases/CASE-2049" className="hover:text-white transition-colors inline-flex items-center">
+                      Finance PRs
                       <span className="ml-1.5 px-1.5 py-0.5 text-[9px] font-medium bg-blue-950/80 text-blue-400 border border-blue-500/30 rounded-full leading-none">
                         New
                       </span>
                     </Link>
                   </li>
                   <li>
-                    <Link href="/cases/CASE-2049" className="hover:text-white transition-colors">
-                      Changelog
+                    <Link href="/controls" className="hover:text-white transition-colors">
+                      Deterministic CI
                     </Link>
                   </li>
                   <li>
-                    <a href="#" className="hover:text-white transition-colors inline-flex items-center gap-0.5">
-                      Gmail extension <span className="text-[11px] opacity-70">↗</span>
-                    </a>
+                    <Link href="/queue" className="hover:text-white transition-colors">
+                      Sandbox Ledger
+                    </Link>
                   </li>
                   <li>
-                    <a href="#" className="hover:text-white transition-colors inline-flex items-center gap-0.5">
-                      iOS app <span className="text-[11px] opacity-70">↗</span>
-                    </a>
+                    <Link href="/metrics" className="hover:text-white transition-colors inline-flex items-center gap-0.5">
+                      Repair Loops <span className="text-[11px] opacity-70">↗</span>
+                    </Link>
                   </li>
                   <li>
-                    <a href="#" className="hover:text-white transition-colors inline-flex items-center gap-0.5">
-                      Android app <span className="text-[11px] opacity-70">↗</span>
-                    </a>
+                    <Link href="/queue" className="hover:text-white transition-colors inline-flex items-center gap-0.5">
+                      Audit Replay <span className="text-[11px] opacity-70">↗</span>
+                    </Link>
                   </li>
                 </ul>
               </div>
 
               <div>
-                <h4 className="text-[13px] font-medium text-[#60a5fa] mb-3.5">Company</h4>
+                <h4 className="text-[13px] font-medium text-[#60a5fa] mb-3.5">Governance</h4>
                 <ul className="space-y-2.5 text-zinc-400 font-normal">
-                  <li><a href="#" className="hover:text-white transition-colors">Customers</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Announcements</a></li>
+                  <li><Link href="/cases/CASE-2049" className="hover:text-white transition-colors">Controller Review</Link></li>
+                  <li><Link href="/controls" className="hover:text-white transition-colors">Policy Provenance</Link></li>
                   <li>
-                    <a href="#" className="hover:text-white transition-colors inline-flex items-center">
-                      Engineering blog
+                    <Link href="/metrics" className="hover:text-white transition-colors inline-flex items-center">
+                      Evidence Lineage
                       <span className="ml-1.5 px-1.5 py-0.5 text-[9px] font-medium bg-blue-950/80 text-blue-400 border border-blue-500/30 rounded-full leading-none">
                         New
                       </span>
-                    </a>
+                    </Link>
                   </li>
-                  <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Manifesto</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Brand</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Become a partner</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">SOC2 Type II</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Security Spec</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Status ↗</a></li>
                 </ul>
               </div>
             </div>
 
-            {/* Column 3: Import from & Attio for */}
+            {/* Column 3: Ingest from & Verity for */}
             <div className="col-span-1 md:col-span-3 lg:col-span-2 space-y-9 text-[13px]">
               <div>
-                <h4 className="text-[13px] font-medium text-[#60a5fa] mb-3.5">Import from</h4>
+                <h4 className="text-[13px] font-medium text-[#60a5fa] mb-3.5">Ingest from</h4>
                 <ul className="space-y-2.5 text-zinc-400 font-normal">
-                  <li><a href="#" className="hover:text-white transition-colors">Salesforce</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Hubspot</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Pipedrive</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Zoho</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Excel</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">CSV</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Stripe</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">NetSuite</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">SAP ERP</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Mercury Bank</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Brex</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Plaid MT940</a></li>
                 </ul>
               </div>
 
               <div>
-                <h4 className="text-[13px] font-medium text-[#60a5fa] mb-3.5">Attio for</h4>
+                <h4 className="text-[13px] font-medium text-[#60a5fa] mb-3.5">Verity for</h4>
                 <ul className="space-y-2.5 text-zinc-400 font-normal">
-                  <li><a href="#" className="hover:text-white transition-colors">Startups</a></li>
-                  <li><a href="#" className="hover:text-white transition-colors">Deal flow</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Autonomous Finance</a></li>
+                  <li><a href="#" className="hover:text-white transition-colors">Enterprise Controllers</a></li>
                 </ul>
               </div>
             </div>
 
-            {/* Column 4: Apps */}
+            {/* Column 4: Agent Runtimes */}
             <div className="col-span-1 md:col-span-3 lg:col-span-2 text-[13px]">
-              <h4 className="text-[13px] font-medium text-[#60a5fa] mb-3.5">Apps</h4>
+              <h4 className="text-[13px] font-medium text-[#60a5fa] mb-3.5">Agent Runtimes</h4>
               <ul className="space-y-2.5 text-zinc-400 font-normal">
-                <li><a href="#" className="hover:text-white transition-colors">Gmail</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Outlook</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Segment</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Mailchimp</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Slack</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Outreach</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Mixmax</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Typeform</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Zapier</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Anthropic Claude</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">OpenAI Operator</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">LangGraph</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">CrewAI</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Model Context Protocol</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Python SDK</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">TypeScript SDK</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">REST API</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Webhooks</a></li>
               </ul>
             </div>
 
@@ -1076,25 +1102,13 @@ export default function AttioExactLandingPage() {
             <div className="col-span-1 md:col-span-3 lg:col-span-2 text-[13px]">
               <h4 className="text-[13px] font-medium text-[#60a5fa] mb-3.5">Resources</h4>
               <ul className="space-y-2.5 text-zinc-400 font-normal">
-                <li><a href="#" className="hover:text-white transition-colors">Startup program</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Help center</a></li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors inline-flex items-center gap-0.5">
-                    Developers <span className="text-[11px] opacity-70">↗</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors inline-flex items-center gap-0.5">
-                    System status <span className="text-[11px] opacity-70">↗</span>
-                  </a>
-                </li>
-                <li><a href="#" className="hover:text-white transition-colors">Hire an expert</a></li>
+                <li><Link href="/controls" className="hover:text-white transition-colors">Merge Control Guide</Link></li>
+                <li><a href="#" className="hover:text-white transition-colors">Documentation ↗</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">ECB Oracle Fixes ↗</a></li>
+                <li><Link href="/controls" className="hover:text-white transition-colors">Control Packs Library</Link></li>
+                <li><a href="#" className="hover:text-white transition-colors">Hire a Specialist</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Downloads</a></li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors inline-flex items-center gap-0.5">
-                    Trust Center <span className="text-[11px] opacity-70">↗</span>
-                  </a>
-                </li>
+                <li><a href="#" className="hover:text-white transition-colors">Trust Center ↗</a></li>
               </ul>
             </div>
           </div>
@@ -1115,10 +1129,10 @@ export default function AttioExactLandingPage() {
                   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                 </svg>
               </a>
-              {/* Dribbble */}
-              <a href="#" aria-label="Dribbble" className="hover:text-white transition-colors">
+              {/* GitHub */}
+              <a href="https://github.com/anuraggdubey/verity" target="_blank" rel="noreferrer" aria-label="GitHub" className="hover:text-white transition-colors">
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm7.93 9.07c-1.37-.3-2.93-.38-4.52-.22-.16-.38-.33-.76-.52-1.13 2.12-1.02 3.75-2.48 4.67-4.14 1.25 1.49 2 3.4 2 5.49h-.63v.001v-.001zm-6.68-6.83c-.85 1.54-2.34 2.9-4.32 3.86-.71-1.39-1.28-2.8-1.68-4.15 1.26-.64 2.69-1.01 4.21-1.01 1.08 0 2.11.19 3.06.52l-.27.78zm-7.65 1.55c.39 1.3 1 2.66 1.76 4.01-1.74.65-3.69 1.05-5.69 1.15.54-2.14 1.94-3.95 3.93-5.16zm-1.6 7.21c1.88-.1 3.73-.47 5.37-1.08.38.74.72 1.49 1.02 2.25-3.32 1.16-5.87 3.39-7.1 6.32-.67-1.33-1.05-2.84-1.05-4.44 0-1.08.17-2.12.48-3.09l1.28.04zm3.01 8.35c1.07-2.6 3.35-4.6 6.33-5.69.83 2.05 1.41 4.19 1.71 6.33-1.46.72-3.1 1.13-4.83 1.13-1.2 0-2.35-.2-3.41-.57l.2-.2zm9.64-.81c-.28-1.99-.83-3.98-1.61-5.9 1.49-.17 2.94-.12 4.2.14-.38 2.37-1.57 4.41-3.27 5.76h.68z" />
+                  <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
                 </svg>
               </a>
               {/* YouTube */}
@@ -1131,10 +1145,10 @@ export default function AttioExactLandingPage() {
 
             {/* Right: Copyright & Legal Links */}
             <div className="flex flex-wrap items-center gap-6">
-              <span>© 2026 Attio Ltd. All rights reserved.</span>
+              <span>© 2026 Verity Technologies Inc. All rights reserved.</span>
               <a href="#" className="hover:text-zinc-400 transition-colors">Services Agreement</a>
               <a href="#" className="hover:text-zinc-400 transition-colors">Privacy Policy</a>
-              <a href="#" className="hover:text-zinc-400 transition-colors">LLMs</a>
+              <a href="#" className="hover:text-zinc-400 transition-colors">Security &amp; LLMs</a>
             </div>
           </div>
         </div>
