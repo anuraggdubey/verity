@@ -1,4 +1,12 @@
 import type { FixtureTurn } from '@/lib/agent/model';
+import type { Proposal } from '@/lib/contracts/types';
+import {
+  getBankLine,
+  getCase,
+  listFxObservations,
+  listLedgerEntries,
+  listProposals,
+} from '@/lib/demo/store';
 
 /**
  * Recorded transcripts for the offline provider.
@@ -8,7 +16,10 @@ import type { FixtureTurn } from '@/lib/agent/model';
  * from one must be described as pre-recorded, out loud, every time. Never
  * present a fixture run as a live agent decision.
  *
- * Only CASE-001 is recorded. Every other case needs a live provider.
+ * CASE-001 is hand-recorded, including the tool calls that led to the mistake.
+ * Every other case is DERIVED from its stored proposals: the same investigation
+ * steps its citations imply, then the stored submission, replayed verbatim. A
+ * derived transcript proves the loop runs; it proves nothing about a model.
  */
 
 const CASE_001: FixtureTurn[] = [
@@ -93,10 +104,93 @@ const TRANSCRIPTS: Record<string, FixtureTurn[]> = {
   'CASE-001': CASE_001,
 };
 
-export function fixtureTranscript(caseId: string): FixtureTurn[] | undefined {
-  return TRANSCRIPTS[caseId];
+/** The tool calls a proposal's own citations imply, in investigation order. */
+function toolCallsFor(proposal: Proposal): { name: string; arguments: string }[] {
+  const calls: { name: string; arguments: string }[] = [];
+  const seen = new Set<string>();
+  const push = (name: string, args: Record<string, unknown>) => {
+    const key = `${name}:${JSON.stringify(args)}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    calls.push({ name, arguments: JSON.stringify(args) });
+  };
+
+  for (const citation of proposal.citations) {
+    switch (citation.sourceType) {
+      case 'bank_line':
+        push('get_bank_line', { id: citation.sourceId });
+        break;
+      case 'document':
+        push('get_supporting_document', { id: citation.sourceId });
+        break;
+      case 'ledger_entry': {
+        const entry = listLedgerEntries().find((e) => e.id === citation.sourceId);
+        if (entry) push('search_ledger', { reference: entry.reference });
+        break;
+      }
+      case 'fx_observation': {
+        const observation = listFxObservations().find((o) => o.id === citation.sourceId);
+        if (observation) {
+          push('get_approved_fx_rate', {
+            base: observation.base,
+            quote: observation.quote,
+            rateDate: observation.rateDate,
+          });
+        }
+        break;
+      }
+    }
+  }
+
+  if (calls.length === 0) {
+    const bankLine = getBankLine(proposal.citations[0]?.sourceId ?? '');
+    if (bankLine) push('get_bank_line', { id: bankLine.id });
+  }
+  return calls;
 }
 
-export function hasFixtureTranscript(caseId: string): boolean {
+function submissionTurn(proposal: Proposal): FixtureTurn {
+  return {
+    text: null,
+    toolCalls: [
+      {
+        name: 'submit_proposal',
+        arguments: JSON.stringify({
+          disposition: proposal.disposition,
+          narrative: proposal.narrative,
+          citations: proposal.citations,
+          journal: proposal.journal,
+          ...(proposal.fx ? { fx: proposal.fx } : {}),
+        }),
+      },
+    ],
+  };
+}
+
+/**
+ * Builds a transcript from the proposals already stored for a case. Call it
+ * BEFORE resetting the case — a reset removes the proposals it reads.
+ */
+export function derivedTranscript(caseId: string): FixtureTurn[] | undefined {
+  if (!getCase(caseId)) return undefined;
+  const proposals = listProposals()
+    .filter((proposal) => proposal.caseId === caseId)
+    .sort((a, b) => a.revision - b.revision);
+  if (proposals.length === 0) return undefined;
+
+  const turns: FixtureTurn[] = [];
+  for (const proposal of proposals) {
+    for (const call of toolCallsFor(proposal)) turns.push({ text: null, toolCalls: [call] });
+    turns.push(submissionTurn(proposal));
+  }
+  return turns;
+}
+
+export function fixtureTranscript(caseId: string): FixtureTurn[] | undefined {
+  return TRANSCRIPTS[caseId] ?? derivedTranscript(caseId);
+}
+
+/** True when the transcript was hand-recorded rather than derived. */
+export function isHandRecorded(caseId: string): boolean {
   return caseId in TRANSCRIPTS;
 }

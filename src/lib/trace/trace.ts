@@ -27,11 +27,29 @@ export type TraceEntry = {
 };
 
 type TraceStore = Map<string, TraceEntry[]>;
+type Subscriber = (entry: TraceEntry) => void;
 
-const globalRef = globalThis as unknown as { __verityTraces?: TraceStore };
+const globalRef = globalThis as unknown as {
+  __verityTraces?: TraceStore;
+  __verityTraceSubscribers?: Set<Subscriber>;
+};
+
 function traces(): TraceStore {
   if (!globalRef.__verityTraces) globalRef.__verityTraces = new Map();
   return globalRef.__verityTraces;
+}
+
+function subscribers(): Set<Subscriber> {
+  if (!globalRef.__verityTraceSubscribers) globalRef.__verityTraceSubscribers = new Set();
+  return globalRef.__verityTraceSubscribers;
+}
+
+/** Live worker activity. Used by the SSE stream so the queue can show a run as it happens. */
+export function subscribeToTraces(subscriber: Subscriber): () => void {
+  subscribers().add(subscriber);
+  return () => {
+    subscribers().delete(subscriber);
+  };
 }
 
 export class Trace {
@@ -62,6 +80,13 @@ export class Trace {
     list.push(full);
     traces().set(this.id, list);
     getTraceSink()?.emit(full);
+    for (const subscriber of subscribers()) {
+      try {
+        subscriber(full);
+      } catch {
+        // A broken listener must never affect a run.
+      }
+    }
     return full;
   }
 

@@ -9,7 +9,9 @@
     "lint": "eslint",
     "bench": "tsx bench/run.ts",
     "agent": "tsx bench/agent.ts",
-    "learn": "tsx bench/learn.ts"
+    "learn": "tsx bench/learn.ts",
+    "baseline": "tsx bench/baseline.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@google/genai": "^2.21.0",
@@ -34,6 +36,7 @@
     "eslint-config-next": "16.3.4",
     "tailwindcss": "^4",
     "tsx": "^4.23.13",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.7"
   }
 }

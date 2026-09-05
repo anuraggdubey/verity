@@ -460,6 +460,19 @@ export function resetCaseForInvestigation(caseId: string): { ok: boolean; error?
     return { ok: false, error: `${caseId} has a controller decision and cannot be re-investigated` };
   }
   const proposalIds = new Set(c.revisions);
+  const traceIds = new Set(
+    s.proposals.filter((p) => proposalIds.has(p.id)).map((p) => p.traceId),
+  );
+
+  // The prior run's events go too, or metrics would mix a previous attempt with
+  // this one. Controller decisions are untouched — this refuses if any exist.
+  s.events = s.events.filter((event) => {
+    if ('caseId' in event && event.caseId === caseId) return false;
+    if ('proposalId' in event && proposalIds.has(event.proposalId)) return false;
+    if ('traceId' in event && traceIds.has(event.traceId)) return false;
+    return true;
+  });
+
   s.proposals = s.proposals.filter((p) => !proposalIds.has(p.id));
   s.controlReports = s.controlReports.filter((r) => !proposalIds.has(r.proposalId));
   s.routeDecisions = s.routeDecisions.filter((r) => !proposalIds.has(r.proposalId));
