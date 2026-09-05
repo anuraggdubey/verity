@@ -1,0 +1,153 @@
+{
+  "lanes": {
+    "auto": {
+      "name": "Auto-Clear Queue",
+      "description": "Clean non-posting exact matches & verified timing differences (immaterial, 100% controls passed)",
+      "cases": [
+        {
+          "id": "CASE-1011",
+          "title": "AWS Cloud Hosting Recurring Auto-Debit",
+          "amount": 4210.50,
+          "currency": "USD",
+          "state": "auto_cleared",
+          "disposition": "matched",
+          "counterparty": "Amazon Web Services Inc",
+          "bankLineId": "BNK-2026-09-0012",
+          "candidateLedgerIds": ["AP-AWS-SEP26"],
+          "materiality": "immaterial",
+          "autoClearPermitted": true,
+          "revisions": ["prop-1011-1"],
+          "createdAt": "2026-09-05T07:12:00Z",
+          "workerActive": false
+        },
+        {
+          "id": "CASE-1012",
+          "title": "Stripe Merchant Deposit Clearing",
+          "amount": 18940.20,
+          "currency": "USD",
+          "state": "auto_cleared",
+          "disposition": "matched",
+          "counterparty": "Stripe Payments US",
+          "bankLineId": "BNK-2026-09-0015",
+          "candidateLedgerIds": ["BATCH-STRIPE-0904"],
+          "materiality": "immaterial",
+          "autoClearPermitted": true,
+          "revisions": ["prop-1012-1"],
+          "createdAt": "2026-09-05T07:22:10Z",
+          "workerActive": false
+        },
+        {
+          "id": "CASE-1013",
+          "title": "GSuite / Google Workspace Monthly Subscription",
+          "amount": 720.00,
+          "currency": "USD",
+          "state": "auto_cleared",
+          "disposition": "matched",
+          "counterparty": "Google LLC",
+          "bankLineId": "BNK-2026-09-0019",
+          "candidateLedgerIds": ["AP-GSUITE-2609"],
+          "materiality": "immaterial",
+          "autoClearPermitted": true,
+          "revisions": ["prop-1013-1"],
+          "createdAt": "2026-09-05T07:45:00Z",
+          "workerActive": false
+        }
+      ]
+    },
+    "review": {
+      "name": "Controller Review Queue",
+      "description": "Agent-proposed journal adjustments with 100% passed controls awaiting human merge sign-off",
+      "cases": [
+        {
+          "id": "CASE-2049",
+          "title": "EUR Invoice Settlement with USD Inflow Variance",
+          "amount": 14200.00,
+          "currency": "USD",
+          "state": "merge_ready",
+          "disposition": "fx_revaluation",
+          "counterparty": "Acme Europe B.V.",
+          "bankLineId": "BNK-2026-08-9921",
+          "candidateLedgerIds": ["INV-8821-EUR"],
+          "materiality": "material",
+          "autoClearPermitted": false,
+          "revisions": ["prop-rev-1", "prop-rev-2"],
+          "createdAt": "2026-09-05T08:14:22Z",
+          "workerActive": false,
+          "workerId": "worker-alpha-03"
+        },
+        {
+          "id": "CASE-2051",
+          "title": "Unallocated Wire Transfer from Apex Financial",
+          "amount": 25000.00,
+          "currency": "USD",
+          "state": "proposed",
+          "disposition": "bank_fee_journal",
+          "counterparty": "Apex Financial Group",
+          "bankLineId": "BNK-2026-09-0088",
+          "candidateLedgerIds": ["APEX-DEPOSIT-99"],
+          "materiality": "material",
+          "autoClearPermitted": false,
+          "revisions": ["prop-2051-1"],
+          "createdAt": "2026-09-05T09:00:15Z",
+          "workerActive": true,
+          "workerId": "worker-beta-01"
+        },
+        {
+          "id": "CASE-2052",
+          "title": "JP Morgan Analysis Fee Settlement",
+          "amount": 485.50,
+          "currency": "USD",
+          "state": "merge_ready",
+          "disposition": "bank_fee_journal",
+          "counterparty": "JPMorgan Chase Bank",
+          "bankLineId": "BNK-2026-09-0094",
+          "candidateLedgerIds": [],
+          "materiality": "material",
+          "autoClearPermitted": false,
+          "revisions": ["prop-2052-1"],
+          "createdAt": "2026-09-05T09:15:30Z",
+          "workerActive": false,
+          "workerId": "worker-gamma-02"
+        }
+      ]
+    },
+    "escalate": {
+      "name": "Escalation Queue",
+      "description": "Blocked investigations due to contradictory evidence, unresolvable ambiguity, or critical materiality",
+      "cases": [
+        {
+          "id": "CASE-3001",
+          "title": "Suspected Duplicate Wire Outflow to Supplier",
+          "amount": 62500.00,
+          "currency": "USD",
+          "state": "escalated",
+          "disposition": "duplicate",
+          "counterparty": "Pacific Freight Logistics",
+          "bankLineId": "BNK-2026-09-0102",
+          "candidateLedgerIds": ["PO-PACIFIC-891", "PO-PACIFIC-892"],
+          "materiality": "critical",
+          "autoClearPermitted": false,
+          "revisions": ["prop-3001-1"],
+          "createdAt": "2026-09-05T09:30:00Z",
+          "workerActive": false
+        },
+        {
+          "id": "CASE-3002",
+          "title": "Unidentified Clearing Inflow with Missing Remittance Advice",
+          "amount": 98000.00,
+          "currency": "USD",
+          "state": "escalated",
+          "disposition": "insufficient_evidence",
+          "counterparty": "Unknown Counterparty (MT103 Unparsed)",
+          "bankLineId": "BNK-2026-09-0118",
+          "candidateLedgerIds": [],
+          "materiality": "critical",
+          "autoClearPermitted": false,
+          "revisions": ["prop-3002-1"],
+          "createdAt": "2026-09-05T09:42:15Z",
+          "workerActive": false
+        }
+      ]
+    }
+  }
+}
