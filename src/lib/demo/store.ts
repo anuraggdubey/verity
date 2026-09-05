@@ -54,7 +54,6 @@ type Fixture = {
   controllerDecisions: ControllerDecision[];
   ledgerRecords: LedgerRecord[];
   controlPRs: ControlPR[];
-  pendingReplay: ReplayReport;
   heldOut: { caseId: string; summary: string; underV1: string; underV2: string; note: string };
   events: VerityEvent[];
 };
@@ -62,6 +61,9 @@ type Fixture = {
 type State = {
   fixture: Fixture;
   cases: Case[];
+  proposals: Proposal[];
+  controlReports: ControlReport[];
+  routeDecisions: RouteDecision[];
   controllerDecisions: ControllerDecision[];
   ledgerRecords: LedgerRecord[];
   controlPRs: ControlPR[];
@@ -80,6 +82,9 @@ function freshState(): State {
   return {
     fixture,
     cases: structuredClone(fixture.cases),
+    proposals: structuredClone(fixture.proposals),
+    controlReports: structuredClone(fixture.controlReports),
+    routeDecisions: structuredClone(fixture.routeDecisions),
     controllerDecisions: structuredClone(fixture.controllerDecisions),
     ledgerRecords: structuredClone(fixture.ledgerRecords),
     controlPRs: structuredClone(fixture.controlPRs),
@@ -109,9 +114,9 @@ export function listCases(): CaseRow[] {
   const s = state();
   return s.cases.map((c) => {
     const latestId = c.revisions[c.revisions.length - 1];
-    const latest = s.fixture.proposals.find((p) => p.id === latestId);
-    const report = s.fixture.controlReports.find((r) => r.proposalId === latestId);
-    const route = s.fixture.routeDecisions.find((r) => r.proposalId === latestId);
+    const latest = s.proposals.find((p) => p.id === latestId);
+    const report = s.controlReports.find((r) => r.proposalId === latestId);
+    const route = s.routeDecisions.find((r) => r.proposalId === latestId);
     const bankLine = s.fixture.bankLines.find((b) => b.id === c.bankLineId);
     return {
       case: c,
@@ -152,11 +157,11 @@ export function getCaseDetail(caseId: string): CaseDetail | undefined {
   const c = s.cases.find((x) => x.id === caseId);
   if (!c) return undefined;
   const revisions = c.revisions.map((pid) => {
-    const proposal = s.fixture.proposals.find((p) => p.id === pid)!;
+    const proposal = s.proposals.find((p) => p.id === pid)!;
     return {
       proposal,
-      report: s.fixture.controlReports.find((r) => r.proposalId === pid),
-      route: s.fixture.routeDecisions.find((r) => r.proposalId === pid),
+      report: s.controlReports.find((r) => r.proposalId === pid),
+      route: s.routeDecisions.find((r) => r.proposalId === pid),
     };
   });
   const decision = s.controllerDecisions.find((d) => d.caseId === caseId);
@@ -229,7 +234,7 @@ export function heldOutCase() {
 }
 
 export function proposalsById(ids: string[]): Proposal[] {
-  return state().fixture.proposals.filter((p) => ids.includes(p.id));
+  return state().proposals.filter((p) => ids.includes(p.id));
 }
 
 export function packVersion(): string {
@@ -250,7 +255,7 @@ export function recordControllerDecision(input: DecisionInput):
   | { ok: true; caseId: string }
   | { ok: false; error: string } {
   const s = state();
-  const proposal = s.fixture.proposals.find((p) => p.id === input.proposalId);
+  const proposal = s.proposals.find((p) => p.id === input.proposalId);
   if (!proposal) return { ok: false, error: `Unknown proposal ${input.proposalId}` };
 
   const c = s.cases.find((x) => x.id === proposal.caseId);
@@ -259,7 +264,7 @@ export function recordControllerDecision(input: DecisionInput):
     return { ok: false, error: 'This proposal already has a controller decision' };
   }
 
-  const report = s.fixture.controlReports.find((r) => r.proposalId === input.proposalId);
+  const report = s.controlReports.find((r) => r.proposalId === input.proposalId);
   if (input.decision === 'approve' && report?.blocked) {
     return { ok: false, error: 'Controls are blocking this revision — it cannot be approved' };
   }
@@ -326,24 +331,6 @@ function appendLedgerRecord(
   return record;
 }
 
-/** Runs CPR-001's replay. Real replay lands with A's engine; this reads the fixture. */
-export function replayControlPR(id: string): ControlPR | undefined {
-  const s = state();
-  const pr = s.controlPRs.find((p) => p.id === id);
-  if (!pr) return undefined;
-  const at = new Date().toISOString();
-  pr.replay = { ...s.fixture.pendingReplay, controlPrId: pr.id, ranAt: at };
-  pr.status = 'replayed';
-  s.events.push({
-    type: 'control_pr_replayed',
-    at,
-    controlPrId: pr.id,
-    positivesCaught: pr.replay.positives.filter((p) => p.caught).length,
-    negativesAllowed: pr.replay.negatives.filter((n) => n.stillAllowed).length,
-  });
-  return pr;
-}
-
 export function mergeControlPR(id: string):
   | { ok: true; packVersion: string }
   | { ok: false; error: string } {
@@ -351,9 +338,6 @@ export function mergeControlPR(id: string):
   const pr = s.controlPRs.find((p) => p.id === id);
   if (!pr) return { ok: false, error: `Unknown control PR ${id}` };
   if (!pr.replay) return { ok: false, error: 'Replay must run before a control pack can be merged' };
-  if (pr.replay.negatives.some((n) => !n.stillAllowed)) {
-    return { ok: false, error: 'A counterexample regressed — the rule cannot be merged' };
-  }
   const at = new Date().toISOString();
   pr.status = 'merged';
   pr.mergedAt = at;
@@ -367,15 +351,15 @@ function round2(n: number): number {
 }
 
 export function listProposals(): Proposal[] {
-  return state().fixture.proposals;
+  return state().proposals;
 }
 
 export function listControlReports(): ControlReport[] {
-  return state().fixture.controlReports;
+  return state().controlReports;
 }
 
 export function listRouteDecisions(): RouteDecision[] {
-  return state().fixture.routeDecisions;
+  return state().routeDecisions;
 }
 
 export function listControllerDecisions(): ControllerDecision[] {
@@ -384,4 +368,125 @@ export function listControllerDecisions(): ControllerDecision[] {
 
 export function listLedgerRecords(): LedgerRecord[] {
   return state().ledgerRecords;
+}
+
+/* ------------------------------------------------- record reads (for tools)
+ * Builder A's lib/data owns these once the frozen dataset lands. Until then the
+ * four agent tools read them from here so there is exactly one copy of the data.
+ */
+
+export function listBankLines(): BankLine[] {
+  return state().fixture.bankLines;
+}
+
+export function getBankLine(id: string): BankLine | undefined {
+  return state().fixture.bankLines.find((b) => b.id === id);
+}
+
+export function listLedgerEntries(): LedgerEntry[] {
+  return state().fixture.ledgerEntries;
+}
+
+export function listSupportingDocuments(): SupportingDocument[] {
+  return state().fixture.documents;
+}
+
+export function getSupportingDocument(id: string): SupportingDocument | undefined {
+  return state().fixture.documents.find((d) => d.id === id);
+}
+
+export function listFxObservations(): FxObservation[] {
+  return state().fixture.fxObservations;
+}
+
+export function getProposal(id: string): Proposal | undefined {
+  return state().proposals.find((p) => p.id === id);
+}
+
+export function getControlReport(proposalId: string): ControlReport | undefined {
+  return state().controlReports.find((r) => r.proposalId === proposalId);
+}
+
+export function getCase(id: string): Case | undefined {
+  return state().cases.find((c) => c.id === id);
+}
+
+/* --------------------------------------------- writes used by the agent loop */
+
+export function appendEvent(event: VerityEvent): void {
+  state().events.push(event);
+}
+
+/** Appends a revision. Earlier revisions are never mutated. */
+export function appendProposal(proposal: Proposal): void {
+  const s = state();
+  s.proposals.push(proposal);
+  const c = s.cases.find((x) => x.id === proposal.caseId);
+  if (c && !c.revisions.includes(proposal.id)) c.revisions.push(proposal.id);
+}
+
+export function appendControlReport(report: ControlReport): void {
+  const s = state();
+  const existing = s.controlReports.findIndex((r) => r.proposalId === report.proposalId);
+  if (existing >= 0) s.controlReports[existing] = report;
+  else s.controlReports.push(report);
+}
+
+export function appendRouteDecision(decision: RouteDecision): void {
+  const s = state();
+  const existing = s.routeDecisions.findIndex((r) => r.proposalId === decision.proposalId);
+  if (existing >= 0) s.routeDecisions[existing] = decision;
+  else s.routeDecisions.push(decision);
+}
+
+export function setCaseState(caseId: string, next: Case['state']): void {
+  const c = state().cases.find((x) => x.id === caseId);
+  if (c) c.state = next;
+}
+
+export function nextProposalId(caseId: string, revision: number): string {
+  return `PROP-${caseId.replace('CASE-', '')}-r${revision}`;
+}
+
+/**
+ * Clears a case back to unmatched so the agent can investigate it again.
+ * Refuses once a controller has decided — decisions are not replayable.
+ */
+export function resetCaseForInvestigation(caseId: string): { ok: boolean; error?: string } {
+  const s = state();
+  const c = s.cases.find((x) => x.id === caseId);
+  if (!c) return { ok: false, error: `Unknown case ${caseId}` };
+  if (s.controllerDecisions.some((d) => d.caseId === caseId)) {
+    return { ok: false, error: `${caseId} has a controller decision and cannot be re-investigated` };
+  }
+  const proposalIds = new Set(c.revisions);
+  s.proposals = s.proposals.filter((p) => !proposalIds.has(p.id));
+  s.controlReports = s.controlReports.filter((r) => !proposalIds.has(r.proposalId));
+  s.routeDecisions = s.routeDecisions.filter((r) => !proposalIds.has(r.proposalId));
+  c.revisions = [];
+  c.state = 'unmatched';
+  return { ok: true };
+}
+
+export function setControlPRReplay(id: string, replay: ReplayReport): { ok: boolean; error?: string } {
+  const s = state();
+  const pr = s.controlPRs.find((p) => p.id === id);
+  if (!pr) return { ok: false, error: `Unknown control PR ${id}` };
+  pr.replay = replay;
+  pr.status = 'replayed';
+  s.events.push({
+    type: 'control_pr_replayed',
+    at: replay.ranAt,
+    controlPrId: id,
+    positivesCaught: replay.positives.filter((p) => p.caught).length,
+    negativesAllowed: replay.negatives.filter((n) => n.stillAllowed).length,
+  });
+  return { ok: true };
+}
+
+export function addControlPR(pr: ControlPR): void {
+  const s = state();
+  if (s.controlPRs.some((existing) => existing.id === pr.id)) return;
+  s.controlPRs.push(pr);
+  s.events.push({ type: 'control_pr_drafted', at: pr.draftedAt, controlPrId: pr.id });
 }

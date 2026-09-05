@@ -3,14 +3,97 @@
   "benchmarkIsSynthetic": true,
   "practitionerReviewed": false,
   "cases": {
-    "CASE-001": { "split": "discovery", "expectedDisposition": "fx_revaluation", "expectedLane": "review", "autoClearPermitted": false, "expectedJournalAccounts": ["2100", "7420", "1010"], "note": "Must use approved transaction-date spot rate 1.0785 and recognize USD 84.00 realized FX loss." },
-    "CASE-002": { "split": "discovery", "expectedDisposition": "bank_fee_journal", "expectedLane": "review", "autoClearPermitted": false, "expectedJournalAccounts": ["7110", "1010"] },
-    "CASE-003": { "split": "discovery", "expectedDisposition": "duplicate", "expectedLane": "review", "autoClearPermitted": false, "expectedJournalAccounts": [] },
-    "CASE-004": { "split": "discovery", "expectedDisposition": "insufficient_evidence", "expectedLane": "escalate", "autoClearPermitted": false, "expectedJournalAccounts": [], "note": "Correct abstention. Any proposed disposition is wrong." },
-    "CASE-005": { "split": "discovery", "expectedDisposition": "timing_difference", "expectedLane": "auto", "autoClearPermitted": true, "expectedJournalAccounts": [] },
-    "CASE-006": { "split": "discovery", "expectedDisposition": "fx_revaluation", "expectedLane": "review", "autoClearPermitted": false, "expectedJournalAccounts": ["2100", "7420", "1010"], "note": "v1 baseline failure: approved source, settlement-date rate. Supports CPR-001." },
-    "CASE-008": { "split": "counterexample", "expectedDisposition": "fx_revaluation", "expectedLane": "review", "autoClearPermitted": false, "expectedJournalAccounts": ["2100", "7420", "1010"], "note": "Negative counterexample. VERITY-FX-005 must NOT catch this." },
-    "CASE-009": { "split": "discovery", "expectedDisposition": "fx_revaluation", "expectedLane": "review", "autoClearPermitted": false, "expectedJournalAccounts": ["2100", "7420", "1010"], "note": "v1 baseline failure: month-end closing rate. Supports CPR-001." },
-    "CASE-012": { "split": "held_out", "expectedDisposition": "fx_revaluation", "expectedLane": "review", "autoClearPermitted": false, "expectedJournalAccounts": ["2100", "7420", "1010"], "note": "Held-out replay case for the same failure class. Never used to draft CPR-001." }
+    "CASE-001": {
+      "split": "discovery",
+      "expectedDisposition": "fx_revaluation",
+      "expectedLane": "review",
+      "autoClearPermitted": false,
+      "expectedJournalAccounts": [
+        "2100",
+        "7420",
+        "1010"
+      ],
+      "note": "Must use approved transaction-date spot rate 1.0785 and recognize USD 84.00 realized FX loss."
+    },
+    "CASE-002": {
+      "split": "discovery",
+      "expectedDisposition": "bank_fee_journal",
+      "expectedLane": "review",
+      "autoClearPermitted": false,
+      "expectedJournalAccounts": [
+        "7110",
+        "1010"
+      ]
+    },
+    "CASE-003": {
+      "split": "discovery",
+      "expectedDisposition": "duplicate",
+      "expectedLane": "review",
+      "autoClearPermitted": false,
+      "expectedJournalAccounts": []
+    },
+    "CASE-004": {
+      "split": "discovery",
+      "expectedDisposition": "insufficient_evidence",
+      "expectedLane": "escalate",
+      "autoClearPermitted": false,
+      "expectedJournalAccounts": [],
+      "note": "Correct abstention. Any proposed disposition is wrong."
+    },
+    "CASE-005": {
+      "split": "discovery",
+      "expectedDisposition": "timing_difference",
+      "expectedLane": "auto",
+      "autoClearPermitted": true,
+      "expectedJournalAccounts": []
+    },
+    "CASE-006": {
+      "split": "discovery",
+      "expectedDisposition": "fx_revaluation",
+      "expectedLane": "review",
+      "autoClearPermitted": false,
+      "expectedJournalAccounts": [
+        "2100",
+        "7420",
+        "1010"
+      ],
+      "note": "v1 baseline failure: approved source, settlement-date rate. Supports CPR-001."
+    },
+    "CASE-008": {
+      "split": "counterexample",
+      "expectedDisposition": "fx_revaluation",
+      "expectedLane": "review",
+      "autoClearPermitted": false,
+      "expectedJournalAccounts": [
+        "2100",
+        "7420",
+        "1010"
+      ],
+      "note": "Negative counterexample. VERITY-FX-005 must NOT catch this."
+    },
+    "CASE-009": {
+      "split": "discovery",
+      "expectedDisposition": "fx_revaluation",
+      "expectedLane": "review",
+      "autoClearPermitted": false,
+      "expectedJournalAccounts": [
+        "2100",
+        "7420",
+        "1010"
+      ],
+      "note": "v1 baseline failure: approved spot rate dated the settlement day. Supports CPR-001."
+    },
+    "CASE-012": {
+      "split": "held_out",
+      "expectedDisposition": "fx_revaluation",
+      "expectedLane": "review",
+      "autoClearPermitted": false,
+      "expectedJournalAccounts": [
+        "2100",
+        "7420",
+        "1010"
+      ],
+      "note": "Held-out replay case for the same failure class. Never used to draft CPR-001."
+    }
   }
 }

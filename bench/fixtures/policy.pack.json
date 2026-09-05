@@ -1,0 +1,28 @@
+{
+  "policyVersion": "policy-2026.08",
+  "note": "Static accounting policy for the sandbox entity. Builder A owns this once the frozen dataset lands. Synthetic, not practitioner-reviewed.",
+  "entities": ["ACME-US"],
+  "functionalCurrency": "USD",
+  "openPeriods": ["2026-08"],
+  "closedPeriods": ["2026-06", "2026-07"],
+  "chartOfAccounts": {
+    "1010": "Cash — operating",
+    "1200": "Accounts receivable",
+    "2100": "Accounts payable",
+    "7110": "Bank fees",
+    "7420": "Realized FX gain/loss",
+    "7900": "Suspense — unidentified receipts"
+  },
+  "fx": {
+    "approvedSources": ["APEX-REF-RATES"],
+    "requiredRateType": "spot",
+    "requiredRateDate": "transaction_date",
+    "rateDateToleranceDays": 0
+  },
+  "materiality": {
+    "immaterialBelow": 500,
+    "criticalAtOrAbove": 10000
+  },
+  "autoClearDispositions": ["matched", "timing_difference"],
+  "amountToleranceMinorUnits": 1
+}

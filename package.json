@@ -6,7 +6,10 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "bench": "tsx bench/run.ts",
+    "agent": "tsx bench/agent.ts",
+    "learn": "tsx bench/learn.ts"
   },
   "dependencies": {
     "@google/genai": "^2.21.0",
@@ -30,6 +33,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
     "tailwindcss": "^4",
+    "tsx": "^4.23.13",
     "typescript": "^5"
   }
 }
