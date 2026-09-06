@@ -9,7 +9,7 @@
  * All three are correct outcomes for the harness.
  */
 
-import { createProvider, modelConfig } from '../src/lib/agent/model';
+import { createProvider, liveProvider, modelConfig } from '../src/lib/agent/model';
 import { fixtureTranscript } from '../src/lib/agent/fixture-transcripts';
 import { investigateCase } from '../src/lib/agent/worker';
 import { corePromptHash } from '../src/lib/agent/prompt';
@@ -35,7 +35,9 @@ async function main() {
   const live = args.includes('--live');
   const caseId = args.find((arg) => !arg.startsWith('--')) ?? 'CASE-001';
 
-  const config = { ...modelConfig(), provider: live ? ('openai' as const) : ('fixture' as const) };
+  const config = live
+    ? liveProvider(modelConfig())
+    : { ...modelConfig(), provider: 'fixture' as const };
 
   if (!live) {
     const transcript = fixtureTranscript(caseId);

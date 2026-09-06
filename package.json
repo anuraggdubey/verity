@@ -18,6 +18,7 @@
     "review:import": "tsx bench/review.ts import"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.124.0",
     "@google/genai": "^2.21.0",
     "@tailwindcss/oxide-win32-x64-msvc": "^4.3.3",
     "clsx": "^2.1.1",

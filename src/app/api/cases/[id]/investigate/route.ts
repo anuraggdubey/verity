@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { fixtureTranscript } from '@/lib/agent/fixture-transcripts';
-import { createProvider, modelConfig } from '@/lib/agent/model';
+import { createProvider, liveProvider, modelConfig } from '@/lib/agent/model';
 import { investigateCase } from '@/lib/agent/worker';
 import { resetCaseForInvestigation } from '@/lib/demo/store';
 import { getTrace } from '@/lib/trace/trace';
@@ -43,7 +43,7 @@ export async function POST(request: Request, ctx: { params: Promise<{ id: string
 
   try {
     const provider = createProvider({
-      config: { ...modelConfig(), provider: live ? 'openai' : 'fixture' },
+      config: live ? liveProvider(modelConfig()) : { ...modelConfig(), provider: 'fixture' },
       fixtureTurns: transcript ?? [],
     });
 

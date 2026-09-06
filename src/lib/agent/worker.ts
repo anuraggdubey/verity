@@ -138,7 +138,7 @@ export async function investigateCase(caseId: string, options: RunOptions = {}):
 
       if (response.toolCalls.length === 0) {
         emptyTurns += 1;
-        messages.push({ role: 'assistant', content: response.text });
+        messages.push({ role: 'assistant', content: response.text, raw: response.raw });
         if (emptyTurns >= 2) {
           stoppedBecause = 'The agent stopped calling tools without submitting a proposal.';
           break;
@@ -151,7 +151,14 @@ export async function investigateCase(caseId: string, options: RunOptions = {}):
         continue;
       }
 
-      messages.push({ role: 'assistant', content: response.text, toolCalls: response.toolCalls });
+      // `raw` carries the provider's own content blocks (Anthropic thinking
+      // blocks among them), which must be replayed unchanged on the next turn.
+      messages.push({
+        role: 'assistant',
+        content: response.text,
+        toolCalls: response.toolCalls,
+        raw: response.raw,
+      });
 
       let finished = false;
 

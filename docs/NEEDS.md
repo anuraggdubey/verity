@@ -42,27 +42,32 @@ do not exist in the dataset. Fine as marketing narrative, but if the demo cuts
 from the landing page to the console, the numbers should match or the voiceover
 should say the landing page is illustrative.
 
-### 1.2 A model API key  *(owner: whoever holds the account)*
-Set in `.env.local`, never committed — see [`.env.example`](../.env.example):
+### 1.2 A model API key  — **DONE (Anthropic)**
+The live path runs on the official Anthropic SDK. Set in `.env.local`, which is
+gitignored and must never be committed:
 
 ```
-VERITY_MODEL_PROVIDER=openai
-VERITY_MODEL_API_KEY=...
-VERITY_MODEL=gpt-4o-mini          # or whichever model we standardise on
-VERITY_MODEL_TEMPERATURE=0
+VERITY_MODEL_PROVIDER=anthropic
+VERITY_MODEL=claude-opus-5
+ANTHROPIC_API_KEY=...
 ```
 
-Until this exists, every run is a replayed transcript. **A pre-recorded run must
-be called pre-recorded, on camera, every time.**
+Rotate any key that has ever been pasted into a chat, a ticket or a commit.
 
-### 1.3 A live run of the FX case  *(owner: B)*
-```bash
-npm run agent -- CASE-001 --live
-```
-The live path is written against the installed SDK and typechecks, but it has
-never made a real call. First live run may need small fixes. The unscripted
-failure beat depends on it, and any of these outcomes is acceptable and handled:
-unapproved source, wrong rate date, missing citation, or a clean first pass.
+### 1.3 A live run of the FX case  — **DONE, and it changes the demo**
+See [LIVE-RESULTS.md](./LIVE-RESULTS.md) for the full run. The headline: **Claude
+Opus 5 gets CASE-001 right on the first attempt**, and so does Haiku 4.5. The
+block-and-repair beat cannot assume the model fails the flagship case.
+
+A full live baseline on Haiku 4.5 did produce four control blocks, all four
+repaired — use one of those, or show the pre-recorded trace and say on camera
+that it is pre-recorded. Live numbers: 0 unsafe escapes, 0 out-of-policy
+postings, 0 false positives, 4/4 repairs, 17 safe auto-clears, 24/29 correct
+dispositions, $2.06 for the run.
+
+Also correct before recording: `CASE-012`'s held-out narrative describes the
+recorded fixture, not live behaviour. Live models use the transaction-date rate
+there.
 
 ### 1.4 The full benchmark  *(owner: A)*
 Currently 8 cases in `bench/fixtures/demo.json`; the spec calls for 24–30.

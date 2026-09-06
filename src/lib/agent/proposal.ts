@@ -78,10 +78,14 @@ export const SUBMIT_PROPOSAL_SPEC: ToolSpec = {
         type: 'object',
         description: 'Required when the invoice currency differs from the settlement currency.',
         properties: {
-          rate: { type: 'number' },
-          rateDate: { type: 'string' },
-          rateType: { type: 'string' },
-          sourceId: { type: 'string' },
+          rate: { type: 'number', description: 'The rate you converted at, exactly as observed.' },
+          rateDate: { type: 'string', description: "The observation's rateDate, not the settlement date." },
+          rateType: { type: 'string', description: 'spot, closing or average — as observed.' },
+          sourceId: {
+            type: 'string',
+            description:
+              "The PROVIDER identifier — the observation's sourceId field, e.g. APEX-REF-RATES. Not the observation's own id (FXO-...). Cite the observation id in citations instead.",
+          },
         },
         required: ['rate', 'rateDate', 'rateType', 'sourceId'],
         additionalProperties: false,

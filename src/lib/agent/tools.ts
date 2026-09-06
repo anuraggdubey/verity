@@ -144,9 +144,20 @@ export function executeTool(name: string, rawArguments: string): ToolResult {
         if (counterparty && !doc.counterparty.toLowerCase().includes(counterparty.toLowerCase())) return false;
         return true;
       });
-      return matches.length > 0
-        ? { ok: true, content: { count: matches.length, documents: matches } }
-        : { ok: false, content: { error: 'No supporting document matches that search. Evidence may be missing.' } };
+      // A search that correctly finds nothing is a successful search, not a tool
+      // failure: many bank lines legitimately have no supporting document, and
+      // counting those as errors inflated the operational failure metric.
+      return {
+        ok: true,
+        content:
+          matches.length > 0
+            ? { count: matches.length, documents: matches }
+            : {
+                count: 0,
+                documents: [],
+                note: 'No supporting document matches that search. Evidence may genuinely be missing — consider insufficient_evidence rather than assuming one exists.',
+              },
+      };
     }
 
     case 'get_approved_fx_rate': {

@@ -9,7 +9,7 @@
  * already decided are skipped rather than re-run; decisions are not replayable.
  */
 
-import { createProvider, modelConfig } from '../src/lib/agent/model';
+import { createProvider, liveProvider, modelConfig } from '../src/lib/agent/model';
 import { fixtureTranscript, isHandRecorded } from '../src/lib/agent/fixture-transcripts';
 import { corePromptHash } from '../src/lib/agent/prompt';
 import { investigateCase } from '../src/lib/agent/worker';
@@ -47,7 +47,9 @@ type Row = {
 async function main() {
   loadEnv();
   const live = process.argv.includes('--live');
-  const config = { ...modelConfig(), provider: live ? ('openai' as const) : ('fixture' as const) };
+  const config = live
+    ? liveProvider(modelConfig())
+    : { ...modelConfig(), provider: 'fixture' as const };
 
   console.log(
     `${live ? 'LIVE' : 'PRE-RECORDED'} baseline · pack ${packVersion()} · model ${config.model} · temp ${config.temperature} · prompt ${corePromptHash()}`,
