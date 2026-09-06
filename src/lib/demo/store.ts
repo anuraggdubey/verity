@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -20,6 +19,12 @@ import type {
   SupportingDocument,
   VerityEvent,
 } from '@/lib/contracts/types';
+import { loadFrozenReconciliation } from '@/lib/data/loader';
+import { calculateReconciliationStatus } from '@/lib/ledger/close';
+import { createLedgerRecord, verifyLedgerChain } from '@/lib/ledger/sandbox';
+import { matchReconciliation } from '@/lib/matcher/match';
+import { orderedEvents } from '@/lib/store/events';
+import { appendImmutableProposal } from '@/lib/store/state';
 
 /**
  * Builder C's read/write seam.
@@ -69,16 +74,31 @@ type State = {
   controlPRs: ControlPR[];
   events: VerityEvent[];
   packVersion: string;
+  activeBankLineIds: string[];
 };
 
 const FIXTURE_PATH = path.join(process.cwd(), 'bench', 'fixtures', 'demo.json');
 
 function loadFixture(): Fixture {
-  return JSON.parse(readFileSync(FIXTURE_PATH, 'utf8')) as Fixture;
+  const fixture = JSON.parse(readFileSync(FIXTURE_PATH, 'utf8')) as Fixture;
+  const source = loadFrozenReconciliation();
+  const result = matchReconciliation(source.bankLines, source.ledgerEntries);
+  const bankById = new Map([...source.bankLines, ...fixture.bankLines].map((item) => [item.id, item]));
+  const ledgerById = new Map([...source.ledgerEntries, ...fixture.ledgerEntries].map((item) => [item.id, item]));
+  fixture.bankLines = [...bankById.values()];
+  fixture.ledgerEntries = [...ledgerById.values()];
+  fixture.reconciliation = {
+    bankLineCount: result.counts.bankLines,
+    autoClearedCount: result.counts.autoMatched,
+    exceptionCount: result.counts.exceptions,
+  };
+  return fixture;
 }
 
 function freshState(): State {
   const fixture = loadFixture();
+  const source = loadFrozenReconciliation();
+  const result = matchReconciliation(source.bankLines, source.ledgerEntries);
   return {
     fixture,
     cases: structuredClone(fixture.cases),
@@ -90,6 +110,7 @@ function freshState(): State {
     controlPRs: structuredClone(fixture.controlPRs),
     events: structuredClone(fixture.events),
     packVersion: fixture.meta.packVersion,
+    activeBankLineIds: result.exceptions.map((item) => item.bankLineId),
   };
 }
 
@@ -195,30 +216,22 @@ export function resolveCitation(citation: Citation): Record<string, unknown> | u
   }
 }
 
-const DISPOSITIONED = new Set(['auto_cleared', 'approved', 'rejected', 'escalated']);
-
 export function reconciliationStatus(): ReconciliationStatus {
   const s = state();
-  const { bankBalance, openingLedgerBalance, cashAccount } = s.fixture.meta;
-  const postedCash = s.ledgerRecords
-    .flatMap((r) => r.lines)
-    .filter((l) => l.account === cashAccount)
-    .reduce((sum, l) => sum + l.credit - l.debit, 0);
-  const ledgerBalance = round2(openingLedgerBalance - postedCash);
-  const unresolved = s.cases.filter((c) => !DISPOSITIONED.has(c.state)).length;
-  return {
-    bankLineCount: s.fixture.reconciliation.bankLineCount,
-    autoClearedCount: s.fixture.reconciliation.autoClearedCount,
-    exceptionCount: s.fixture.reconciliation.exceptionCount,
-    unresolvedCount: unresolved,
-    bankBalance,
-    ledgerBalance,
-    closed: unresolved === 0 && Math.abs(ledgerBalance - bankBalance) < 0.005,
-  };
+  return calculateReconciliationStatus({
+    ...s.fixture.reconciliation,
+    openingLedgerBalance: s.fixture.meta.openingLedgerBalance,
+    bankBalance: s.fixture.meta.bankBalance,
+    cashAccount: s.fixture.meta.cashAccount,
+    activeBankLineIds: s.activeBankLineIds,
+    cases: s.cases,
+    proposals: s.proposals,
+    ledgerRecords: s.ledgerRecords,
+  });
 }
 
 export function listEvents(): VerityEvent[] {
-  return [...state().events].sort((a, b) => a.at.localeCompare(b.at));
+  return orderedEvents(state().events);
 }
 
 export function listControlPRs(): ControlPR[] {
@@ -265,8 +278,9 @@ export function recordControllerDecision(input: DecisionInput):
   }
 
   const report = s.controlReports.find((r) => r.proposalId === input.proposalId);
-  if (input.decision === 'approve' && report?.blocked) {
-    return { ok: false, error: 'Controls are blocking this revision — it cannot be approved' };
+  if (input.decision === 'approve') {
+    if (!report) return { ok: false, error: 'Controls must be evaluated before this revision can be approved' };
+    if (report.blocked) return { ok: false, error: 'Controls are blocking this revision — it cannot be approved' };
   }
   if (input.decision === 'reject' && !input.reasonCode) {
     return { ok: false, error: 'A reason code is required on reject' };
@@ -294,13 +308,7 @@ export function recordControllerDecision(input: DecisionInput):
   if (input.decision === 'approve') {
     c.state = 'approved';
     if (proposal.journal.length > 0) {
-      const record = appendLedgerRecord(s, proposal.id, proposal.journal);
-      s.events.push({
-        type: 'journal_posted',
-        at,
-        proposalId: proposal.id,
-        ledgerRecordId: record.id,
-      });
+      postApprovedProposal(proposal.id);
     }
   } else {
     c.state = 'rejected';
@@ -313,22 +321,27 @@ export function recordControllerDecision(input: DecisionInput):
   return { ok: true, caseId: c.id };
 }
 
-function appendLedgerRecord(
-  s: State,
-  proposalId: string,
-  lines: LedgerRecord['lines'],
-): LedgerRecord {
-  const prev = s.ledgerRecords[s.ledgerRecords.length - 1];
-  const prevHash = prev?.hash ?? '0000000000000000';
-  const id = `LR-${String(s.ledgerRecords.length + 1).padStart(4, '0')}`;
-  const postedAt = new Date().toISOString();
-  const hash = createHash('sha256')
-    .update(prevHash + JSON.stringify({ id, proposalId, lines, postedAt }))
-    .digest('hex')
-    .slice(0, 16);
-  const record: LedgerRecord = { id, proposalId, lines, postedAt, prevHash, hash };
+export function postApprovedProposal(proposalId: string):
+  | { ok: true; record: LedgerRecord; existing: boolean }
+  | { ok: false; error: string } {
+  const s = state();
+  const existing = s.ledgerRecords.find((record) => record.proposalId === proposalId);
+  if (existing) return { ok: true, record: existing, existing: true };
+  const proposal = s.proposals.find((item) => item.id === proposalId);
+  if (!proposal) return { ok: false, error: `Unknown proposal ${proposalId}` };
+  const decision = s.controllerDecisions.find((item) => item.proposalId === proposalId);
+  if (decision?.decision !== 'approve') return { ok: false, error: 'A controller must approve this proposal before posting' };
+  const report = s.controlReports.find((item) => item.proposalId === proposalId);
+  if (!report || report.blocked) return { ok: false, error: 'Only a proposal with passing controls can post' };
+  if (proposal.journal.length === 0) return { ok: false, error: 'This proposal has no journal to post' };
+  const record = createLedgerRecord(s.ledgerRecords, proposal.id, proposal.journal);
   s.ledgerRecords.push(record);
-  return record;
+  s.events.push({ type: 'journal_posted', at: record.postedAt, proposalId, ledgerRecordId: record.id });
+  return { ok: true, record, existing: false };
+}
+
+export function verifyLedgerRecords(): boolean {
+  return verifyLedgerChain(state().ledgerRecords);
 }
 
 export function mergeControlPR(id: string):
@@ -344,10 +357,6 @@ export function mergeControlPR(id: string):
   s.packVersion = pr.replay.packVersion;
   s.events.push({ type: 'control_pr_merged', at, controlPrId: pr.id, packVersion: s.packVersion });
   return { ok: true, packVersion: s.packVersion };
-}
-
-function round2(n: number): number {
-  return Math.round(n * 100) / 100;
 }
 
 export function listProposals(): Proposal[] {
@@ -420,9 +429,7 @@ export function appendEvent(event: VerityEvent): void {
 /** Appends a revision. Earlier revisions are never mutated. */
 export function appendProposal(proposal: Proposal): void {
   const s = state();
-  s.proposals.push(proposal);
-  const c = s.cases.find((x) => x.id === proposal.caseId);
-  if (c && !c.revisions.includes(proposal.id)) c.revisions.push(proposal.id);
+  appendImmutableProposal(s.proposals, s.cases, proposal);
 }
 
 export function appendControlReport(report: ControlReport): void {

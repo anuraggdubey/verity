@@ -47,6 +47,7 @@ type PolicyPack = {
   materiality: { immaterialBelow: number; criticalAtOrAbove: number };
   autoClearDispositions: string[];
   amountToleranceMinorUnits: number;
+  matching?: { dateToleranceDays: number; timingDifferenceMaxDays: number };
 };
 
 const POLICY_PATH = path.join(process.cwd(), 'bench', 'fixtures', 'policy.pack.json');
@@ -71,6 +72,12 @@ function evidenceLineage(proposal: Proposal): ControlResult[] {
   }
   if (proposal.fx && !cited.some((c) => c.sourceType === 'fx_observation')) {
     missing.push('the FX rate used to convert the invoice');
+  }
+  if (proposal.fx && !cited.some((c) => c.sourceType === 'document')) {
+    missing.push('the transaction document that determines the FX date');
+  }
+  if (proposal.disposition === 'timing_difference' && !cited.some((c) => c.sourceType === 'ledger_entry')) {
+    missing.push('the related ledger entry');
   }
   results.push(
     missing.length === 0
@@ -182,6 +189,22 @@ function accountingIntegrity(proposal: Proposal, policy: PolicyPack): ControlRes
   const results: ControlResult[] = [];
   const lines = proposal.journal;
 
+  const postingDispositions = new Set(['bank_fee_journal', 'fx_revaluation', 'short_pay']);
+  const nonPostingDispositions = new Set(['matched', 'timing_difference', 'duplicate', 'insufficient_evidence', 'escalate']);
+  const shapeInvalid =
+    (postingDispositions.has(proposal.disposition) && lines.length === 0) ||
+    (nonPostingDispositions.has(proposal.disposition) && lines.length > 0);
+  results.push(
+    shapeInvalid
+      ? {
+          code: 'VERITY-AI-004', family: 'accounting_integrity', status: 'blocked', title: 'Disposition and journal shape agree',
+          claim: `${proposal.disposition} submitted with ${lines.length} journal line(s).`,
+          failure: postingDispositions.has(proposal.disposition) ? 'This posting disposition requires a journal.' : 'This non-posting disposition cannot contain a journal.',
+          requiredRepair: postingDispositions.has(proposal.disposition) ? 'Provide a balanced, evidenced journal or choose a non-posting disposition.' : 'Remove the journal lines or choose the posting disposition that reflects the proposed accounting.',
+        }
+      : { code: 'VERITY-AI-004', family: 'accounting_integrity', status: 'pass', title: 'Disposition and journal shape agree' },
+  );
+
   const debits = lines.reduce((s, l) => s + l.debit, 0);
   const credits = lines.reduce((s, l) => s + l.credit, 0);
   const balanced = Math.abs(debits - credits) < 0.005;
@@ -240,7 +263,7 @@ function accountingIntegrity(proposal: Proposal, policy: PolicyPack): ControlRes
         },
   );
 
-  // AI-005 — duplicate detection is advisory in v1 and says so.
+  // AI-005 — a duplicate-shaped journal blocks; a non-posting duplicate flag remains reviewable.
   const bankLineId = proposal.citations.find((c) => c.sourceType === 'bank_line')?.sourceId;
   const bankLine = bankLineId ? getBankLine(bankLineId) : undefined;
   // A timing difference is the same payment surfacing in another period, so the
@@ -258,11 +281,11 @@ function accountingIntegrity(proposal: Proposal, policy: PolicyPack): ControlRes
     results.push({
       code: 'VERITY-AI-005',
       family: 'accounting_integrity',
-      status: 'warn',
+      status: proposal.journal.length > 0 ? 'blocked' : 'warn',
       title: 'Entry is not a duplicate of a posted record',
       claim: `${bankLine?.id} carries the same reference and amount as posted entry ${alreadyPosted.id}.`,
-      failure: 'Duplicate detection is advisory in pack v1 and cannot confirm intent from reference matching alone.',
-      requiredRepair: 'Controller must confirm the duplicate before the item is dispositioned.',
+      failure: proposal.journal.length > 0 ? 'The proposed journal duplicates an already-posted cash record.' : 'Reference and amount match an existing posting; intent still requires controller confirmation.',
+      requiredRepair: proposal.journal.length > 0 ? 'Withdraw the journal and route the item as a possible duplicate.' : 'Controller must confirm the duplicate before the item is dispositioned.',
     });
   } else {
     results.push({
@@ -273,6 +296,21 @@ function accountingIntegrity(proposal: Proposal, policy: PolicyPack): ControlRes
     });
   }
 
+  const cashImpact = lines.filter((line) => line.account === '1010').reduce((sum, line) => sum + line.debit - line.credit, 0);
+  if (lines.length > 0 && bankLine) {
+    const differenceMinor = Math.abs(Math.round((cashImpact - bankLine.amount) * 100));
+    results.push(
+      differenceMinor <= policy.amountToleranceMinorUnits
+        ? { code: 'VERITY-AI-006', family: 'accounting_integrity', status: 'pass', title: 'Cash impact ties to the bank line' }
+        : {
+            code: 'VERITY-AI-006', family: 'accounting_integrity', status: 'blocked', title: 'Cash impact ties to the bank line',
+            claim: `Journal cash impact ${money(cashImpact)} against bank amount ${money(bankLine.amount)}.`,
+            failure: `Cash differs by ${money(differenceMinor / 100)}, beyond the permitted ${money(policy.amountToleranceMinorUnits / 100)} tolerance.`,
+            requiredRepair: 'Recalculate the cash line so its signed impact ties to the cited bank line.',
+          },
+    );
+  }
+
   return results;
 }
 
@@ -280,6 +318,17 @@ function accountingIntegrity(proposal: Proposal, policy: PolicyPack): ControlRes
 
 function policyProvenance(proposal: Proposal, policy: PolicyPack): ControlResult[] {
   const results: ControlResult[] = [];
+
+  results.push(
+    proposal.policyVersion === policy.policyVersion
+      ? { code: 'VERITY-PP-001', family: 'policy_provenance', status: 'pass', title: 'Proposal uses the active policy version' }
+      : {
+          code: 'VERITY-PP-001', family: 'policy_provenance', status: 'blocked', title: 'Proposal uses the active policy version',
+          claim: `Proposal declares ${proposal.policyVersion}.`,
+          failure: `The active policy is ${policy.policyVersion}.`,
+          requiredRepair: `Re-evaluate the case under ${policy.policyVersion} and resubmit.`,
+        },
+  );
 
   if (proposal.fx) {
     const { sourceId, rateDate, rateType, rate } = proposal.fx;
@@ -335,6 +384,28 @@ function policyProvenance(proposal: Proposal, policy: PolicyPack): ControlResult
         }
       : { code: 'VERITY-FX-006', family: 'policy_provenance', status: 'pass', title: 'Auto-clear restricted to enumerated non-posting dispositions' },
   );
+
+  if (proposal.disposition === 'matched' || proposal.disposition === 'timing_difference') {
+    const bankCitation = proposal.citations.find((citation) => citation.sourceType === 'bank_line');
+    const ledgerCitation = proposal.citations.find((citation) => citation.sourceType === 'ledger_entry');
+    const bank = bankCitation ? getBankLine(bankCitation.sourceId) : undefined;
+    const ledger = ledgerCitation ? listLedgerEntries().find((entry) => entry.id === ledgerCitation.sourceId) : undefined;
+    const amountOk = bank && ledger && bank.currency === ledger.currency && Math.abs(Math.round((bank.amount - ledger.amount) * 100)) <= policy.amountToleranceMinorUnits;
+    const referenceOk = bank && ledger && bank.reference.trim() !== '' && bank.reference.replace(/\W/g, '').toUpperCase() === ledger.reference.replace(/\W/g, '').toUpperCase();
+    const maxDays = proposal.disposition === 'timing_difference' ? (policy.matching?.timingDifferenceMaxDays ?? 45) : (policy.matching?.dateToleranceDays ?? 5);
+    const dateOk = bank && ledger && Math.abs(Date.parse(bank.postedDate) - Date.parse(ledger.entryDate)) / 86_400_000 <= maxDays;
+    const valid = Boolean(amountOk && referenceOk && dateOk);
+    results.push(
+      valid
+        ? { code: 'VERITY-PP-002', family: 'policy_provenance', status: 'pass', title: 'Match satisfies amount, reference and date policy' }
+        : {
+            code: 'VERITY-PP-002', family: 'policy_provenance', status: 'blocked', title: 'Match satisfies amount, reference and date policy',
+            claim: `${proposal.disposition} between ${bank?.id ?? 'missing bank evidence'} and ${ledger?.id ?? 'missing ledger evidence'}.`,
+            failure: 'The cited records do not satisfy the configured currency, amount, reference, and date tolerances.',
+            requiredRepair: 'Cite the correct ledger candidate or route the item for review instead of clearing it.',
+          },
+    );
+  }
 
   return results;
 }
