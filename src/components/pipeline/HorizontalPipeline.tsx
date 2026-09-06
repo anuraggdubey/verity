@@ -82,78 +82,67 @@ export function HorizontalPipeline({
   ];
 
   return (
-    <div className={`w-full overflow-hidden rounded-xl border border-white/[0.08] bg-[#0c0d12]/90 p-4 ${className}`}>
-      <div className="flex items-center justify-between pb-3 border-b border-white/[0.06] mb-4">
-        <div className="flex items-center gap-2">
-          <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-300">
-            Reconciliation Lifecycle Pipeline
-          </h4>
-        </div>
-        <span className="text-[11px] font-mono text-zinc-500">
-          Flow: Ingest → Rule Gate → CI Repair Loop → Sandbox Merge
+    <div className={`w-full overflow-hidden rounded-xl border border-black/[0.06] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] ${className}`}>
+      <div className="flex items-center justify-between pb-3 border-b border-black/[0.04] mb-4">
+        <h4 className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+          Reconciliation Pipeline
+        </h4>
+        <span className="text-[11px] font-mono text-zinc-400">
+          Ingest → Rule Gate → CI Repair → Merge
         </span>
       </div>
 
-      {/* Horizontal Scroll Track */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
         {steps.map((step, idx) => {
           const Icon = step.icon;
-          const isCurrent = step.id === currentStepId;
 
           const statusStyles = {
-            passed: 'border-emerald-500/30 bg-emerald-950/20 text-emerald-400',
-            active: 'border-amber-500/50 bg-amber-950/30 text-amber-300 ring-1 ring-amber-400/30',
-            blocked: 'border-rose-500/50 bg-rose-950/30 text-rose-400',
-            pending: 'border-white/[0.06] bg-white/[0.02] text-zinc-500',
+            passed: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+            active: 'border-amber-200 bg-amber-50 text-amber-700 ring-1 ring-amber-200',
+            blocked: 'border-rose-200 bg-rose-50 text-rose-700',
+            pending: 'border-black/[0.06] bg-zinc-50 text-zinc-400',
           };
 
           return (
             <React.Fragment key={step.id}>
-              {/* Step Node Card */}
               <div
                 onMouseEnter={() => setActiveTooltip(step.id)}
                 onMouseLeave={() => setActiveTooltip(null)}
-                className={`relative flex-shrink-0 w-48 rounded-lg border p-3 transition-all cursor-pointer ${
+                className={`relative flex-shrink-0 w-44 rounded-lg border p-3 transition-colors cursor-default ${
                   statusStyles[step.status]
-                } ${isCurrent ? 'shadow-[0_0_15px_rgba(245,158,11,0.15)]' : ''}`}
+                }`}
               >
-                <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-1.5">
                     <Icon className="h-3.5 w-3.5" />
-                    <span className="text-xs font-semibold tracking-tight">{step.title}</span>
+                    <span className="text-[11px] font-medium tracking-tight">{step.title}</span>
                   </div>
                   {step.status === 'passed' && (
-                    <span className="text-[10px] font-mono font-medium px-1 rounded bg-emerald-500/20 text-emerald-300">
+                    <span className="text-[9px] font-mono font-medium px-1 rounded bg-emerald-100 text-emerald-700">
                       PASS
                     </span>
                   )}
                   {step.status === 'active' && (
-                    <span className="text-[10px] font-mono font-medium px-1 rounded bg-amber-500/20 text-amber-300 animate-pulse">
+                    <span className="text-[9px] font-mono font-medium px-1 rounded bg-amber-100 text-amber-700">
                       GATE
                     </span>
                   )}
-                  {step.status === 'pending' && (
-                    <span className="text-[10px] font-mono text-zinc-600">IDLE</span>
-                  )}
                 </div>
 
-                <div className="text-[11px] text-zinc-300 font-medium truncate">{step.subtitle}</div>
-                <div className="text-[10px] font-mono text-zinc-400 mt-1">{step.meta}</div>
+                <div className="text-[11px] font-medium truncate opacity-80">{step.subtitle}</div>
+                <div className="text-[10px] font-mono opacity-60 mt-0.5">{step.meta}</div>
 
-                {/* Tooltip on hover */}
                 {activeTooltip === step.id && (
-                  <div className="absolute left-0 bottom-full mb-2 w-60 z-50 rounded-lg border border-white/[0.12] bg-[#161822] p-2.5 text-xs text-zinc-200 shadow-xl backdrop-blur-md">
-                    <p className="font-semibold text-emerald-400 mb-1">{step.title} Details</p>
-                    <p className="text-[11px] leading-relaxed text-zinc-300">{step.details}</p>
+                  <div className="absolute left-0 bottom-full mb-2 w-56 z-50 rounded-lg border border-black/[0.08] bg-white p-2.5 text-xs text-zinc-600 shadow-lg">
+                    <p className="font-medium text-zinc-900 mb-1">{step.title}</p>
+                    <p className="text-[11px] leading-relaxed">{step.details}</p>
                   </div>
                 )}
               </div>
 
-              {/* Connecting arrow */}
               {idx < steps.length - 1 && (
-                <div className="flex-shrink-0 text-zinc-600 px-1">
-                  <ArrowRight className="h-4 w-4 stroke-[1.5]" />
+                <div className="flex-shrink-0 text-zinc-300 px-0.5">
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </div>
               )}
             </React.Fragment>
