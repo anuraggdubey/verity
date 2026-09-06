@@ -1,125 +1,179 @@
-'use client';
-
-import React, { useState, use } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, GitBranch, ShieldCheck, Clock, ExternalLink } from 'lucide-react';
-import { HorizontalPipeline } from '../../../components/pipeline/HorizontalPipeline';
-import { RevisionDiffViewer } from '../../../components/finance-pr/RevisionDiffViewer';
-import { ControlChecklist } from '../../../components/finance-pr/ControlChecklist';
-import { CitationInspector } from '../../../components/finance-pr/CitationInspector';
-import { ControllerDock } from '../../../components/finance-pr/ControllerDock';
-import { SpotlightCard } from '../../../components/ui/SpotlightCard';
-import { StatusPill } from '../../../components/ui/StatusPill';
-import eurUsdCaseData from '../../../lib/data/fixtures/eur-usd-case.json';
-import { Proposal } from '../../../lib/contracts/types';
+import { notFound } from 'next/navigation';
+import { ArrowLeft, Download } from 'lucide-react';
 
-export default function CaseDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const resolvedParams = use(params);
-  const [activeRevIndex, setActiveRevIndex] = useState(1); // Default to repaired Rev 2
-  const caseMeta = eurUsdCaseData.case;
-  const rev1 = eurUsdCaseData.revisions[0] as unknown as Proposal;
-  const rev2 = eurUsdCaseData.revisions[1] as unknown as Proposal;
-  const currentProposal = activeRevIndex === 0 ? rev1 : rev2;
+import { AppShell, Card } from '@/components/app/AppShell';
+import { CaseWorkspace } from '@/components/app/CaseWorkspace';
+import { InvestigateButton } from '@/components/app/RunActions';
+import { WorkerActivity } from '@/components/app/WorkerActivity';
+import { StatusPill } from '@/components/ui/StatusPill';
+import { getCaseDetail, resolveCitation } from '@/lib/demo/store';
+import { money, titleCase } from '@/lib/ui';
+
+export const dynamic = 'force-dynamic';
+
+export default async function CasePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const detail = getCaseDetail(id);
+  if (!detail) notFound();
+
+  const latest = detail.revisions[detail.revisions.length - 1];
+  const lane = latest?.route?.lane;
+
+  // Resolve each citation to the record it points at, so the inspector shows the
+  // source rather than asserting that one exists.
+  const revisions = detail.revisions.map((revision) => ({
+    ...revision,
+    proposal: {
+      ...revision.proposal,
+      citations: revision.proposal.citations.map((citation) => {
+        const source = resolveCitation(citation);
+        const field = citation.field ? source?.[citation.field] : undefined;
+        return {
+          ...citation,
+          rawPayload: source,
+          extractedSnippet: source
+            ? field !== undefined
+              ? `${citation.field}: ${String(field)}`
+              : JSON.stringify(source, null, 2)
+            : undefined,
+        };
+      }),
+    },
+  }));
 
   return (
-    <div className="flex flex-col w-full min-h-screen px-4 sm:px-6 lg:px-8 py-6 max-w-7xl mx-auto space-y-6 pb-24">
-      {/* Top Breadcrumb & Metadata Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.08] pb-4">
-        <div className="flex items-center gap-3">
+    <AppShell
+      eyebrow={`Finance PR · policy ${latest?.proposal.policyVersion ?? '—'} · control pack ${detail.packVersion}`}
+      title={detail.case.id}
+      subtitle={detail.case.summary}
+      actions={
+        <div className="flex flex-wrap items-center gap-2">
           <Link
             href="/queue"
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.08] transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.1] bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:border-white/20"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-3 w-3" /> Queue
           </Link>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-mono font-semibold text-emerald-400">
-                {caseMeta.id}
-              </span>
-              <span className="text-zinc-600">•</span>
-              <span className="text-xs text-zinc-400">{caseMeta.counterparty}</span>
-              <StatusPill status="review" label="Merge Ready (Rev 2)" />
-            </div>
-            <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight mt-0.5">
-              {caseMeta.title}
-            </h1>
-          </div>
+          <a
+            href={`/api/cases/${detail.case.id}/export`}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.1] bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:border-white/20"
+          >
+            <Download className="h-3 w-3" /> Export JSON
+          </a>
+          {!detail.decision && <InvestigateButton caseId={detail.case.id} />}
+        </div>
+      }
+    >
+      <div className="mb-5 flex flex-wrap items-center gap-2">
+        <StatusPill
+          status={
+            detail.case.state === 'controls_failed'
+              ? 'blocked'
+              : detail.case.state === 'escalated' || detail.case.state === 'rejected'
+                ? 'escalate'
+                : detail.case.state === 'approved' || detail.case.state === 'auto_cleared'
+                  ? 'auto'
+                  : 'review'
+          }
+          label={titleCase(detail.case.state)}
+          size="sm"
+        />
+        {lane && <StatusPill status={lane} size="sm" />}
+        <span className="font-mono text-[11px] text-zinc-500">
+          {titleCase(detail.case.materiality)} materiality
+        </span>
+        <span className="font-mono text-[11px] text-zinc-500">
+          {detail.revisions.length} revision{detail.revisions.length === 1 ? '' : 's'}
+        </span>
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
+        <div>
+          {detail.revisions.length === 0 ? (
+            <Card title="No proposal yet">
+              <p className="text-[13px] leading-relaxed text-zinc-400">
+                This case has not been investigated. Run a worker to produce a proposal — it is
+                evaluated against control pack {detail.packVersion} the moment it is submitted, and
+                a blocked proposal goes back to the same worker for repair.
+              </p>
+              <div className="mt-4 flex justify-start">
+                <InvestigateButton caseId={detail.case.id} />
+              </div>
+            </Card>
+          ) : (
+            <CaseWorkspace
+              caseId={detail.case.id}
+              revisions={revisions}
+              decision={detail.decision}
+              ledgerRecord={detail.ledgerRecord}
+            />
+          )}
         </div>
 
-        {/* Case Meta Stats */}
-        <div className="flex items-center gap-4 text-xs font-mono">
-          <div className="text-right">
-            <div className="text-zinc-500 text-[10px]">INFLOW AMOUNT</div>
-            <div className="font-semibold text-zinc-200 text-sm">
-              ${caseMeta.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })} {caseMeta.currency}
-            </div>
-          </div>
-          <div className="h-8 w-px bg-white/[0.08]" />
-          <div className="text-right">
-            <div className="text-zinc-500 text-[10px]">BANK LINE ID</div>
-            <div className="text-zinc-300">{caseMeta.bankLineId}</div>
-          </div>
+        <div className="space-y-4">
+          <WorkerActivity caseId={detail.case.id} />
+
+          {detail.bankLine && (
+            <Card title="Bank line" hint={detail.bankLine.id}>
+              <dl className="space-y-2.5 text-[12px]">
+                <Row
+                  label="Amount"
+                  value={money(detail.bankLine.amount, detail.bankLine.currency)}
+                  mono
+                />
+                <Row label="Posted" value={detail.bankLine.postedDate} />
+                <Row label="Counterparty" value={detail.bankLine.counterparty} />
+                <Row label="Reference" value={detail.bankLine.reference || '—'} mono />
+                <Row label="Description" value={detail.bankLine.description} />
+              </dl>
+            </Card>
+          )}
+
+          {detail.candidates.length > 0 && (
+            <Card
+              title="Candidate ledger entries"
+              hint="Suggested by matching — the worker still has to verify them"
+            >
+              <ul className="space-y-2.5">
+                {detail.candidates.map((entry) => (
+                  <li
+                    key={entry.id}
+                    className="border-b border-white/[0.05] pb-2.5 last:border-0 last:pb-0"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="mono-num text-[12px] text-zinc-200">{entry.id}</span>
+                      <span className="mono-num text-[12px] text-zinc-300">
+                        {money(entry.amount, entry.currency)}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500">
+                      {entry.description}
+                    </p>
+                    <p className="mt-0.5 font-mono text-[10px] text-zinc-600">
+                      {entry.account} · {entry.period} · {entry.posted ? 'posted' : 'unposted'}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
         </div>
       </div>
 
-      {/* Horizontal Lifecycle Progress Pipeline */}
-      <HorizontalPipeline currentStepId="controller" />
+      {/* The controller dock is fixed to the viewport bottom; keep space clear for it. */}
+      <div className="h-24" />
+    </AppShell>
+  );
+}
 
-      {/* Main Two-Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Revision Diff & Narrative (7 cols) */}
-        <div className="lg:col-span-7 space-y-6">
-          <RevisionDiffViewer
-            rev1={rev1}
-            rev2={rev2}
-            activeRevIndex={activeRevIndex}
-            onSelectRev={setActiveRevIndex}
-          />
-
-          <CitationInspector citations={currentProposal.citations} />
-        </div>
-
-        {/* Right Column: CI Control Evaluation Matrix & Ledger Sandbox (5 cols) */}
-        <div className="lg:col-span-5 space-y-6">
-          <ControlChecklist
-            report={currentProposal.controlReport}
-            activeRevIndex={activeRevIndex}
-          />
-
-          <SpotlightCard className="p-4 space-y-3">
-            <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
-              <span className="text-xs font-semibold text-zinc-300 font-mono">
-                Sandbox Ledger Posting Gate
-              </span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">
-                Balanced (No Escapes)
-              </span>
-            </div>
-            <div className="text-xs text-zinc-400 leading-relaxed">
-              Once approved by the human controller, journal entries are written directly to Verity’s
-              hash-linked sandbox ledger. Rerunning reconciliation guarantees zero discrepancy.
-            </div>
-            <div className="rounded bg-black/40 p-2 text-[11px] font-mono text-zinc-400 flex items-center justify-between">
-              <span>Parent Hash:</span>
-              <span className="text-emerald-400">0x39a1c...b092</span>
-            </div>
-          </SpotlightCard>
-        </div>
-      </div>
-
-      {/* Floating Controller Command Dock */}
-      <ControllerDock
-        proposalId={currentProposal.id}
-        isBlocked={currentProposal.controlReport?.blocked || false}
-        onDecision={(dec, reason) => {
-          console.log('Controller decision:', dec, reason);
-        }}
-      />
+function Row({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <dt className="shrink-0 font-mono text-[10px] uppercase tracking-[0.12em] text-zinc-500">
+        {label}
+      </dt>
+      <dd className={`text-right text-zinc-300 ${mono ? 'mono-num' : ''}`}>{value}</dd>
     </div>
   );
 }

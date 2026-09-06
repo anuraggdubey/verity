@@ -1,199 +1,209 @@
-'use client';
-
-import React, { useState } from 'react';
 import Link from 'next/link';
-import { Layers, ShieldCheck, AlertTriangle, ShieldAlert, Cpu, ArrowRight, Search, Filter } from 'lucide-react';
-import { SpotlightCard } from '../../components/ui/SpotlightCard';
-import { StatusPill } from '../../components/ui/StatusPill';
-import queueData from '../../lib/data/fixtures/cases-queue.json';
+import { ArrowRight, CircleCheck, CircleDot, GitPullRequest } from 'lucide-react';
 
-export default function ExceptionQueuePage() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const lanes = queueData.lanes;
+import { AppShell, Card, Metric } from '@/components/app/AppShell';
+import { InvestigateButton, ResetButton } from '@/components/app/RunActions';
+import { WorkerActivity } from '@/components/app/WorkerActivity';
+import { StatusPill } from '@/components/ui/StatusPill';
+import type { CaseState, Lane } from '@/lib/contracts/types';
+import { listCases, meta, reconciliationStatus, type CaseRow } from '@/lib/demo/store';
+import { money, titleCase } from '@/lib/ui';
+
+export const dynamic = 'force-dynamic';
+
+const LANES: { lane: Lane; title: string; blurb: string }[] = [
+  {
+    lane: 'auto',
+    title: 'Auto',
+    blurb: 'Enumerated non-posting dispositions, fully evidenced, immaterial, controls clean.',
+  },
+  {
+    lane: 'review',
+    title: 'Review',
+    blurb: 'Anything that posts, plus anything needing controller judgment.',
+  },
+  {
+    lane: 'escalate',
+    title: 'Escalate',
+    blurb: 'Missing or contradictory evidence, critical materiality, or a block with no repair left.',
+  },
+];
+
+const laneAccent: Record<Lane, string> = {
+  auto: 'border-emerald-500/25 bg-emerald-950/10',
+  review: 'border-amber-500/25 bg-amber-950/10',
+  escalate: 'border-rose-500/25 bg-rose-950/10',
+};
+
+function statePill(state: CaseState) {
+  if (state === 'auto_cleared' || state === 'approved') return 'auto' as const;
+  if (state === 'rejected' || state === 'escalated') return 'escalate' as const;
+  if (state === 'controls_failed') return 'blocked' as const;
+  if (state === 'investigating' || state === 'revising' || state === 'proposed') return 'active' as const;
+  return 'review' as const;
+}
+
+export default function QueuePage() {
+  const rows = listCases();
+  const status = reconciliationStatus();
+  const info = meta();
 
   return (
-    <div className="flex flex-col w-full min-h-screen px-4 sm:px-6 lg:px-8 py-6 max-w-7xl mx-auto space-y-6">
-      {/* Top Header & Triage Stats */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.08] pb-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <Layers className="h-4 w-4 text-emerald-400" />
-            <h1 className="text-xl font-bold text-white tracking-tight">
-              Exception Triage Queue
-            </h1>
-            <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-white/[0.06] text-zinc-400 border border-white/[0.08]">
-              8 Active Exceptions
-            </span>
-          </div>
-          <p className="text-xs text-zinc-400 mt-1">
-            Deterministic matching clears routine items. Unresolved lines route into Auto, Review, or Escalate lanes.
-          </p>
-        </div>
-
-        {/* Search & Filter Bar */}
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500" />
-            <input
-              type="text"
-              placeholder="Search counterparty or ID..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8 pl-8 pr-3 text-xs bg-black/40 border border-white/[0.08] rounded-lg text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500/50 w-56"
+    <AppShell
+      eyebrow={`${info.entity} · period ${info.period} · policy ${info.policyVersion} · control pack ${info.packVersion}`}
+      title="Exception queue"
+      subtitle="Deterministic matching cleared the routine lines. What is left is investigated by a worker, evaluated against the control pack, and routed to a lane. Nothing posts without a controller."
+      actions={<ResetButton />}
+    >
+      <div className="space-y-5">
+        <Card
+          title="Reconciliation"
+          right={
+            status.closed ? (
+              <span className="inline-flex items-center gap-1.5 text-emerald-300">
+                <CircleCheck className="h-3.5 w-3.5" /> Closed
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 text-amber-300">
+                <CircleDot className="h-3.5 w-3.5" /> {status.unresolvedCount} unresolved
+              </span>
+            )
+          }
+        >
+          <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-6">
+            <Metric label="Bank lines" value={status.bankLineCount} />
+            <Metric label="Auto-matched" value={status.autoClearedCount} sub="deterministic" />
+            <Metric label="Exceptions" value={status.exceptionCount} sub="investigated" />
+            <Metric
+              label="Unresolved"
+              value={status.unresolvedCount}
+              tone={status.unresolvedCount === 0 ? 'good' : 'warn'}
+            />
+            <Metric label="Bank balance" value={money(status.bankBalance)} />
+            <Metric
+              label="Sandbox ledger"
+              value={money(status.ledgerBalance)}
+              tone={Math.abs(status.ledgerBalance - status.bankBalance) < 0.005 ? 'good' : 'warn'}
+              sub={
+                Math.abs(status.ledgerBalance - status.bankBalance) < 0.005
+                  ? 'agrees with bank'
+                  : `${money(Math.abs(status.ledgerBalance - status.bankBalance))} apart`
+              }
             />
           </div>
+        </Card>
 
-          <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] text-zinc-400 text-xs font-medium">
-            <Filter className="h-3.5 w-3.5" />
-            <span>All Entities</span>
-          </div>
-        </div>
-      </div>
-
-      {/* 3-Lane Horizontal Swimlane Grid (Attio Style) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-        {/* 1. AUTO LANE */}
-        <div className="flex flex-col space-y-3">
-          <div className="flex items-center justify-between px-2 pb-1 border-b border-emerald-500/30">
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-400" />
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-emerald-300 font-mono">
-                Auto-Cleared
-              </h3>
-            </div>
-            <span className="text-xs font-mono font-semibold text-emerald-400 px-1.5 py-0.2 rounded bg-emerald-500/10">
-              {lanes.auto.cases.length}
-            </span>
-          </div>
-          <p className="text-[11px] text-zinc-500 px-1">
-            Non-posting exact matches & verified timing differences.
-          </p>
-
-          <div className="space-y-3">
-            {lanes.auto.cases.map((c) => (
-              <SpotlightCard key={c.id} className="p-4 space-y-2.5 hover:border-emerald-500/40">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-semibold text-zinc-300">{c.id}</span>
-                  <StatusPill status="auto" size="sm" />
-                </div>
-                <div className="text-xs font-medium text-zinc-200 line-clamp-1">{c.title}</div>
-                <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400 pt-1 border-t border-white/[0.04]">
-                  <span>{c.counterparty}</span>
-                  <span className="font-semibold text-zinc-200">
-                    ${c.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-              </SpotlightCard>
-            ))}
-          </div>
-        </div>
-
-        {/* 2. REVIEW LANE (Controller Judgment) */}
-        <div className="flex flex-col space-y-3">
-          <div className="flex items-center justify-between px-2 pb-1 border-b border-amber-500/40">
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-amber-300 font-mono">
-                Controller Review
-              </h3>
-            </div>
-            <span className="text-xs font-mono font-semibold text-amber-400 px-1.5 py-0.2 rounded bg-amber-500/10">
-              {lanes.review.cases.length}
-            </span>
-          </div>
-          <p className="text-[11px] text-zinc-500 px-1">
-            Agent-proposed journal lines with passed controls awaiting human merge.
-          </p>
-
-          <div className="space-y-3">
-            {lanes.review.cases.map((c) => {
-              const isFlagship = c.id === 'CASE-2049';
+        <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
+          <div className="grid gap-4 md:grid-cols-3">
+            {LANES.map(({ lane, title, blurb }) => {
+              const laneRows = rows.filter((row) => row.lane === lane);
               return (
-                <Link key={c.id} href={`/cases/${c.id}`}>
-                  <SpotlightCard
-                    className={`p-4 space-y-2.5 transition-all cursor-pointer group ${
-                      isFlagship
-                        ? 'border-emerald-500/50 bg-emerald-950/10 shadow-[0_0_16px_rgba(16,185,129,0.15)] hover:border-emerald-400'
-                        : 'hover:border-amber-500/40'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono font-semibold text-emerald-400">{c.id}</span>
-                        {isFlagship && (
-                          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300">
-                            FLAGSHIP DEMO
-                          </span>
-                        )}
-                      </div>
-                      <StatusPill status="review" size="sm" pulse={c.workerActive} />
-                    </div>
-
-                    <div className="text-xs font-semibold text-zinc-100 group-hover:text-emerald-300 transition-colors">
-                      {c.title}
-                    </div>
-
-                    {c.workerActive && (
-                      <div className="flex items-center gap-1.5 text-[11px] font-mono text-cyan-300 bg-cyan-950/30 border border-cyan-500/20 rounded p-1.5">
-                        <Cpu className="h-3 w-3 animate-spin" />
-                        <span>Worker {c.workerId} generating tool trace...</span>
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400 pt-1 border-t border-white/[0.04]">
-                      <span>{c.counterparty}</span>
-                      <span className="font-semibold text-zinc-200">
-                        ${c.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                <section
+                  key={lane}
+                  className={`rounded-xl border ${laneAccent[lane]} flex flex-col overflow-hidden`}
+                >
+                  <header className="border-b border-white/[0.08] px-3 py-2.5">
+                    <div className="flex items-center gap-2">
+                      <StatusPill status={lane} label={title} size="sm" />
+                      <span className="mono-num ml-auto text-sm font-semibold text-zinc-300">
+                        {laneRows.length}
                       </span>
                     </div>
-
-                    <div className="flex items-center justify-end text-[10px] font-semibold text-emerald-400 gap-1 pt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <span>Open Finance PR</span>
-                      <ArrowRight className="h-3 w-3" />
-                    </div>
-                  </SpotlightCard>
-                </Link>
+                    <p className="mt-1.5 text-[11px] leading-relaxed text-zinc-500">{blurb}</p>
+                  </header>
+                  <div className="flex-1 space-y-2 p-2">
+                    {laneRows.length === 0 ? (
+                      <p className="px-2 py-6 text-center text-[12px] text-zinc-600">Empty</p>
+                    ) : (
+                      laneRows.map((row) => <CaseCard key={row.case.id} row={row} />)
+                    )}
+                  </div>
+                </section>
               );
             })}
           </div>
-        </div>
 
-        {/* 3. ESCALATE LANE */}
-        <div className="flex flex-col space-y-3">
-          <div className="flex items-center justify-between px-2 pb-1 border-b border-rose-500/40">
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-rose-400" />
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-rose-300 font-mono">
-                Escalations
-              </h3>
-            </div>
-            <span className="text-xs font-mono font-semibold text-rose-400 px-1.5 py-0.2 rounded bg-rose-500/10">
-              {lanes.escalate.cases.length}
-            </span>
-          </div>
-          <p className="text-[11px] text-zinc-500 px-1">
-            Critical materiality, suspected duplicate wire, or contradictory evidence.
-          </p>
-
-          <div className="space-y-3">
-            {lanes.escalate.cases.map((c) => (
-              <SpotlightCard key={c.id} className="p-4 space-y-2.5 hover:border-rose-500/40">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-semibold text-rose-400">{c.id}</span>
-                  <StatusPill status="escalate" size="sm" />
-                </div>
-                <div className="text-xs font-medium text-zinc-200">{c.title}</div>
-                <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400 pt-1 border-t border-white/[0.04]">
-                  <span>{c.counterparty}</span>
-                  <span className="font-semibold text-zinc-200">
-                    ${c.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                  </span>
-                </div>
-              </SpotlightCard>
-            ))}
+          <div className="space-y-4">
+            <WorkerActivity />
+            <Card title="How a case moves">
+              <ol className="space-y-2 text-[12px] leading-relaxed text-zinc-400">
+                {[
+                  'Worker investigates with four read-only tools.',
+                  'It submits one structured proposal — never free text.',
+                  'The control pack evaluates it deterministically.',
+                  'A block returns the exact failure to the same worker, which files a new revision.',
+                  'Clean proposals are routed: auto, review, or escalate.',
+                  'A controller merges. Only then does anything reach the sandbox ledger.',
+                ].map((step, index) => (
+                  <li key={step} className="flex gap-2.5">
+                    <span className="mono-num mt-0.5 text-[10px] text-zinc-600">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <span>{step}</span>
+                  </li>
+                ))}
+              </ol>
+            </Card>
           </div>
         </div>
       </div>
-    </div>
+    </AppShell>
+  );
+}
+
+function CaseCard({ row }: { row: CaseRow }) {
+  const { case: financeCase, bankLine, latestProposal, blocked, revisionCount, decision } = row;
+
+  return (
+    <article className="rounded-lg border border-white/[0.07] bg-[#0c0d12] p-3 transition-colors hover:border-white/[0.14]">
+      <div className="flex items-start justify-between gap-2">
+        <Link
+          href={`/cases/${financeCase.id}`}
+          className="group inline-flex items-center gap-1.5 font-mono text-[12px] font-medium text-zinc-200 hover:text-white"
+        >
+          <GitPullRequest className="h-3.5 w-3.5 text-violet-400" />
+          {financeCase.id}
+          <ArrowRight className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />
+        </Link>
+        <StatusPill status={statePill(financeCase.state)} label={titleCase(financeCase.state)} size="sm" />
+      </div>
+
+      <p className="mt-2 line-clamp-3 text-[12px] leading-relaxed text-zinc-400">
+        {financeCase.summary}
+      </p>
+
+      <dl className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-zinc-500">
+        {bankLine && (
+          <span className="mono-num text-zinc-300">{money(bankLine.amount, bankLine.currency)}</span>
+        )}
+        <span className="font-mono">{financeCase.bankLineId}</span>
+        <span>{titleCase(financeCase.materiality)}</span>
+        {revisionCount > 0 && (
+          <span>
+            {revisionCount} revision{revisionCount > 1 ? 's' : ''}
+          </span>
+        )}
+        {blocked && <span className="font-semibold text-rose-400">BLOCKED</span>}
+        {decision && (
+          <span className={decision.decision === 'approve' ? 'text-emerald-400' : 'text-rose-400'}>
+            {decision.decision === 'approve' ? 'Approved' : 'Rejected'}
+            {decision.reasonCode ? ` · ${decision.reasonCode}` : ''}
+          </span>
+        )}
+      </dl>
+
+      {latestProposal?.fx && (
+        <p className="mono-num mt-2 truncate rounded border border-white/[0.06] bg-black/30 px-2 py-1 text-[10px] text-zinc-500">
+          FX {latestProposal.fx.rate} {latestProposal.fx.rateType} @ {latestProposal.fx.rateDate} ·{' '}
+          {latestProposal.fx.sourceId}
+        </p>
+      )}
+
+      {!decision && (
+        <div className="mt-2.5 flex justify-end">
+          <InvestigateButton caseId={financeCase.id} size="sm" />
+        </div>
+      )}
+    </article>
   );
 }

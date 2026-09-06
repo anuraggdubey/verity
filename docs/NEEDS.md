@@ -10,12 +10,18 @@ Ordered by what blocks the demo. If something here is not needed for a beat in
 
 ## 1. Blocking — the demo does not work without these
 
-### 1.1 Wire the UI to the live engine  *(owner: C, with B)*
-The frontend reads static JSON from `src/lib/data/fixtures/*.json` and makes no
-`fetch` calls. Nothing on screen is connected to the control engine, so today
-the pages cannot show a real block, a real repair, or a real merge.
+### 1.1 Wire the UI to the live engine  — **DONE**
+The four console pages (`/queue`, `/cases/[id]`, `/controls`, `/metrics`) now read
+the live store and call the real endpoints. The static UI fixtures under
+`src/lib/data/fixtures/` are deleted, so there is one source of data again.
 
-What exists to wire to, all verified working over HTTP:
+What each page does now: run a worker (recorded or live) and watch the trace
+stream in; see the control block, the repair and the revision diff from the
+stored artifacts; approve, which posts to the hash-linked sandbox ledger and
+closes the reconciliation; request changes with an enumerated reason code that
+the failure grouper reads; draft a Control PR from a group, replay it, merge it.
+
+Endpoints, all verified over HTTP:
 
 | Need | Endpoint |
 |---|---|
@@ -23,16 +29,18 @@ What exists to wire to, all verified working over HTTP:
 | Live worker activity | `GET /api/stream?caseId=` (SSE) |
 | Trace for a case | `GET /api/cases/[id]/trace` |
 | Approve / request changes | `POST /api/proposals/[id]/decision` |
+| Escalate | `POST /api/cases/[id]/escalate` |
 | Failure groups + Control PRs | `GET`/`POST /api/control-prs` |
 | Replay / merge a Control PR | `POST /api/control-prs/[id]/replay` \| `/merge` |
 | Raw metrics | `GET /api/metrics` |
 | Reset the demo | `POST /api/reset` |
 | Export a Finance PR | `GET /api/cases/[id]/export` |
 
-The only components currently calling these are
-`src/components/DecisionPanel.tsx` and `src/components/ControlPRActions.tsx`.
-Port that wiring into `finance-pr/ControllerDock.tsx` and the controls page, or
-delete the old components once the new ones do the same job.
+Still on the UI list: the landing page (`src/app/page.tsx`) contains illustrative
+figures — a EUR 13,000 invoice, a USD 14,200.00 wire, `BNK-2026-08-9921` — that
+do not exist in the dataset. Fine as marketing narrative, but if the demo cuts
+from the landing page to the console, the numbers should match or the voiceover
+should say the landing page is illustrative.
 
 ### 1.2 A model API key  *(owner: whoever holds the account)*
 Set in `.env.local`, never committed — see [`.env.example`](../.env.example):
@@ -111,10 +119,9 @@ Dodo Payments: deliberately not integrated.
 1. **Freeze the contract.** `src/lib/contracts/types.ts` had two independent
    drafts and is now a merged superset. Someone must confirm the merge and stop
    editing it outside a single PR that updates every consumer.
-2. **One source of data.** There are two fixture sets: `bench/fixtures/*.json`
-   (drives the engine, the agent and the tests) and `src/lib/data/fixtures/*.json`
-   (drives the UI). They will drift. Pick one — the engine's — and have the UI
-   read it through the API.
+2. **One source of data.** Settled: `bench/fixtures/*.json` is it. The UI's own
+   fixture set is deleted and every console page reads the store. Keep it that
+   way — a second dataset added for a screen will drift within a day.
 3. **Which model, and freeze it.** Model, temperature, tools and core prompt go
    into the replay fingerprint. Changing any of them after the benchmark freezes
    invalidates every metric on screen.
@@ -136,12 +143,15 @@ Dodo Payments: deliberately not integrated.
 - `npm run bench` is the harness to keep green
 
 **B — agent and learning loop**
-- Live provider verification (§1.3)
-- Transcripts, or live runs, for the cases beyond CASE-001 — every other case
-  currently replays a transcript derived from its stored proposal
+- Live provider verification (§1.3) — still the one thing only a key can settle
 - Neatlogs wiring once the endpoint is confirmed
-- More rule templates in `src/lib/learning/control-pr.ts`; only `WRONG_RATE_DATE`
-  is enforceable today, and every other reason code correctly refuses to draft
+- Rule templates: `WRONG_RATE_DATE`, `UNSUPPORTED_FX_SOURCE`, `CLOSED_PERIOD`,
+  `WRONG_ACCOUNT` and `WRONG_ENTITY` are enforceable. `MISSING_EVIDENCE`,
+  `DUPLICATE_POSTING` and `INSUFFICIENT_NARRATIVE` still refuse with a reason,
+  because no constrained-rule schema expresses them yet — that is the next batch,
+  and each needs a selector the engine can evaluate
+- Per-case transcripts are derived from stored proposals; only CASE-001 is
+  hand-recorded with the tool calls that produced the mistake
 
 **C — product and proof**
 - Wire the UI to the API (§1.1)

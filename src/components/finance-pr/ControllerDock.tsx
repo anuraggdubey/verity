@@ -16,8 +16,27 @@ export function ControllerDock({
   onDecision,
 }: ControllerDockProps) {
   const [showRejectModal, setShowRejectModal] = useState(false);
-  const [selectedReason, setSelectedReason] = useState('wrong_fx_rate');
+  const [selectedReason, setSelectedReason] = useState('WRONG_RATE_DATE');
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+
+  const handleApprove = () => {
+    setStatusMessage('Approved. Posting to the sandbox ledger and rerunning the reconciliation.');
+    onDecision('approve');
+    setTimeout(() => setStatusMessage(null), 4000);
+  };
+
+  const handleConfirmReject = () => {
+    setStatusMessage(`Changes requested — reason code ${selectedReason}, recorded for failure grouping.`);
+    setShowRejectModal(false);
+    onDecision('reject', selectedReason);
+    setTimeout(() => setStatusMessage(null), 4000);
+  };
+
+  const handleEscalate = () => {
+    setStatusMessage('Escalated. The case waits for a human; nothing is posted.');
+    onDecision('escalate');
+    setTimeout(() => setStatusMessage(null), 4000);
+  };
 
   // Keyboard shortcut listener
   useEffect(() => {
@@ -40,26 +59,7 @@ export function ControllerDock({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isBlocked]);
-
-  const handleApprove = () => {
-    setStatusMessage('Approved! Journal posted to sandbox ledger with hash-link.');
-    onDecision('approve');
-    setTimeout(() => setStatusMessage(null), 4000);
-  };
-
-  const handleConfirmReject = () => {
-    setStatusMessage(`Rejected with reason code: ${selectedReason}. Logged to Failure Grouping store.`);
-    setShowRejectModal(false);
-    onDecision('reject', selectedReason);
-    setTimeout(() => setStatusMessage(null), 4000);
-  };
-
-  const handleEscalate = () => {
-    setStatusMessage('Escalated to Senior Controller for legal & tax counsel.');
-    onDecision('escalate');
-    setTimeout(() => setStatusMessage(null), 4000);
-  };
+  }, [isBlocked, handleApprove, handleEscalate]);
 
   return (
     <>
@@ -136,10 +136,15 @@ export function ControllerDock({
 
             <div className="space-y-2 mb-6">
               {[
-                { code: 'wrong_fx_rate', label: 'VERITY-FX-003: Unapproved or Outdated FX Oracle Rate' },
-                { code: 'wrong_entity', label: 'VERITY-ACCT-004: Incorrect Legal Entity GL Account' },
-                { code: 'unsupported_claim', label: 'VERITY-EVID-003: Citation Claim Missing Direct Evidence' },
-                { code: 'closed_period', label: 'VERITY-ACCT-002: Target Ledger Period is Closed' },
+                { code: 'WRONG_RATE_DATE', label: 'FX rate dated other than the invoice transaction date' },
+                { code: 'UNSUPPORTED_FX_SOURCE', label: 'FX rate from a provider outside the approved list' },
+                { code: 'MISSING_EVIDENCE', label: 'A material claim has no supporting evidence' },
+                { code: 'WRONG_ACCOUNT', label: 'Posted to an account outside the permitted chart' },
+                { code: 'WRONG_ENTITY', label: 'Posted to an entity outside the permitted list' },
+                { code: 'CLOSED_PERIOD', label: 'Journal targets a closed accounting period' },
+                { code: 'DUPLICATE_POSTING', label: 'Duplicate of an entry already posted' },
+                { code: 'INSUFFICIENT_NARRATIVE', label: 'Narrative does not explain the decision' },
+                { code: 'OTHER', label: 'Other — explain in the rationale' },
               ].map((reason) => (
                 <label
                   key={reason.code}

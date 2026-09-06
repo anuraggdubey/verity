@@ -25,7 +25,7 @@ export function CitationInspector({ citations }: CitationInspectorProps) {
           Auditable Evidence Citations ({citations.length})
         </h4>
         <span className="text-[11px] font-mono text-zinc-500">
-          Source Lineage Verified
+          Source Lineage
         </span>
       </div>
 
