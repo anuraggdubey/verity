@@ -299,9 +299,16 @@ function accountingIntegrity(proposal: Proposal, policy: PolicyPack): ControlRes
   // AI-005 — a duplicate-shaped journal blocks; a non-posting duplicate flag remains reviewable.
   const bankLineId = proposal.citations.find((c) => c.sourceType === 'bank_line')?.sourceId;
   const bankLine = bankLineId ? getBankLine(bankLineId) : undefined;
-  // A timing difference is the same payment surfacing in another period, so the
-  // duplicate advisory does not apply to it.
-  const alreadyPosted = bankLine && proposal.disposition !== 'timing_difference'
+  // The advisory asks: is this bank line a second payment of something already
+  // recorded? Two dispositions answer that question by construction and must
+  // not be flagged:
+  //   timing_difference — the same payment surfacing in another period;
+  //   matched — the proposal asserts this line IS that entry, which the
+  //             deterministic matcher already verified. Flagging it sent every
+  //             auto-matched line to a controller and emptied the Auto lane.
+  const duplicateAdvisoryApplies =
+    proposal.disposition !== 'timing_difference' && proposal.disposition !== 'matched';
+  const alreadyPosted = bankLine && duplicateAdvisoryApplies
     ? listLedgerEntries().find(
         (e) =>
           e.posted &&
@@ -515,6 +522,16 @@ function selectorValue(selector: string, proposal: Proposal): SelectorValue {
       return proposal.journal.length > 0 ? proposal.journal.map((line) => line.entity) : undefined;
     case 'journal.currencies':
       return proposal.journal.length > 0 ? proposal.journal.map((line) => line.currency) : undefined;
+    case 'citations.count':
+      return proposal.citations.length;
+    case 'citations.documentCount':
+      return proposal.citations.filter((citation) => citation.sourceType === 'document').length;
+    case 'narrative.length':
+      return proposal.narrative.trim().length;
+    case 'duplicate.postedMatchExists':
+      // 'true' when a posted cash entry carries the same reference and amount as
+      // the cited bank line — the same signal the AI-005 advisory reads.
+      return postedDuplicateExists(proposal) ? 'true' : 'false';
     default:
       return undefined;
   }
@@ -558,6 +575,20 @@ function compareValue(compareTo: string, proposal: Proposal): string | number | 
   return compareTo;
 }
 
+/** Shared by the AI-005 advisory and the duplicate.* selector, so they cannot disagree. */
+function postedDuplicateExists(proposal: Proposal): boolean {
+  const bankLineId = proposal.citations.find((c) => c.sourceType === 'bank_line')?.sourceId;
+  const bankLine = bankLineId ? getBankLine(bankLineId) : undefined;
+  if (!bankLine) return false;
+  return listLedgerEntries().some(
+    (entry) =>
+      entry.posted &&
+      entry.account === '1010' &&
+      entry.reference === bankLine.reference &&
+      Math.abs(entry.amount - bankLine.amount) < 0.005,
+  );
+}
+
 const SUPPORTED_SELECTORS = [
   'fx.rateDate',
   'fx.rateType',
@@ -568,6 +599,10 @@ const SUPPORTED_SELECTORS = [
   'journal.periods',
   'journal.entities',
   'journal.currencies',
+  'citations.count',
+  'citations.documentCount',
+  'narrative.length',
+  'duplicate.postedMatchExists',
 ];
 
 export function applyConstrainedRule(rule: ConstrainedRule, proposal: Proposal): ControlResult | undefined {
@@ -633,6 +668,27 @@ export function applyConstrainedRule(rule: ConstrainedRule, proposal: Proposal):
     }
     case 'not_equals':
       return actual !== expected ? pass : fail(`${rule.selector} must not equal ${String(expected)}.`);
+    case 'gte':
+    case 'lte': {
+      const threshold = Number(rule.compareTo);
+      const value = Number(actual);
+      if (!Number.isFinite(threshold) || !Number.isFinite(value)) {
+        return {
+          code: rule.onFail.code,
+          family: rule.family,
+          status: 'warn',
+          title: rule.onFail.title,
+          failure: `${rule.selector} or its threshold is not numeric, so this rule was not enforced.`,
+          requiredRepair: rule.onFail.requiredRepair,
+        };
+      }
+      const satisfied = rule.comparator === 'gte' ? value >= threshold : value <= threshold;
+      return satisfied
+        ? pass
+        : fail(
+            `${rule.selector} is ${value}; policy requires ${rule.comparator === 'gte' ? 'at least' : 'at most'} ${threshold}.`,
+          );
+    }
     case 'in_allowlist':
     case 'not_in_allowlist': {
       if (!rule.allowlistRef) {

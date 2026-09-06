@@ -531,6 +531,14 @@ Auto-cleared: Unique currency, signed amount, reference, and date match
 
 **Supporting evidence available to the agent:** none.
 
+**What Verity expects**
+
+- Disposition: `matched`
+- Routing: `auto`
+- Journal accounts: none (non-posting)
+- Benchmark split: auto_clear
+- Note: Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition.
+
 **Your verdict** — replace one word, add a note if corrected:
 
 ```
@@ -556,6 +564,14 @@ Auto-cleared: Unique currency, signed amount, reference, and date match
 - GL-1002 · 2026-08-02 · account 1010 · period 2026-08 · -$825.40 · posted — Office supplies
 
 **Supporting evidence available to the agent:** none.
+
+**What Verity expects**
+
+- Disposition: `matched`
+- Routing: `auto`
+- Journal accounts: none (non-posting)
+- Benchmark split: auto_clear
+- Note: Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition.
 
 **Your verdict** — replace one word, add a note if corrected:
 
@@ -583,6 +599,14 @@ Auto-cleared: Unique currency, signed amount, reference, and date match
 
 **Supporting evidence available to the agent:** none.
 
+**What Verity expects**
+
+- Disposition: `matched`
+- Routing: `auto`
+- Journal accounts: none (non-posting)
+- Benchmark split: auto_clear
+- Note: Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition.
+
 **Your verdict** — replace one word, add a note if corrected:
 
 ```
@@ -608,6 +632,14 @@ Auto-cleared: Unique currency, signed amount, reference, and date match
 - GL-1004 · 2026-08-04 · account 1010 · period 2026-08 · -$1,160.00 · posted — Telecom payment
 
 **Supporting evidence available to the agent:** none.
+
+**What Verity expects**
+
+- Disposition: `matched`
+- Routing: `auto`
+- Journal accounts: none (non-posting)
+- Benchmark split: auto_clear
+- Note: Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition.
 
 **Your verdict** — replace one word, add a note if corrected:
 
@@ -635,6 +667,14 @@ Auto-cleared: Unique currency, signed amount, reference, and date match
 
 **Supporting evidence available to the agent:** none.
 
+**What Verity expects**
+
+- Disposition: `matched`
+- Routing: `auto`
+- Journal accounts: none (non-posting)
+- Benchmark split: auto_clear
+- Note: Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition.
+
 **Your verdict** — replace one word, add a note if corrected:
 
 ```
@@ -660,6 +700,14 @@ Auto-cleared: Unique currency, signed amount, reference, and date match
 - GL-1006 · 2026-08-06 · account 1010 · period 2026-08 · -$430.10 · posted — Utility payment
 
 **Supporting evidence available to the agent:** none.
+
+**What Verity expects**
+
+- Disposition: `matched`
+- Routing: `auto`
+- Journal accounts: none (non-posting)
+- Benchmark split: auto_clear
+- Note: Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition.
 
 **Your verdict** — replace one word, add a note if corrected:
 
@@ -687,6 +735,14 @@ Auto-cleared: Unique currency, signed amount, reference, and date match
 
 **Supporting evidence available to the agent:** none.
 
+**What Verity expects**
+
+- Disposition: `matched`
+- Routing: `auto`
+- Journal accounts: none (non-posting)
+- Benchmark split: auto_clear
+- Note: Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition.
+
 **Your verdict** — replace one word, add a note if corrected:
 
 ```
@@ -712,6 +768,14 @@ Auto-cleared: Unique currency, signed amount, reference, and date match
 - GL-1010 · 2026-08-12 · account 1010 · period 2026-08 · -$704.00 · posted — Hosting payment
 
 **Supporting evidence available to the agent:** none.
+
+**What Verity expects**
+
+- Disposition: `matched`
+- Routing: `auto`
+- Journal accounts: none (non-posting)
+- Benchmark split: auto_clear
+- Note: Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition.
 
 **Your verdict** — replace one word, add a note if corrected:
 
@@ -739,6 +803,14 @@ Auto-cleared: Unique currency, signed amount, reference, and date match
 
 **Supporting evidence available to the agent:** none.
 
+**What Verity expects**
+
+- Disposition: `matched`
+- Routing: `auto`
+- Journal accounts: none (non-posting)
+- Benchmark split: auto_clear
+- Note: Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition.
+
 **Your verdict** — replace one word, add a note if corrected:
 
 ```
@@ -764,6 +836,14 @@ Auto-cleared: Unique currency, signed amount, reference, and date match
 - GL-1013 · 2026-08-14 · account 1010 · period 2026-08 · -$560.00 · posted — Printing payment
 
 **Supporting evidence available to the agent:** none.
+
+**What Verity expects**
+
+- Disposition: `matched`
+- Routing: `auto`
+- Journal accounts: none (non-posting)
+- Benchmark split: auto_clear
+- Note: Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition.
 
 **Your verdict** — replace one word, add a note if corrected:
 
@@ -791,6 +871,14 @@ Auto-cleared: Unique currency, signed amount, reference, and date match
 
 **Supporting evidence available to the agent:** none.
 
+**What Verity expects**
+
+- Disposition: `matched`
+- Routing: `auto`
+- Journal accounts: none (non-posting)
+- Benchmark split: auto_clear
+- Note: Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition.
+
 **Your verdict** — replace one word, add a note if corrected:
 
 ```
@@ -816,6 +904,14 @@ Auto-cleared: Unique currency, signed amount, reference, and date match
 - GL-1017 · 2026-08-19 · account 1010 · period 2026-08 · -$990.50 · posted — Security payment
 
 **Supporting evidence available to the agent:** none.
+
+**What Verity expects**
+
+- Disposition: `matched`
+- Routing: `auto`
+- Journal accounts: none (non-posting)
+- Benchmark split: auto_clear
+- Note: Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition.
 
 **Your verdict** — replace one word, add a note if corrected:
 
@@ -843,6 +939,14 @@ Auto-cleared: Unique currency, signed amount, reference, and date match
 
 **Supporting evidence available to the agent:** none.
 
+**What Verity expects**
+
+- Disposition: `matched`
+- Routing: `auto`
+- Journal accounts: none (non-posting)
+- Benchmark split: auto_clear
+- Note: Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition.
+
 **Your verdict** — replace one word, add a note if corrected:
 
 ```
@@ -868,6 +972,14 @@ Auto-cleared: Unique currency, signed amount, reference, and date match
 - GL-1020 · 2026-08-22 · account 1010 · period 2026-08 · -$2,250.00 · posted — Lease payment
 
 **Supporting evidence available to the agent:** none.
+
+**What Verity expects**
+
+- Disposition: `matched`
+- Routing: `auto`
+- Journal accounts: none (non-posting)
+- Benchmark split: auto_clear
+- Note: Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition.
 
 **Your verdict** — replace one word, add a note if corrected:
 
@@ -895,6 +1007,14 @@ Auto-cleared: Unique currency, signed amount, reference, and date match
 
 **Supporting evidence available to the agent:** none.
 
+**What Verity expects**
+
+- Disposition: `matched`
+- Routing: `auto`
+- Journal accounts: none (non-posting)
+- Benchmark split: auto_clear
+- Note: Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition.
+
 **Your verdict** — replace one word, add a note if corrected:
 
 ```
@@ -921,6 +1041,14 @@ Auto-cleared: Unique currency, signed amount, reference, and date match
 
 **Supporting evidence available to the agent:** none.
 
+**What Verity expects**
+
+- Disposition: `matched`
+- Routing: `auto`
+- Journal accounts: none (non-posting)
+- Benchmark split: auto_clear
+- Note: Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition.
+
 **Your verdict** — replace one word, add a note if corrected:
 
 ```
@@ -946,6 +1074,14 @@ Auto-cleared: Unique currency, signed amount, reference, and date match
 - GL-1023 · 2026-08-27 · account 1010 · period 2026-08 · $2,050.00 · posted — Customer receipt
 
 **Supporting evidence available to the agent:** none.
+
+**What Verity expects**
+
+- Disposition: `matched`
+- Routing: `auto`
+- Journal accounts: none (non-posting)
+- Benchmark split: auto_clear
+- Note: Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition.
 
 **Your verdict** — replace one word, add a note if corrected:
 

@@ -103,6 +103,54 @@ const TEMPLATES: Partial<Record<RejectReasonCode, Template>> = {
       },
     }),
   },
+  MISSING_EVIDENCE: {
+    // Only meaningful where a document should exist: a posting decision.
+    appliesTo: (proposal) => proposal.journal.length > 0,
+    build: () => ({
+      family: 'evidence_lineage',
+      selector: 'citations.documentCount',
+      comparator: 'gte',
+      compareTo: '1',
+      onFail: {
+        code: 'VERITY-EV-006',
+        title: 'A posting decision cites at least one supporting document',
+        requiredRepair:
+          'Retrieve the invoice, remittance or fee schedule that supports this entry and cite it. If no document exists, choose insufficient_evidence and escalate instead of posting.',
+      },
+    }),
+  },
+
+  DUPLICATE_POSTING: {
+    appliesTo: (proposal) => proposal.journal.length > 0,
+    build: () => ({
+      family: 'accounting_integrity',
+      selector: 'duplicate.postedMatchExists',
+      comparator: 'not_equals',
+      compareTo: 'true',
+      onFail: {
+        code: 'VERITY-AI-009',
+        title: 'No posted cash entry already carries this reference and amount',
+        requiredRepair:
+          'A posted entry already matches this bank line by reference and amount. Confirm whether this is the same payment; if it is, choose duplicate rather than posting a second entry.',
+      },
+    }),
+  },
+
+  INSUFFICIENT_NARRATIVE: {
+    appliesTo: () => true,
+    build: () => ({
+      family: 'evidence_lineage',
+      selector: 'narrative.length',
+      comparator: 'gte',
+      compareTo: '120',
+      onFail: {
+        code: 'VERITY-EV-007',
+        title: 'The narrative explains the decision',
+        requiredRepair:
+          'State what happened, which records support it, and how the amounts were derived — in at least a couple of sentences. A one-line assertion is not a reviewable explanation.',
+      },
+    }),
+  },
 };
 
 export type DraftResult =
@@ -180,6 +228,12 @@ function failureModeText(group: FailureGroup): string {
       return 'Journal posted to an account outside the permitted chart';
     case 'WRONG_ENTITY':
       return 'Journal posted to an entity outside the permitted list';
+    case 'MISSING_EVIDENCE':
+      return 'Posting decision made without citing a supporting document';
+    case 'DUPLICATE_POSTING':
+      return 'Second entry proposed for a payment already posted';
+    case 'INSUFFICIENT_NARRATIVE':
+      return 'Narrative too thin to review';
     default:
       return `Repeated controller rejection: ${group.reasonCode}`;
   }
@@ -195,6 +249,10 @@ function ruleSentence(rule: ConstrainedRule): string {
       return `reject any value of ${rule.selector} that appears in the policy pack's ${rule.allowlistRef} list`;
     case 'exists':
       return `require ${rule.selector} to be present`;
+    case 'gte':
+      return `require ${rule.selector} to be at least ${rule.compareTo}`;
+    case 'lte':
+      return `require ${rule.selector} to be at most ${rule.compareTo}`;
     default:
       return `apply ${rule.comparator} to ${rule.selector}`;
   }

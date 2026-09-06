@@ -281,3 +281,77 @@ describe('allowlist rules', () => {
     expect(applyConstrainedRule(accountRule, nonPosting)).toBeUndefined();
   });
 });
+
+describe('duplicate advisory scope', () => {
+  it('does not flag a matched line as a duplicate of the entry it matched', () => {
+    // Regression: this fired on every deterministically matched line, which sent
+    // all 17 auto-cleared cases to a controller and emptied the Auto lane.
+    const matched: Proposal = {
+      ...unapprovedFx,
+      disposition: 'matched',
+      journal: [],
+      fx: undefined,
+      citations: [{ claim: 'Bank line', sourceType: 'bank_line', sourceId: 'BL-014' }],
+    };
+    const report = evaluateProposal(matched, { rules: [], packVersion: 'v1' });
+    expect(report.results.find((r) => r.code === 'VERITY-AI-005')?.status).toBe('pass');
+  });
+
+  it('still flags a duplicate disposition, which is what the advisory is for', () => {
+    const duplicate: Proposal = {
+      ...unapprovedFx,
+      disposition: 'duplicate',
+      journal: [],
+      fx: undefined,
+      citations: [{ claim: 'Bank line', sourceType: 'bank_line', sourceId: 'BL-009' }],
+    };
+    const report = evaluateProposal(duplicate, { rules: [], packVersion: 'v1' });
+    expect(report.results.find((r) => r.code === 'VERITY-AI-005')?.status).toBe('warn');
+  });
+});
+
+describe('numeric comparators', () => {
+  const narrativeRule: ConstrainedRule = {
+    family: 'evidence_lineage',
+    selector: 'narrative.length',
+    comparator: 'gte',
+    compareTo: '120',
+    onFail: { code: 'VERITY-EV-007', title: 'narrative', requiredRepair: 'explain the decision' },
+  };
+
+  it('blocks a narrative under the threshold and passes one over it', () => {
+    const thin: Proposal = { ...unapprovedFx, narrative: 'Matched it.' };
+    expect(applyConstrainedRule(narrativeRule, thin)?.status).toBe('blocked');
+
+    const explained: Proposal = {
+      ...unapprovedFx,
+      narrative:
+        'The Lyra GmbH invoice INV-LG-2291 for EUR 8,000 has transaction date 2026-08-11. The approved APEX-REF-RATES spot rate for that date is 1.0785, giving a carrying value of USD 8,628.00, and the bank settled USD 8,712.00, so USD 84.00 is a realized FX loss.',
+    };
+    expect(applyConstrainedRule(narrativeRule, explained)?.status).toBe('pass');
+  });
+
+  it('requires a cited document before a posting decision', () => {
+    const rule: ConstrainedRule = {
+      family: 'evidence_lineage',
+      selector: 'citations.documentCount',
+      comparator: 'gte',
+      compareTo: '1',
+      onFail: { code: 'VERITY-EV-006', title: 'document', requiredRepair: 'cite the invoice' },
+    };
+    expect(applyConstrainedRule(rule, unapprovedFx)?.status).toBe('pass');
+
+    const undocumented: Proposal = {
+      ...unapprovedFx,
+      citations: unapprovedFx.citations.filter((c) => c.sourceType !== 'document'),
+    };
+    expect(applyConstrainedRule(rule, undocumented)?.status).toBe('blocked');
+  });
+
+  it('warns instead of enforcing when the threshold is not numeric', () => {
+    const broken: ConstrainedRule = { ...narrativeRule, compareTo: 'lots' };
+    const result = applyConstrainedRule(broken, unapprovedFx);
+    expect(result?.status).toBe('warn');
+    expect(result?.failure).toContain('not numeric');
+  });
+});

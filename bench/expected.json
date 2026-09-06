@@ -96,7 +96,10 @@
       "expectedDisposition": "bank_fee_journal",
       "expectedLane": "review",
       "autoClearPermitted": false,
-      "expectedJournalAccounts": ["2100", "1010"],
+      "expectedJournalAccounts": [
+        "2100",
+        "1010"
+      ],
       "note": "Wrong entity on journal lines must be blocked by VERITY-AI-003."
     },
     "CASE-011": {
@@ -104,7 +107,10 @@
       "expectedDisposition": "short_pay",
       "expectedLane": "review",
       "autoClearPermitted": false,
-      "expectedJournalAccounts": ["2100", "1010"],
+      "expectedJournalAccounts": [
+        "2100",
+        "1010"
+      ],
       "note": "Partial settlement against a larger invoice."
     },
     "CASE-012": {
@@ -118,6 +124,142 @@
         "1010"
       ],
       "note": "Held-out replay case for the same failure class. Never used to draft CPR-001."
+    },
+    "CASE-A01": {
+      "split": "auto_clear",
+      "expectedDisposition": "matched",
+      "expectedLane": "auto",
+      "autoClearPermitted": true,
+      "expectedJournalAccounts": [],
+      "note": "Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition."
+    },
+    "CASE-A02": {
+      "split": "auto_clear",
+      "expectedDisposition": "matched",
+      "expectedLane": "auto",
+      "autoClearPermitted": true,
+      "expectedJournalAccounts": [],
+      "note": "Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition."
+    },
+    "CASE-A03": {
+      "split": "auto_clear",
+      "expectedDisposition": "matched",
+      "expectedLane": "auto",
+      "autoClearPermitted": true,
+      "expectedJournalAccounts": [],
+      "note": "Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition."
+    },
+    "CASE-A04": {
+      "split": "auto_clear",
+      "expectedDisposition": "matched",
+      "expectedLane": "auto",
+      "autoClearPermitted": true,
+      "expectedJournalAccounts": [],
+      "note": "Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition."
+    },
+    "CASE-A05": {
+      "split": "auto_clear",
+      "expectedDisposition": "matched",
+      "expectedLane": "auto",
+      "autoClearPermitted": true,
+      "expectedJournalAccounts": [],
+      "note": "Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition."
+    },
+    "CASE-A06": {
+      "split": "auto_clear",
+      "expectedDisposition": "matched",
+      "expectedLane": "auto",
+      "autoClearPermitted": true,
+      "expectedJournalAccounts": [],
+      "note": "Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition."
+    },
+    "CASE-A07": {
+      "split": "auto_clear",
+      "expectedDisposition": "matched",
+      "expectedLane": "auto",
+      "autoClearPermitted": true,
+      "expectedJournalAccounts": [],
+      "note": "Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition."
+    },
+    "CASE-A08": {
+      "split": "auto_clear",
+      "expectedDisposition": "matched",
+      "expectedLane": "auto",
+      "autoClearPermitted": true,
+      "expectedJournalAccounts": [],
+      "note": "Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition."
+    },
+    "CASE-A09": {
+      "split": "auto_clear",
+      "expectedDisposition": "matched",
+      "expectedLane": "auto",
+      "autoClearPermitted": true,
+      "expectedJournalAccounts": [],
+      "note": "Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition."
+    },
+    "CASE-A10": {
+      "split": "auto_clear",
+      "expectedDisposition": "matched",
+      "expectedLane": "auto",
+      "autoClearPermitted": true,
+      "expectedJournalAccounts": [],
+      "note": "Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition."
+    },
+    "CASE-A11": {
+      "split": "auto_clear",
+      "expectedDisposition": "matched",
+      "expectedLane": "auto",
+      "autoClearPermitted": true,
+      "expectedJournalAccounts": [],
+      "note": "Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition."
+    },
+    "CASE-A12": {
+      "split": "auto_clear",
+      "expectedDisposition": "matched",
+      "expectedLane": "auto",
+      "autoClearPermitted": true,
+      "expectedJournalAccounts": [],
+      "note": "Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition."
+    },
+    "CASE-A13": {
+      "split": "auto_clear",
+      "expectedDisposition": "matched",
+      "expectedLane": "auto",
+      "autoClearPermitted": true,
+      "expectedJournalAccounts": [],
+      "note": "Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition."
+    },
+    "CASE-A14": {
+      "split": "auto_clear",
+      "expectedDisposition": "matched",
+      "expectedLane": "auto",
+      "autoClearPermitted": true,
+      "expectedJournalAccounts": [],
+      "note": "Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition."
+    },
+    "CASE-A15": {
+      "split": "auto_clear",
+      "expectedDisposition": "matched",
+      "expectedLane": "auto",
+      "autoClearPermitted": true,
+      "expectedJournalAccounts": [],
+      "note": "Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition."
+    },
+    "CASE-A16": {
+      "split": "auto_clear",
+      "expectedDisposition": "matched",
+      "expectedLane": "auto",
+      "autoClearPermitted": true,
+      "expectedJournalAccounts": [],
+      "note": "Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition."
+    },
+    "CASE-A17": {
+      "split": "auto_clear",
+      "expectedDisposition": "matched",
+      "expectedLane": "auto",
+      "autoClearPermitted": true,
+      "expectedJournalAccounts": [],
+      "note": "Deterministic matcher cleared this line 1:1 against a posted ledger entry. Ground truth is the matcher's, not agent output; a matched line is non-posting by definition."
     }
   }
 }

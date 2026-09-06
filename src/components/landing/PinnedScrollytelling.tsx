@@ -56,8 +56,15 @@ export function PinnedScrollytelling() {
       const fullText = 'Show me unposted FX variances > $1,000';
       let currentText = '';
       let i = 0;
-      setPromptInput('');
+      let cleared = false;
       const typingInterval = setInterval(() => {
+        if (!cleared) {
+          // Reset on the first tick rather than synchronously in the effect body,
+          // which is what the cascading-render rule objects to. Visually
+          // identical: the field is empty for one 40ms frame either way.
+          cleared = true;
+          setPromptInput('');
+        }
         if (i < fullText.length) {
           currentText += fullText.charAt(i);
           setPromptInput(currentText);
@@ -496,7 +503,7 @@ export function PinnedScrollytelling() {
                       className="overflow-hidden space-y-3"
                     >
                       <p className="text-zinc-700 leading-relaxed">
-                        I've drafted a balanced PR for the Acme Europe B.V. wire. It settles <span className="font-semibold text-zinc-900">€13,000.00 EUR</span> against <span className="font-semibold text-zinc-900">$14,200.00 USD</span>.
+                        I&apos;ve drafted a balanced PR for the Acme Europe B.V. wire. It settles <span className="font-semibold text-zinc-900">€13,000.00 EUR</span> against <span className="font-semibold text-zinc-900">$14,200.00 USD</span>.
                       </p>
                       
                       <p className="text-zinc-700 leading-relaxed">

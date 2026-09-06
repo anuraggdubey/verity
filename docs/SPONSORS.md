@@ -37,6 +37,17 @@ NEATLOGS_API_KEY=nlw_...
 NEATLOGS_PROJECT=verity
 ```
 
+**Check the payload before you have a key:**
+
+```bash
+NEATLOGS_API_KEY=nlw_dryrun NEATLOGS_DRY_RUN=true npm run agent -- CASE-001
+```
+
+That prints the exact body instead of posting it. For CASE-001 it emits 15
+spans — 6 `LLM`, 6 `TOOL`, 3 `SPAN` — with the blocked control and the repair
+request marked `ERROR`, and metadata carrying the policy version, control pack,
+core-prompt hash, outcome and `pre_recorded: true`.
+
 **Two properties worth stating out loud:**
 
 - Verity stays the enforcement layer. The send is fire-and-forget and swallows
@@ -45,10 +56,10 @@ NEATLOGS_PROJECT=verity
 - Every trace carries `pre_recorded: true|false` in its metadata, so a replayed
   transcript can never look like live agent behaviour on their dashboard either.
 
-**Not done:** nobody has run this against a real key yet, so the ingest has been
-exercised only through unit tests over the payload shape
-([`neatlogs.test.ts`](../src/lib/trace/neatlogs.test.ts)). First run with a real
-key may need a field adjusted.
+**Not done:** nobody has run this against a real key yet. The payload shape is
+covered by unit tests ([`neatlogs.test.ts`](../src/lib/trace/neatlogs.test.ts))
+and by the dry run above, so what is unverified is the wire call itself, not the
+body. First run with a real key may still need a field adjusted.
 
 ---
 
@@ -148,8 +159,8 @@ One narrow question for them, if there is time for nothing else:
 > When a reconciliation exception reaches a controller, what missing evidence or
 > policy violation most often forces it back to the preparer?
 
-**Status:** `bench/fixtures/review.json` currently records 12 labelled cases, all
-`unreviewed`, reviewer unset.
+**Status:** `bench/fixtures/review.json` now covers all 29 cases, every one
+`unreviewed`, reviewer unset. The pack itself generates in full.
 
 ---
 

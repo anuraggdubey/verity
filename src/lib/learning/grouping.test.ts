@@ -37,7 +37,7 @@ describe('reviewer-grounded failure grouping', () => {
   it('refuses to draft a rule for a failure the schema cannot express', () => {
     const draft = draftControlPR({
       id: 'GRP-TEST',
-      reasonCode: 'INSUFFICIENT_NARRATIVE',
+      reasonCode: 'OTHER',
       proposalIds: ['PROP-006-r1', 'PROP-009-r1'],
       caseIds: ['CASE-006', 'CASE-009'],
       rationales: [],
@@ -77,6 +77,41 @@ describe('rule templates', () => {
   });
 
   it('still refuses a reason code with no enforceable schema', () => {
-    expect(draftControlPR(group('INSUFFICIENT_NARRATIVE')).ok).toBe(false);
+    // OTHER is the only one left: by definition it names no specific failure.
+    expect(draftControlPR(group('OTHER')).ok).toBe(false);
+  });
+});
+
+describe('remaining reason codes', () => {
+  const group = (reasonCode: Parameters<typeof draftControlPR>[0]['reasonCode']) => ({
+    id: `GRP-${reasonCode}`,
+    reasonCode,
+    proposalIds: ['PROP-006-r1', 'PROP-009-r1'],
+    caseIds: ['CASE-006', 'CASE-009'],
+    rationales: [],
+    coherence: 0,
+    sharedTraits: [],
+  });
+
+  it('now drafts a rule for every enumerated reason code except OTHER', () => {
+    const codes = [
+      'WRONG_RATE_DATE',
+      'UNSUPPORTED_FX_SOURCE',
+      'CLOSED_PERIOD',
+      'WRONG_ACCOUNT',
+      'WRONG_ENTITY',
+      'MISSING_EVIDENCE',
+      'DUPLICATE_POSTING',
+      'INSUFFICIENT_NARRATIVE',
+    ] as const;
+    for (const code of codes) {
+      expect(draftControlPR(group(code)).ok, `${code} should draft`).toBe(true);
+    }
+  });
+
+  it('still refuses OTHER, which by definition has no schema', () => {
+    const draft = draftControlPR(group('OTHER'));
+    expect(draft.ok).toBe(false);
+    if (!draft.ok) expect(draft.reason).toContain('No constrained rule schema');
   });
 });

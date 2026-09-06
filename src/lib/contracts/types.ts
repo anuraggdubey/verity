@@ -242,6 +242,8 @@ export interface ConstrainedRule {
     | 'in_allowlist'
     | 'not_in_allowlist'
     | 'within_tolerance'
+    | 'gte'
+    | 'lte'
     | 'exists';
   /** Named list in the policy pack, e.g. 'approved_fx_sources'. */
   allowlistRef?: string;

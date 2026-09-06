@@ -70,17 +70,15 @@ Missing categories: short pay, wrong entity, closed-period proposal, additional
 exact matches and timing differences, and more held-out FX cases. Also needs the
 generator that produces them, and expected labels added to `bench/expected.json`.
 
-### 1.5 Expected labels for 17 of the 29 cases  *(owner: A)*
-The matcher is real now — `loadBenchmark()` runs `matchReconciliation()` over
-`bench/fixtures/bank.csv` and `ledger.csv`, and the bank-line, auto-matched and
-exception counts on screen come from it. That closes the old "asserted numbers"
-gap.
+### 1.5 Expected labels  — **DONE**
+The matcher is real (`loadBenchmark()` runs `matchReconciliation()` over the
+CSVs, so the counts on screen are computed), and all 29 cases now carry labels.
+The 17 auto-cleared cases were labelled from the matcher's own ground truth —
+`matched`, lane `auto`, non-posting — not from agent output, which would have
+been circular.
 
-What is open: the dataset has 29 cases and `bench/expected.json` labels 12, so
-17 cases are unscored. `npm run baseline` now prints the gap instead of hiding
-it, and quality counts are reported out of scored cases rather than out of all
-of them. Every new case needs an expected disposition, lane and journal accounts
-or it contributes nothing to a quality number.
+Scoring on the frozen set: disposition 29/29, journal 26/29, evidence-complete
+27/29. The three journal misses are the intentional failure cases.
 
 ### 1.6 The full control pack  *(owner: A)*
 `src/lib/controls/engine.ts` is a cut-down engine B wrote so the repair loop had
@@ -155,11 +153,10 @@ is one HTTP verb in that module and it is GET.
 **B — agent and learning loop**
 - Live provider verification (§1.3) — still the one thing only a key can settle
 - Neatlogs wiring once the endpoint is confirmed
-- Rule templates: `WRONG_RATE_DATE`, `UNSUPPORTED_FX_SOURCE`, `CLOSED_PERIOD`,
-  `WRONG_ACCOUNT` and `WRONG_ENTITY` are enforceable. `MISSING_EVIDENCE`,
-  `DUPLICATE_POSTING` and `INSUFFICIENT_NARRATIVE` still refuse with a reason,
-  because no constrained-rule schema expresses them yet — that is the next batch,
-  and each needs a selector the engine can evaluate
+- Rule templates: every enumerated reason code now drafts an enforceable rule
+  except `OTHER`, which by definition names no specific failure. The engine
+  gained numeric comparators (`gte`/`lte`) and selectors for evidence shape,
+  narrative length and duplicate risk to support the last three
 - Per-case transcripts are derived from stored proposals; only CASE-001 is
   hand-recorded with the tool calls that produced the mistake
 

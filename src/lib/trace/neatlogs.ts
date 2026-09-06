@@ -21,6 +21,7 @@ import type { TraceEntry } from '@/lib/trace/trace';
  *   NEATLOGS_API_KEY=nlw_...        (ingest-only write key)
  *   NEATLOGS_PROJECT=verity         (optional, defaults to "verity")
  *   NEATLOGS_ENDPOINT=...           (optional, defaults to the URL above)
+ *   NEATLOGS_DRY_RUN=true           (print the payload instead of sending it)
  */
 
 const DEFAULT_ENDPOINT = 'https://ingest.neatlogs.com/v1/trace';
@@ -168,6 +169,13 @@ export function sendRunTrace(entries: TraceEntry[], meta: RunTraceMeta): void {
         timestamp: entry.at,
       })),
   };
+
+  // Dry run prints the exact body instead of posting it, so the payload can be
+  // reviewed against Neatlogs' schema before anyone has a key.
+  if (process.env.NEATLOGS_DRY_RUN === 'true') {
+    console.log('[neatlogs dry-run]', JSON.stringify(payload, null, 2));
+    return;
+  }
 
   void fetch(config.endpoint, {
     method: 'POST',
