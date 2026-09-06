@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "seed": "verity-demo-v1",
+  "sourceHash": "sha256:faa3d8436e02440bd1535f33fcf5f958bf1cf5b8dadbcfe2a4b1bd2bf9350594",
+  "review": {
+    "origin": "synthetic",
+    "practitionerReviewed": false,
+    "caseReviews": {
+      "CASE-001": "unreviewed",
+      "CASE-002": "unreviewed",
+      "CASE-003": "unreviewed",
+      "CASE-004": "unreviewed",
+      "CASE-005": "unreviewed",
+      "CASE-006": "unreviewed",
+      "CASE-009": "unreviewed",
+      "CASE-012": "unreviewed"
+    }
+  },
+  "result": {
+    "matches": [
+      {
+        "bankLineId": "BL-001",
+        "ledgerEntryId": "GL-1001",
+        "reason": "Unique currency, signed amount, reference, and date match"
+      },
+      {
+        "bankLineId": "BL-002",
+        "ledgerEntryId": "GL-1002",
+        "reason": "Unique currency, signed amount, reference, and date match"
+      },
+      {
+        "bankLineId": "BL-003",
+        "ledgerEntryId": "GL-1003",
+        "reason": "Unique currency, signed amount, reference, and date match"
+      },
+      {
+        "bankLineId": "BL-004",
+        "ledgerEntryId": "GL-1004",
+        "reason": "Unique currency, signed amount, reference, and date match"
+      },
+      {
+        "bankLineId": "BL-005",
+        "ledgerEntryId": "GL-1005",
+        "reason": "Unique currency, signed amount, reference, and date match"
+      },
+      {
+        "bankLineId": "BL-006",
+        "ledgerEntryId": "GL-1006",
+        "reason": "Unique currency, signed amount, reference, and date match"
+      },
+      {
+        "bankLineId": "BL-008",
+        "ledgerEntryId": "GL-1008",
+        "reason": "Unique currency, signed amount, reference, and date match"
+      },
+      {
+        "bankLineId": "BL-010",
+        "ledgerEntryId": "GL-1010",
+        "reason": "Unique currency, signed amount, reference, and date match"
+      },
+      {
+        "bankLineId": "BL-012",
+        "ledgerEntryId": "GL-1012",
+        "reason": "Unique currency, signed amount, reference, and date match"
+      },
+      {
+        "bankLineId": "BL-013",
+        "ledgerEntryId": "GL-1013",
+        "reason": "Unique currency, signed amount, reference, and date match"
+      },
+      {
+        "bankLineId": "BL-015",
+        "ledgerEntryId": "GL-1015",
+        "reason": "Unique currency, signed amount, reference, and date match"
+      },
+      {
+        "bankLineId": "BL-017",
+        "ledgerEntryId": "GL-1017",
+        "reason": "Unique currency, signed amount, reference, and date match"
+      },
+      {
+        "bankLineId": "BL-018",
+        "ledgerEntryId": "GL-1018",
+        "reason": "Unique currency, signed amount, reference, and date match"
+      },
+      {
+        "bankLineId": "BL-020",
+        "ledgerEntryId": "GL-1020",
+        "reason": "Unique currency, signed amount, reference, and date match"
+      },
+      {
+        "bankLineId": "BL-021",
+        "ledgerEntryId": "GL-1021",
+        "reason": "Unique currency, signed amount, reference, and date match"
+      },
+      {
+        "bankLineId": "BL-022",
+        "ledgerEntryId": "GL-1022",
+        "reason": "Unique currency, signed amount, reference, and date match"
+      },
+      {
+        "bankLineId": "BL-023",
+        "ledgerEntryId": "GL-1023",
+        "reason": "Unique currency, signed amount, reference, and date match"
+      }
+    ],
+    "exceptions": [
+      {
+        "bankLineId": "BL-007",
+        "candidateLedgerIds": [],
+        "reasonCode": "NO_EXACT_MATCH"
+      },
+      {
+        "bankLineId": "BL-009",
+        "candidateLedgerIds": [],
+        "reasonCode": "NO_EXACT_MATCH"
+      },
+      {
+        "bankLineId": "BL-011",
+        "candidateLedgerIds": [],
+        "reasonCode": "MISSING_REFERENCE"
+      },
+      {
+        "bankLineId": "BL-014",
+        "candidateLedgerIds": [],
+        "reasonCode": "NO_EXACT_MATCH"
+      },
+      {
+        "bankLineId": "BL-016",
+        "candidateLedgerIds": [
+          "GL-2118"
+        ],
+        "reasonCode": "DATE_ANOMALY"
+      },
+      {
+        "bankLineId": "BL-019",
+        "candidateLedgerIds": [],
+        "reasonCode": "NO_EXACT_MATCH"
+      },
+      {
+        "bankLineId": "BL-026",
+        "candidateLedgerIds": [],
+        "reasonCode": "NO_EXACT_MATCH"
+      }
+    ],
+    "counts": {
+      "bankLines": 24,
+      "autoMatched": 17,
+      "exceptions": 7
+    }
+  }
+}

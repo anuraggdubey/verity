@@ -1,0 +1,14 @@
+{
+  "origin": "synthetic",
+  "practitionerReviewed": false,
+  "caseReviews": {
+    "CASE-001": "unreviewed",
+    "CASE-002": "unreviewed",
+    "CASE-003": "unreviewed",
+    "CASE-004": "unreviewed",
+    "CASE-005": "unreviewed",
+    "CASE-006": "unreviewed",
+    "CASE-009": "unreviewed",
+    "CASE-012": "unreviewed"
+  }
+}

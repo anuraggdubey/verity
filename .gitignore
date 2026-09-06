@@ -6,6 +6,7 @@ dist/
 
 # Dependencies
 node_modules/
+.npm-cache/
 /.pnp
 .pnp.js
 .yarn/cache

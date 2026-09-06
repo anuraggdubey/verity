@@ -1,0 +1,25 @@
+id,postedDate,valueDate,amount,currency,counterparty,reference,description
+BL-001,2026-08-01,2026-08-01,1520.00,USD,Northwind Retail,RCPT-1001,"Customer receipt, August batch"
+BL-002,2026-08-02,2026-08-02,-825.40,USD,Metro Office,INV-MO-441,Office supplies
+BL-003,2026-08-03,2026-08-03,2400.00,USD,Bluebird Labs,RCPT-1003,Customer receipt
+BL-004,2026-08-04,2026-08-04,-1160.00,USD,Harbor Telecom,INV-HT-773,Telecom payment
+BL-005,2026-08-05,2026-08-05,975.25,USD,Atlas Foods,RCPT-1005,Customer receipt
+BL-006,2026-08-06,2026-08-06,-430.10,USD,City Utilities,INV-CU-118,Utility payment
+BL-008,2026-08-09,2026-08-09,3125.00,USD,Evergreen Stores,RCPT-1008,Customer receipt
+BL-010,2026-08-12,2026-08-12,-704.00,USD,Signal Hosting,INV-SH-902,Hosting payment
+BL-012,2026-08-13,2026-08-13,1880.75,USD,Riverstone Co,RCPT-1012,Customer receipt
+BL-013,2026-08-14,2026-08-14,-560.00,USD,Paper Trail LLC,INV-PT-311,Printing payment
+BL-015,2026-08-17,2026-08-17,4275.00,USD,Keystone Market,RCPT-1015,Customer receipt
+BL-017,2026-08-19,2026-08-19,-990.50,USD,Vector Security,INV-VS-887,Security payment
+BL-018,2026-08-20,2026-08-20,1333.33,USD,Juniper Works,RCPT-1018,Customer receipt
+BL-020,2026-08-22,2026-08-22,-2250.00,USD,Redwood Leasing,INV-RL-552,Lease payment
+BL-021,2026-08-24,2026-08-24,680.00,USD,Sunfield Media,RCPT-1021,Customer receipt
+BL-022,2026-08-25,2026-08-25,-1499.99,USD,Cloud Nine Ltd,INV-CN-730,Software payment
+BL-023,2026-08-27,2026-08-27,2050.00,USD,Orchard Systems,RCPT-1023,Customer receipt
+BL-007,2026-08-08,2026-08-08,-45.00,USD,First Meridian Bank,SVC-AUG,Bank service charge
+BL-009,2026-08-12,2026-08-12,-3250.00,USD,Peakline Supply,INV-3390,Possible duplicate payment
+BL-011,2026-08-13,2026-08-13,12400.00,USD,UNKNOWN REMITTER,,Incoming wire without remittance
+BL-014,2026-08-14,2026-08-14,-8712.00,USD,Lyra GmbH,INV-LG-2291,EUR invoice settled in USD
+BL-016,2026-08-18,2026-08-18,-6120.00,USD,Vantage Freight,CHK-10442,Prior-period check cleared
+BL-019,2026-08-21,2026-08-21,-5400.00,USD,Meridian Cloud SARL,INV-MC-118,FX settlement-date rate case
+BL-026,2026-08-29,2026-08-29,-2484.00,USD,Halden Werke,INV-HW-903,FX month-end rate case

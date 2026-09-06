@@ -7,11 +7,12 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
+    "generate:bench": "tsx bench/generate.ts",
     "bench": "tsx bench/run.ts",
     "agent": "tsx bench/agent.ts",
     "learn": "tsx bench/learn.ts",
     "baseline": "tsx bench/baseline.ts",
-    "test": "vitest run"
+    "test": "vitest run --configLoader runner"
   },
   "dependencies": {
     "@google/genai": "^2.21.0",
