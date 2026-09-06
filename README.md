@@ -1,195 +1,360 @@
 # Verity
 
-> **"Don't trust the agent's confidence. Trust what passed."**
+> **Don't trust the agent's confidence. Trust what passed.**
 
-Verity is a change-control plane and merge gate for agent-generated finance work.
+Verity is a **merge gate for agent-generated finance work**. Git gave coding
+agents branches, CI and pull requests; Verity gives finance agents isolated
+cases, deterministic controls, structured repair, and a human who merges.
 
-Just as Git and CI give software engineering isolated branches, automated regression checks, and pull request reviews, Verity gives financial accounting agents isolated exception investigation, deterministic policy controls, repair loops, and human controller approval.
+It is proved on one real workflow, end to end: a bank reconciliation that
+closes.
 
-**Benchmark status:** The frozen dataset in `bench/fixtures/` is **synthetic** and has **not** been practitioner-reviewed. The UI labels this explicitly on the metrics screen and in this README.
+**Live:** https://verity-merge-control.vercel.app · **Docs:** [`docs/`](docs/)
+
+> **Benchmark status:** the frozen dataset in `bench/fixtures/` is **synthetic**
+> and has **not** been reviewed by a practitioner. Every screen says so, and it
+> stays that way until someone who closes books signs off
+> ([`npm run review:pack`](docs/SPONSORS.md#maximor--accounting-judgement-process-not-an-sdk)).
+
+![Exception inbox](docs/screenshots/queue.png)
 
 ---
 
-## Vercel deployment (fresh)
+## The problem
 
-The Neon database link in Vercel env is enough — the build runs `db:migrate` automatically
-and seeds the demo benchmark on first deploy.
+Coding agents got trusted with real repositories the moment the workflow stopped
+depending on the model being right. A branch isolates the change, CI runs whether
+or not the agent is confident, a diff shows exactly what will happen, and a human
+merges. **The agent is not trusted — the process is.**
 
-### Required Vercel environment variables
+Finance agents have none of that. They are asked to be careful, and then their
+output goes into a ledger. "The model is usually right" is not a control
+environment, and no controller will sign off on it.
 
-| Variable | Value | Notes |
-|----------|-------|-------|
-| `DATABASE_URL` | *(from Neon integration)* | Already linked |
-| `VERITY_MODEL_PROVIDER` | `fixture` | Pre-recorded demo, no model spend |
+Verity asks a narrower question: *what would have to be true for a finance
+agent's decision to be safe to merge?*
 
-Optional for live agent runs: `GROQ_API_KEY`, `VERITY_MODEL`, etc.
+---
 
-### Deploy steps
+## How it works
 
-1. Push to GitHub (or connect repo in Vercel).
-2. **Redeploy** with “Clear build cache” for a truly fresh build.
-3. Open `/queue` — you should see 29 cases from Postgres.
-4. Use navbar **Reset** or `POST /api/reset` to restore demo state anytime.
+```mermaid
+flowchart TD
+    A[Bank statement CSV<br/>Cash ledger CSV] --> B[Deterministic matcher<br/>no model involved]
+    B -->|17 of 29 lines| C[Auto-matched, cleared]
+    B -->|12 exceptions| D[Isolated case]
 
-To re-seed the database manually (e.g. before recording):
+    D --> E[Worker<br/>4 read-only tools]
+    E --> F[Structured proposal<br/>constrained schema]
+    F --> G{Control pack<br/>18 deterministic checks}
 
-```bash
-npm run db:reset
+    G -->|blocked| H[Failure text returned<br/>to the same worker]
+    H --> I[Revision N+1<br/>revision 1 immutable]
+    I --> G
+
+    G -->|passed| J{Risk router}
+    J -->|auto| K[Cleared<br/>non-posting only]
+    J -->|review| L[Controller decides]
+    J -->|escalate| M[Human, no posting]
+
+    L -->|approve| N[Hash-linked sandbox ledger]
+    N --> O[Reconciliation reruns → closed]
+    L -->|request changes| P[Reason code recorded]
+
+    P --> Q{Same reason twice?}
+    Q -->|yes| R[Control PR drafted<br/>constrained rule schema]
+    R --> S[Replay: positives caught,<br/>counterexamples still allowed]
+    S --> T[Controller merges → pack v2]
+
+    style G fill:#fee2e2,stroke:#dc2626
+    style L fill:#fef3c7,stroke:#d97706
+    style N fill:#d1fae5,stroke:#059669
+    style T fill:#ede9fe,stroke:#7c3aed
 ```
 
----
-
-## Live deployment
-
-**https://verity-merge-control.vercel.app**
-
-| Page | What it shows |
-|---|---|
-| [/queue](https://verity-merge-control.vercel.app/queue) | Exception queue, Auto / Review / Escalate lanes, live worker activity |
-| [/cases/CASE-001](https://verity-merge-control.vercel.app/cases/CASE-001) | The Finance PR: evidence, accounting impact, control checklist, revision diff |
-| [/controls](https://verity-merge-control.vercel.app/controls) | Failure groups, the drafted Control PR, replay, merge to pack v2 |
-| [/metrics](https://verity-merge-control.vercel.app/metrics) | Raw counts from the event log |
-
-Verified on the deployment: run CASE-001, revision 1 blocked by `VERITY-FX-003`,
-revision 2 repaired and passing, approve, posted to the hash-linked sandbox
-ledger. `POST /api/reset` returns everything to the frozen initial state.
-
-Two things to know before demoing from the deployed URL:
-
-- **Runs are pre-recorded there.** No model key is set in the deployment, so the
-  worker replays transcripts. That is deliberate — the deployed demo should not
-  spend money or depend on a provider — but it means anything you show from it
-  must be described as pre-recorded. For live agent behaviour, run locally with
-  `ANTHROPIC_API_KEY` set, or add the key in Vercel's project settings.
-- **State persists in Neon PostgreSQL when `DATABASE_URL` is set.** Controller
-  decisions, proposals, events, and ledger records survive server restarts and
-  cold starts. Without `DATABASE_URL`, the app falls back to in-memory state
-  (fine for local fixture-only runs). Use **Reset** in the navbar or
-  `POST /api/reset` to restore the frozen benchmark demo data.
+**The two gates.** The first is the *Finance PR* — one decision, evidenced,
+checked, repaired if necessary, merged by a human. The second is the *Control
+PR* — when controllers reject the same way twice, the control suite itself
+gains a new, replay-tested rule. The model fills a fixed schema; it never writes
+code and never activates a rule.
 
 ---
 
-## How It Works
+## What you can do with it
 
-```
-Bank Statement + Ledger
-           │
-           ▼
- Deterministic Matcher ──► Clears routine matches
-           │
-   Exceptions Queue
-           │
-           ▼
- Logical Finance Agents ──► Propose resolution with citations
-           │
-           ▼
-      Finance PR ────────► Evaluated against Deterministic Controls
-           │                 ├─ Blocked: returns structured feedback to agent to repair
-           │                 └─ Passed: sent for Controller Review
-           ▼
-  Controller Approval ────► Written to Sandbox Ledger (Bank Rec Closes)
-           │
-  Recurring Rejections ───► Generates Control PR (versioned, replay-tested guardrail)
-```
+### 1 · Watch a case get blocked, repaired, and merged
 
-1. **Deterministic Matching** — Routinely clears straightforward matching transactions.
-2. **Exception Investigation** — Unresolved items are assigned to an LLM agent with restricted tools.
-3. **Finance PR** — Structured proposal with debits, credits, evidence citations, and FX rate source.
-4. **Deterministic Control Engine** — Automated CI checks; failures route structured feedback for repair.
-5. **Human Controller Merge** — Controller reviews evidence and approves posting to the sandbox ledger.
-6. **Control PR** — Recurring failure patterns become versioned guardrails with replay before merge.
+![Finance PR](docs/screenshots/finance-pr.png)
+
+`CASE-001` is a EUR 8,000 invoice settled for USD 8,712.00. Policy requires the
+transaction-date spot rate from an approved provider. Run the worker and you see
+the tool calls, the proposal, the control result, and — when it slips — the
+block, the repair, and the accounting diff between revisions.
+
+Revision 1 is immutable. A repair appends revision 2; it never edits history.
+
+### 2 · Write a control in plain English
+
+![Control PRs](docs/screenshots/controls.png)
+
+Type *"Never post into a closed accounting period."* Verity drafts it into a
+rule its engine can actually evaluate, restates it in plain words, and — before
+anything is proposed — **simulates it over every stored proposal**, showing what
+it would have blocked, including anything a controller had already approved.
+
+Ask for something it cannot check ("block anything that looks suspicious") and
+it declines and tells you what it *can* test. A guardrail that cannot be enforced
+is worse than none.
+
+### 3 · Upload the paperwork
+
+Receipts, invoices, remittances and statements in 13 formats — `pdf`, `png`,
+`jpg`, `jpeg`, `webp`, `gif`, `csv`, `tsv`, `txt`, `md`, `json`, `docx`, `xlsx`.
+They become evidence the agent can retrieve and must cite, checked by the same
+evidence-lineage controls. Extraction is labelled by how it was done (`model`,
+`deterministic`, or `none`) so nothing implies more certainty than it has.
+
+**An upload is evidence, never a decision.**
+
+### 4 · Read the numbers
+
+![Metrics](docs/screenshots/metrics.png)
+
+Raw counts from the append-only event log. No invented controller minutes, no
+production savings, no ratio chosen because it flatters the system.
 
 ---
 
-## Getting Started
+## Live results
 
-### Prerequisites
+Three full live baselines on the frozen benchmark, 26 runnable cases each
+(Claude Haiku 4.5 as the worker; full detail in [`docs/LIVE-RESULTS.md`](docs/LIVE-RESULTS.md)):
 
-- Node.js 18+
-- npm
+| | run 1 | run 2 | run 3 |
+|---|---|---|---|
+| **Unsafe escapes** | **0** | **0** | **0** |
+| **Out-of-policy postings** | **0** | **0** | **0** |
+| **Guardrail false positives** | **0** | **0** | **0** |
+| Control blocks, live | 4 | 5 | 6 |
+| Repairs succeeded | 4 / 4 | 1 / 5 | 2 / 6 |
+| Safe auto-clears | 17 | 17 | 17 |
+| Correct disposition | 24 / 29 | 25 / 29 | 25 / 29 |
+| Cost | $2.06 | $2.13 | $2.56 |
 
-### Installation
+**The safety rows never move. The agent's success rate moves a lot.** That gap
+is the argument for the whole product, stated by the data rather than by us: the
+model's reliability was not dependable, and it did not have to be. Nothing
+unsafe reached the ledger in any run.
+
+One finding worth knowing before you demo it: **Claude Opus 5 solves the
+flagship FX case on the first attempt.** So does Haiku 4.5. Do not script a demo
+around that case failing.
+
+---
+
+## Quickstart
 
 ```bash
 git clone https://github.com/anuraggdubey/verity.git
 cd verity
 npm install
+npm run dev            # http://localhost:3000
 ```
 
-### Database (Neon PostgreSQL)
+No API key is needed to run it: the worker replays recorded transcripts and
+every screen labels them as pre-recorded. For live agent behaviour, add a key
+(below) and use the **Run live** button, or `npm run agent -- CASE-001 --live`.
 
-Add your Neon connection string to `.env`:
+### Commands
 
-```env
-DATABASE_URL=postgresql://...
-```
+| Command | What it does |
+|---|---|
+| `npm run dev` | Start the app |
+| `npm test` | 94 unit tests (1 skipped without a database URL) |
+| `npm run bench` | Every proposal through the control engine under pack v1 and v2, asserting the demo's claims |
+| `npm run replay` | Control PR replay fixtures |
+| `npm run learn` | Rejections → failure group → drafted rule → replay |
+| `npm run agent -- CASE-001` | One case through the worker (`--live` for a real model) |
+| `npm run baseline` | Every case, then safety/quality/cost counts (`--live` for real) |
+| `npm run review:pack` | Generate the practitioner review pack |
+| `npm run neatlogs:check` | Verify traces reach Neatlogs, printing the HTTP status |
+| `npm run screenshots` | Recapture the images in this README |
 
-Then seed the demo benchmark (29 cases, proposals, events, CPR-001, ledger records):
+### Configuration
+
+Everything is optional; each integration degrades to a no-op with a stated
+reason rather than a silent failure. Copy [`.env.example`](.env.example) to
+`.env.local`.
 
 ```bash
-npm run db:migrate    # first-time schema + seed
-npm run db:reset      # restore frozen demo data (video reset)
-```
+# Live agent runs
+VERITY_MODEL_PROVIDER=anthropic     # anthropic | openai | fixture (default)
+VERITY_MODEL=claude-opus-5
+ANTHROPIC_API_KEY=sk-ant-...
+VERITY_COST_PER_1K_IN=0.005         # or cost reports $0.00
+VERITY_COST_PER_1K_OUT=0.025
 
-When `DATABASE_URL` is set, all API routes load and persist state through Postgres.
-Tests always use the in-memory store so `npm test` stays fast and offline.
+# Observability — one run becomes one nested Neatlogs trace
+NEATLOGS_API_KEY=...
+NEATLOGS_PROJECT=verity
 
-### Running Locally
+# Inference routing (TensorMux is an OpenAI-compatible gateway — no code needed)
+VERITY_MODEL_BASE_URL=http://localhost:8080/v1
 
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000).
-
-### Five-Minute Demo Path (UI only — no terminal)
-
-1. **Queue** (`/queue`) — See Auto / Review / Escalate lanes from live store data.
-2. **Finance PR** (`/cases/CASE-001`) — Revision diff, control checklist, approve with keyboard shortcuts (A/R/E).
-3. **Controls** (`/controls`) — Run replay on CPR-001, then merge to pack v2.
-4. **Metrics** (`/metrics`) — Raw counts from the event store; held-out CASE-012 comparison.
-5. **Reset** — Navbar **Reset** button restores the frozen benchmark (`POST /api/reset`).
-
-### Benchmark & Evaluation Commands
-
-```bash
-npm test          # Unit tests
-npm run bench     # Matcher + control engine expectations
-npm run replay    # Control PR replay fixtures
-npm run agent -- CASE-001   # Offline worker transcript
+# Settlement ingestion, read-only, test mode by default
+DODO_API_KEY=...
+DODO_MODE=test
 ```
 
 ---
 
 ## Architecture
 
-See [docs/architecture.md](docs/architecture.md) for the system diagram and module ownership (Builders A/B/C).
+One Next.js app. Three lanes of ownership, one shared contract.
 
-### Key API Routes
+```mermaid
+flowchart LR
+    subgraph Kernel["Finance kernel"]
+        K1[loader.ts<br/>CSV ingest]
+        K2[matcher/<br/>deterministic match]
+        K3[controls/engine.ts<br/>18 checks + rule evaluator]
+        K4[ledger/<br/>hash-linked sandbox]
+        K5[store/kernel.ts<br/>append-only events]
+    end
 
-| Route | Purpose |
-|---|---|
-| `GET /api/cases` | Exception queue + reconciliation status |
-| `GET /api/cases/[id]` | Finance PR detail |
-| `POST /api/cases/[id]/investigate` | Run worker on a case |
-| `POST /api/proposals/[id]/decision` | Controller approve/reject |
-| `GET /api/stream` | SSE worker trace stream |
-| `GET /api/control-prs` | Control PR list |
-| `POST /api/control-prs/[id]/replay` | Historical replay |
-| `POST /api/control-prs/[id]/merge` | Merge control pack |
-| `GET /api/metrics` | Raw benchmark telemetry |
-| `POST /api/reset` | Reset demo state |
+    subgraph Agent["Agent runtime"]
+        A1[model.ts<br/>anthropic / openai / fixture]
+        A2[tools.ts<br/>4 read-only tools]
+        A3[proposal.ts<br/>constrained submission]
+        A4[worker.ts<br/>bounded loop, max 3 concurrent]
+        A5[router/risk.ts]
+        A6[trace/<br/>spans + Neatlogs]
+    end
+
+    subgraph Learning["Learning loop"]
+        L1[grouping.ts<br/>reviewer-grounded]
+        L2[control-pr.ts<br/>rule templates]
+        L3[compose.ts<br/>plain English → rule]
+        L4[replay-runner.ts]
+    end
+
+    subgraph Console["Console"]
+        C1[/queue/]
+        C2["/cases/[id]"]
+        C3[/controls/]
+        C4[/metrics/]
+    end
+
+    Kernel <--> Agent
+    Agent --> Learning
+    Learning --> Kernel
+    Console --> Kernel
+    Console --> Agent
+    Console --> Learning
+```
+
+### Case lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> unmatched
+    unmatched --> investigating: worker starts
+    investigating --> proposed: submit_proposal
+    proposed --> controls_failed: blocked
+    controls_failed --> revising: failure text returned
+    revising --> proposed: revision N+1
+    proposed --> merge_ready: controls pass, routed review
+    proposed --> auto_cleared: routed auto
+    proposed --> escalated: routed escalate
+    merge_ready --> approved: controller approves
+    merge_ready --> rejected: controller requests changes
+    approved --> [*]: posted to sandbox ledger
+    rejected --> [*]: reason code feeds failure grouping
+```
+
+### The control pack
+
+Three families, 18 named checks. Every blocked result carries a code, the claim
+it disputes, the failure, and the required repair — and **that same text is what
+the agent receives**, so the human and the model read identical words.
+
+| Family | Checks | Examples |
+|---|---|---|
+| **Evidence lineage** | `EV-001` … `EV-007` | every material claim carries a citation; cited records resolve; cited values agree with the source; a posting decision cites a document |
+| **Accounting integrity** | `AI-001` … `AI-009` | debits equal credits; accounts in the permitted chart; entity/currency/period valid and open; not a duplicate of a posted entry |
+| **Policy & market-data provenance** | `FX-003` … `FX-007`, `PP-001` … `PP-003` | FX source approved; rate type matches policy; rate dated the transaction date; auto-clear restricted to enumerated non-posting dispositions |
+
+Rules merged from a Control PR are evaluated by the same engine through a
+constrained schema — selector, comparator, optional allowlist or tolerance, and
+the failure text. A rule the engine cannot evaluate **warns**; it never silently
+passes.
 
 ---
 
-## Honesty Rules
+## Repository layout
 
-- Synthetic benchmark data is labeled **synthetic** on screen and in docs.
-- Metrics show **raw counts only** — no invented controller-minutes-saved.
-- Pre-recorded worker transcripts are labeled when `live: false` is used on investigate.
+```
+bench/                    the frozen benchmark and every harness
+  fixtures/               bank.csv, ledger.csv, policy pack, cases, review verdicts
+  expected.json           held-back labels — never reaches a prompt
+  run.ts learn.ts         control-engine and learning-loop assertions
+  baseline.ts agent.ts    whole-benchmark and single-case runners
+src/lib/
+  contracts/types.ts      the shared contract between all three lanes
+  data/ matcher/ ledger/  finance kernel
+  controls/engine.ts      deterministic control pack
+  agent/                  model seam, tools, proposal, worker, repair
+  router/risk.ts          auto / review / escalate
+  learning/               grouping, Control PR drafting, composer, replay
+  trace/                  spans, Neatlogs export
+  metrics/                counts computed from the event log
+src/app/                  console pages and API routes
+docs/                     architecture, sponsors, live results, needs, Devpost
+```
 
 ---
 
-## License
+## Sponsor integrations
 
-MIT
+Each does real work, or says plainly that it does not — full detail in
+[`docs/SPONSORS.md`](docs/SPONSORS.md).
+
+| | What it does | Status |
+|---|---|---|
+| **Neatlogs** | One worker run = one nested trace. Model calls become LLM spans, tool calls TOOL spans, a blocked control an ERROR span carrying its code | **Verified** — ingest returns HTTP 200; live runs including a block-and-repair are in the workspace |
+| **TensorMux** | OpenAI-compatible gateway, so it needs no code — one base URL and routing happens at the gateway | Works today via `VERITY_MODEL_BASE_URL` |
+| **Dodo Payments** | A processor payout is money landing in the bank account — a statement line somebody must reconcile. Settled payouts become bank lines | **Read-only.** One HTTP verb in that module and it is `GET` |
+| **Maximor** | No public API, and inventing one would be decorative. What they have is practitioners, and our benchmark needs one | Review pack generates for all 29 cases |
+
+---
+
+## What we will not claim
+
+These are enforced in the code, not just the pitch.
+
+- The benchmark is **synthetic** and not practitioner-reviewed. `practitionerReviewed`
+  only flips when a named human returns a verdict for every labelled case.
+- A replayed transcript is **labelled pre-recorded** — in the UI, and in the
+  trace metadata that reaches Neatlogs.
+- Cost reads **$0.00** unless real per-1k prices are configured.
+- The ledger is a **sandbox**. Nothing posts anywhere real, and no integration
+  in this repo can move money.
+- The agent does not "learn". The **control suite** gains a reviewed,
+  replay-tested policy, merged by a human.
+- Quality is scored only against cases carrying a held-back label, and the
+  number of unlabelled cases is reported rather than hidden.
+
+---
+
+## What's next
+
+- **A practitioner review.** The pack is ready; it needs an hour from someone who
+  closes books. Biggest credibility item left.
+- **More of the rule surface** — separation of duties, sanctions screening,
+  duplicate detection beyond reference matching. Each needs a selector the
+  engine can evaluate.
+- **Durable state.** The kernel is in-memory; decisions survive while an
+  instance is warm and reset on a cold start.
+- **The workflows we deliberately did not build** — AP, intercompany, revenue.
+  Each is a new policy pack and control family, not a new product. One workflow
+  built properly beats four built badly.

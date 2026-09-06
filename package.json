@@ -18,7 +18,8 @@
     "review:import": "tsx bench/review.ts import",
     "db:migrate": "tsx bench/db-migrate.ts",
     "db:reset": "tsx bench/db-migrate.ts --force-reseed",
-    "neatlogs:check": "tsx bench/neatlogs-check.ts"
+    "neatlogs:check": "tsx bench/neatlogs-check.ts",
+    "screenshots": "tsx bench/screenshots.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.124.0",
@@ -42,6 +43,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
+    "playwright-core": "^1.63.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.13",
     "typescript": "^5",
