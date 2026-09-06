@@ -12,9 +12,7 @@ import type {
 } from '@/lib/contracts/types';
 import { loadBenchmark, type BenchmarkFixture } from '@/lib/data/benchmark';
 import { getPool, getSql, isDatabaseConfigured } from './client';
-import { useDatabase } from './env';
-
-export { useDatabase } from './env';
+export { isDatabaseEnabled, shouldUseDatabase } from './env';
 
 function readSql(file: string): string {
   return fs.readFileSync(path.join(process.cwd(), 'src', 'lib', 'db', file), 'utf8');

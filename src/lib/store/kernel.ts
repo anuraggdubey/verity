@@ -1,12 +1,9 @@
 import type {
-  BankLine,
   Case,
   ControlPR,
   ControlReport,
   ControllerDecision,
   Citation,
-  FxObservation,
-  LedgerEntry,
   LedgerRecord,
   Proposal,
   ReconciliationStatus,
@@ -20,7 +17,7 @@ import { bindRuntime } from '@/lib/data/access';
 import { loadBenchmark, type BenchmarkFixture } from '@/lib/data/benchmark';
 import { calculateReconciliationStatus } from '@/lib/ledger/close';
 import { createLedgerRecord, verifyLedgerChain } from '@/lib/ledger/sandbox';
-import { useDatabase } from '@/lib/db/env';
+import { isDatabaseEnabled } from '@/lib/db/env';
 import { orderedEvents } from '@/lib/store/events';
 import { appendImmutableProposal } from '@/lib/store/state';
 import type { CaseDetail, CaseRow } from '@/lib/store/types';
@@ -28,7 +25,7 @@ import type { CaseDetail, CaseRow } from '@/lib/store/types';
 export type { CaseDetail, CaseRow } from '@/lib/store/types';
 
 function syncDb(fn: (db: typeof import('@/lib/db/sync').dbSync) => void): void {
-  if (!useDatabase()) return;
+  if (!isDatabaseEnabled()) return;
   void import('@/lib/db/sync').then(({ dbSync }) => fn(dbSync));
 }
 
@@ -55,9 +52,6 @@ type State = {
   activeBankLineIds: string[];
 };
 
-function loadFixture(): Fixture {
-  return loadBenchmark().fixture as Fixture;
-}
 
 function bindDataAccess(): void {
   bindRuntime({
@@ -106,7 +100,7 @@ export function resetDemo(): void {
 }
 
 export async function resetDemoWithDatabase(): Promise<void> {
-  if (!useDatabase()) {
+  if (!isDatabaseEnabled()) {
     resetDemo();
     return;
   }

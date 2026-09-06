@@ -15,6 +15,8 @@ export function isDatabaseConfigured(): boolean {
   return Boolean(url && (url.startsWith('postgres://') || url.startsWith('postgresql://')));
 }
 
-export function useDatabase(): boolean {
+export function isDatabaseEnabled(): boolean {
   return process.env.VITEST !== 'true' && isDatabaseConfigured();
 }
+
+export const shouldUseDatabase = isDatabaseEnabled;

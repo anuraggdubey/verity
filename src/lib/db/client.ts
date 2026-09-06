@@ -31,7 +31,7 @@ function loadEnvFallback() {
 loadEnvFallback();
 
 export { getDatabaseUrl, isDatabaseConfigured } from './env';
-export { useDatabase } from './env';
+export { isDatabaseEnabled, shouldUseDatabase } from './env';
 
 let cachedSql: ReturnType<typeof neon> | null = null;
 let cachedPool: Pool | null = null;

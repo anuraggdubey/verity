@@ -17,6 +17,7 @@ jobs:
 
     env:
       VERITY_MODEL_PROVIDER: fixture
+      NEXT_TELEMETRY_DISABLED: 1
 
     steps:
       - name: Checkout

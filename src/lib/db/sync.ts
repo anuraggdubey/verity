@@ -8,7 +8,7 @@ import type {
   RouteDecision,
   VerityEvent,
 } from '@/lib/contracts/types';
-import { useDatabase } from '@/lib/db/env';
+import { isDatabaseEnabled } from '@/lib/db/env';
 import {
   deleteProposalsForCase,
   persistCase,
@@ -25,7 +25,7 @@ import {
 } from '@/lib/db/persistence';
 
 function fire(promise: Promise<void>): void {
-  if (!useDatabase()) return;
+  if (!isDatabaseEnabled()) return;
   void promise.catch((err) => console.error('[verity] database persist failed:', err));
 }
 

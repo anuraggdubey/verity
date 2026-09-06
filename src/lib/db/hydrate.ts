@@ -1,5 +1,5 @@
 import { bindRuntime } from '@/lib/data/access';
-import { useDatabase } from '@/lib/db/env';
+import { isDatabaseEnabled } from '@/lib/db/env';
 
 type KernelState = {
   fixture: import('@/lib/data/benchmark').BenchmarkFixture;
@@ -36,7 +36,7 @@ export function isStoreHydrated(): boolean {
 }
 
 export async function hydrateStoreFromDatabase(): Promise<void> {
-  if (!useDatabase()) return;
+  if (!isDatabaseEnabled()) return;
   const { runMigrations } = await import('@/lib/db/migrate');
   const migrated = await runMigrations();
   if (!migrated.ok) {
@@ -50,7 +50,7 @@ export async function hydrateStoreFromDatabase(): Promise<void> {
 }
 
 export async function ensureStoreReady(): Promise<void> {
-  if (!useDatabase()) return;
+  if (!isDatabaseEnabled()) return;
   if (globalRef.__verityState) {
     bindDataAccessFromState(globalRef.__verityState);
     return;
