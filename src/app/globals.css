@@ -19,6 +19,22 @@
   }
 }
 
+/* Custom Minimal Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent; 
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(160, 160, 160, 0.3); 
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(160, 160, 160, 0.5); 
+}
+
 /* Attio Pinstripes Backgrounds */
 @keyframes pinstripe-scroll {
   0% {
