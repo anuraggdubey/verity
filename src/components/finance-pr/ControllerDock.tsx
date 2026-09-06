@@ -126,7 +126,7 @@ export function ControllerDock({
 
   if (decision) {
     return (
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
+      <div className="fixed bottom-4 left-1/2 z-40 w-[calc(100vw-1.5rem)] max-w-[min(100vw-1.5rem,42rem)] -translate-x-1/2 sm:bottom-6 sm:w-auto">
         <div className="rounded-xl border border-black/[0.08] bg-white px-4 py-3 shadow-[0_4px_24px_rgba(0,0,0,0.08)] text-xs">
           <span
             className={`font-semibold ${
@@ -150,21 +150,21 @@ export function ControllerDock({
   return (
     <>
       {statusMessage && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 rounded-lg border border-emerald-200 bg-white px-4 py-2.5 text-xs text-emerald-700 shadow-lg flex items-center gap-2">
+        <div className="fixed bottom-28 left-1/2 z-50 flex w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 items-center gap-2 rounded-lg border border-emerald-200 bg-white px-4 py-2.5 text-xs text-emerald-700 shadow-lg sm:bottom-24 sm:w-auto">
           <CheckCircle2 className="h-4 w-4 text-emerald-600" />
           <span>{statusMessage}</span>
         </div>
       )}
 
       {error && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 rounded-lg border border-rose-200 bg-white px-4 py-2.5 text-xs text-rose-700 shadow-lg">
+        <div className="fixed bottom-28 left-1/2 z-50 w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 rounded-lg border border-rose-200 bg-white px-4 py-2.5 text-xs text-rose-700 shadow-lg sm:bottom-24 sm:w-auto">
           {error}
         </div>
       )}
 
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
-        <div className="flex items-center gap-2 rounded-xl border border-black/[0.08] bg-white/95 px-3 py-2 shadow-[0_4px_24px_rgba(0,0,0,0.08)] backdrop-blur-md">
-          <div className="flex items-center gap-2 border-r border-black/[0.06] pr-3 mr-1 text-xs text-zinc-500">
+      <div className="fixed bottom-4 left-1/2 z-40 w-[calc(100vw-1.5rem)] max-w-[min(100vw-1.5rem,42rem)] -translate-x-1/2 sm:bottom-6 sm:w-auto">
+        <div className="flex flex-wrap items-center justify-center gap-2 rounded-xl border border-black/[0.08] bg-white/95 px-3 py-2 shadow-[0_4px_24px_rgba(0,0,0,0.08)] backdrop-blur-md sm:flex-nowrap sm:justify-start">
+          <div className="flex items-center gap-2 text-xs text-zinc-500 sm:mr-1 sm:border-r sm:border-black/[0.06] sm:pr-3">
             <ShieldCheck className="h-4 w-4 text-emerald-600" />
             <span className="font-medium text-zinc-700">Your decision</span>
           </div>
