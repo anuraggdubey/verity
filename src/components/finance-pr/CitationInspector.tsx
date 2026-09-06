@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Citation } from '../../lib/contracts/types';
 import { FileText, Database, Globe, ChevronDown, ChevronUp } from 'lucide-react';
+import { SpotlightCard } from '../ui/SpotlightCard';
 
 interface CitationInspectorProps {
   citations: Citation[];
@@ -19,14 +20,11 @@ export function CitationInspector({ citations }: CitationInspectorProps) {
   };
 
   return (
-    <div className="rounded-xl border border-black/[0.06] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+    <SpotlightCard className="p-4">
       <div className="flex items-center justify-between mb-3">
-        <h4 className="text-xs font-medium uppercase tracking-wider text-zinc-500 font-mono">
-          Evidence Citations ({citations.length})
+        <h4 className="text-sm font-medium text-zinc-800">
+          Sources ({citations.length})
         </h4>
-        <span className="text-[11px] font-mono text-zinc-400">
-          Lineage verified
-        </span>
       </div>
 
       <div className="space-y-2">
@@ -80,6 +78,6 @@ export function CitationInspector({ citations }: CitationInspectorProps) {
           );
         })}
       </div>
-    </div>
+    </SpotlightCard>
   );
 }

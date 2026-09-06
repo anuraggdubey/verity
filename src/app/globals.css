@@ -137,10 +137,23 @@
 }
 
 /* App page shell */
+.app-page-shell {
+  width: 100%;
+  flex: 1;
+  background-color: #fbfbfd;
+  background-image: repeating-linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.018) 0px,
+    rgba(0, 0, 0, 0.018) 1px,
+    transparent 1px,
+    transparent 48px
+  );
+}
+
 .app-page {
   width: 100%;
-  min-height: 100vh;
-  padding: 1.5rem 1rem 3rem;
+  min-height: calc(100vh - 3.5rem);
+  padding: 2rem 1rem 4rem;
 }
 
 @media (min-width: 640px) {
@@ -154,5 +167,14 @@
   .app-page {
     padding-left: 2rem;
     padding-right: 2rem;
+    padding-top: 2.5rem;
   }
+}
+
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
 }

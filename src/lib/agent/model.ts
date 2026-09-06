@@ -80,7 +80,7 @@ export type ModelConfig = {
 const DEFAULT_MODELS: Record<ModelConfig['provider'], string> = {
   anthropic: 'claude-opus-5',
   openai: 'gpt-4o-mini',
-  groq: 'llama-3.3-70b-versatile',
+  groq: 'openai/gpt-oss-120b',
   fixture: 'recorded-transcript',
 };
 

@@ -57,6 +57,19 @@ const ALLOWLISTS = [
 const COMPARE_TO = ['document.transactionDate', 'bank_line.postedDate'];
 const FAMILIES: ControlFamily[] = ['evidence_lineage', 'accounting_integrity', 'policy_provenance'];
 
+const SELECTOR_ALIASES: Record<string, string> = {
+  'journal.period': 'journal.periods',
+  'journal.account': 'journal.accounts',
+  'journal.entity': 'journal.entities',
+  'journal.currency': 'journal.currencies',
+  'fx.rate_date': 'fx.rateDate',
+  'fx.rate_type': 'fx.rateType',
+  'fx.source_id': 'fx.sourceId',
+  'citations.documents': 'citations.documentCount',
+  'citations.documents_count': 'citations.documentCount',
+  'narrative.len': 'narrative.length',
+};
+
 export type ComposedRule = {
   rule: ConstrainedRule;
   /** The rule read back in plain English, so a non-technical reviewer can check it. */
@@ -68,13 +81,123 @@ export type ComposeResult =
   | { ok: true; composed: ComposedRule }
   | { ok: false; reason: string; suggestions?: string[] };
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (typeof value !== 'object' || value === null) return null;
+  return value as Record<string, unknown>;
+}
+
+function normalizeFamily(value: unknown): ControlFamily | undefined {
+  if (typeof value !== 'string') return undefined;
+  const key = value.trim().toLowerCase().replace(/[\s-]+/g, '_');
+  const exact = FAMILIES.find((family) => family === key);
+  if (exact) return exact;
+  if (key.includes('evidence') || key.includes('lineage') || key === 'ev') return 'evidence_lineage';
+  if (key.includes('account') || key.includes('integrity') || key === 'ai') return 'accounting_integrity';
+  if (key.includes('policy') || key.includes('provenance') || key.includes('fx') || key === 'pp') {
+    return 'policy_provenance';
+  }
+  return undefined;
+}
+
+function normalizeComparator(value: unknown): (typeof COMPARATORS)[number] | undefined {
+  if (typeof value !== 'string') return undefined;
+  const key = value.trim().toLowerCase().replace(/[\s-]+/g, '_');
+  const aliases: Record<string, (typeof COMPARATORS)[number]> = {
+    eq: 'equals',
+    equal: 'equals',
+    equals: 'equals',
+    ne: 'not_equals',
+    not_equal: 'not_equals',
+    not_equals: 'not_equals',
+    in: 'in_allowlist',
+    in_allowlist: 'in_allowlist',
+    not_in: 'not_in_allowlist',
+    not_in_allowlist: 'not_in_allowlist',
+    gte: 'gte',
+    ge: 'gte',
+    '>=': 'gte',
+    lte: 'lte',
+    le: 'lte',
+    '<=': 'lte',
+    exists: 'exists',
+    present: 'exists',
+  };
+  if (aliases[key]) return aliases[key];
+  return COMPARATORS.find((comparator) => comparator === key);
+}
+
+function normalizeSelector(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  if (SELECTOR_ALIASES[trimmed]) return SELECTOR_ALIASES[trimmed];
+  const known = SELECTORS.find((entry) => entry.selector === trimmed);
+  if (known) return known.selector;
+  const camel = trimmed.replace(/_([a-z])/gi, (_, letter: string) => letter.toUpperCase());
+  if (SELECTOR_ALIASES[camel]) return SELECTOR_ALIASES[camel];
+  const byCamel = SELECTORS.find((entry) => entry.selector === camel);
+  if (byCamel) return byCamel.selector;
+  return SELECTORS.find((entry) => entry.selector.toLowerCase() === trimmed.toLowerCase())?.selector;
+}
+
+function normalizeAllowlistRef(value: unknown): (typeof ALLOWLISTS)[number] | undefined {
+  if (typeof value !== 'string') return undefined;
+  const key = value.trim().toLowerCase().replace(/[\s-]+/g, '_');
+  const exact = ALLOWLISTS.find((ref) => ref === key);
+  if (exact) return exact;
+  return ALLOWLISTS.find((ref) => ref.includes(key) || key.includes(ref));
+}
+
+/** Repairs common model shorthand before schema validation runs. */
+export function normalizeRuleDraft(candidate: unknown): unknown {
+  const draft = asRecord(candidate);
+  if (!draft) return candidate;
+  const onFail = asRecord(draft.onFail) ?? {};
+  const tolerance = asRecord(draft.tolerance);
+  return {
+    ...draft,
+    family: normalizeFamily(draft.family) ?? draft.family,
+    selector: normalizeSelector(draft.selector) ?? draft.selector,
+    comparator: normalizeComparator(draft.comparator) ?? draft.comparator,
+    ...(draft.allowlistRef !== undefined
+      ? { allowlistRef: normalizeAllowlistRef(draft.allowlistRef) ?? draft.allowlistRef }
+      : {}),
+    ...(draft.compareTo !== undefined ? { compareTo: String(draft.compareTo).trim() } : {}),
+    ...(tolerance
+      ? {
+          tolerance: {
+            unit: String(tolerance.unit ?? 'days').trim(),
+            value: Number(tolerance.value),
+          },
+        }
+      : {}),
+    onFail: {
+      ...onFail,
+      code: typeof onFail.code === 'string' ? onFail.code.trim().toUpperCase() : onFail.code,
+      title: typeof onFail.title === 'string' ? onFail.title.trim() : onFail.title,
+      requiredRepair:
+        typeof onFail.requiredRepair === 'string' ? onFail.requiredRepair.trim() : onFail.requiredRepair,
+    },
+  };
+}
+
+/** Parse and validate a model-produced rule draft (used in tests and fallbacks). */
+export function parseComposedRule(candidate: unknown): ComposeResult {
+  const checked = validate(candidate);
+  if (!checked.ok) return { ok: false, reason: checked.reason };
+  return {
+    ok: true,
+    composed: { rule: checked.rule, restatement: restate(checked.rule), source: 'model' },
+  };
+}
+
 /* ------------------------------------------------------------- validation */
 
 function validate(candidate: unknown): { ok: true; rule: ConstrainedRule } | { ok: false; reason: string } {
-  if (typeof candidate !== 'object' || candidate === null) {
+  const normalized = normalizeRuleDraft(candidate);
+  if (typeof normalized !== 'object' || normalized === null) {
     return { ok: false, reason: 'The draft was not an object.' };
   }
-  const draft = candidate as Record<string, unknown>;
+  const draft = normalized as Record<string, unknown>;
   const onFail = (draft.onFail ?? {}) as Record<string, unknown>;
 
   if (!FAMILIES.includes(draft.family as ControlFamily)) {
@@ -281,6 +404,11 @@ function composeOffline(text: string): ComposeResult {
 
 /* ----------------------------------------------------------------- model */
 
+/**
+ * Loose tool schema for providers (Groq, etc.) that reject tool calls when the
+ * model picks a value outside a strict JSON Schema enum. Validation happens in
+ * normalizeRuleDraft + validate instead.
+ */
 const EMIT_RULE: ToolSpec = {
   name: 'emit_rule',
   description:
@@ -288,22 +416,33 @@ const EMIT_RULE: ToolSpec = {
   parameters: {
     type: 'object',
     properties: {
-      family: { type: 'string', enum: FAMILIES },
-      selector: { type: 'string', enum: SELECTORS.map((entry) => entry.selector) },
-      comparator: { type: 'string', enum: [...COMPARATORS] },
+      family: {
+        type: 'string',
+        description: `Must be exactly one of: ${FAMILIES.join(', ')}.`,
+      },
+      selector: {
+        type: 'string',
+        description: `Proposal field. One of: ${SELECTORS.map((entry) => entry.selector).join(', ')}.`,
+      },
+      comparator: {
+        type: 'string',
+        description: `Comparison operator. One of: ${COMPARATORS.join(', ')}.`,
+      },
       compareTo: {
         type: 'string',
         description: `A field to compare against (${COMPARE_TO.join(', ')}), a literal value, or a numeric threshold for gte/lte.`,
       },
-      allowlistRef: { type: 'string', enum: [...ALLOWLISTS] },
+      allowlistRef: {
+        type: 'string',
+        description: `Policy-pack list when comparator is in_allowlist or not_in_allowlist. One of: ${ALLOWLISTS.join(', ')}.`,
+      },
       tolerance: {
         type: 'object',
         properties: {
-          unit: { type: 'string', enum: ['days', 'currency_minor', 'percent'] },
+          unit: { type: 'string', description: 'days, currency_minor, or percent' },
           value: { type: 'number' },
         },
         required: ['unit', 'value'],
-        additionalProperties: false,
       },
       onFail: {
         type: 'object',
@@ -320,11 +459,9 @@ const EMIT_RULE: ToolSpec = {
           },
         },
         required: ['code', 'title', 'requiredRepair'],
-        additionalProperties: false,
       },
     },
     required: ['family', 'selector', 'comparator', 'onFail'],
-    additionalProperties: false,
   },
 };
 
@@ -333,6 +470,11 @@ function composerPrompt(): string {
   return [
     'You translate a finance controller’s plain-English policy into one constrained rule for a deterministic control engine.',
     'You are not writing code and you are not enabling anything. You fill a fixed schema; a human reviews and merges it.',
+    '',
+    'family must be exactly one of these three strings (copy verbatim):',
+    '- evidence_lineage — citations, documents, narrative length',
+    '- accounting_integrity — journal lines, periods, accounts, duplicates',
+    '- policy_provenance — FX rates, dispositions, approved-source lists',
     '',
     'Verity can only read these fields of a proposal:',
     ...SELECTORS.map((entry) => `- ${entry.selector} — ${entry.means}`),
@@ -346,6 +488,94 @@ function composerPrompt(): string {
   ].join('\n');
 }
 
+function extractJsonObject(text: string): unknown | null {
+  const trimmed = text.trim();
+  try {
+    return JSON.parse(trimmed) as unknown;
+  } catch {
+    // fall through
+  }
+  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenced) {
+    try {
+      return JSON.parse(fenced[1]) as unknown;
+    } catch {
+      // fall through
+    }
+  }
+  const start = trimmed.indexOf('{');
+  const end = trimmed.lastIndexOf('}');
+  if (start >= 0 && end > start) {
+    try {
+      return JSON.parse(trimmed.slice(start, end + 1)) as unknown;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+function isRecoverableComposeError(message: string): boolean {
+  return /tool call validation failed|parameters for tool|did not match schema|invalid_request_error/i.test(
+    message,
+  );
+}
+
+async function composeViaTool(request: string, config: ReturnType<typeof modelConfig>): Promise<ComposeResult> {
+  const provider = createProvider({ config });
+  const response = await provider.complete({
+    messages: [
+      { role: 'system', content: composerPrompt() },
+      { role: 'user', content: `Controller request: ${request}` },
+    ],
+    tools: [EMIT_RULE],
+  });
+
+  const call = response.toolCalls.find((entry) => entry.name === EMIT_RULE.name);
+  if (!call) {
+    return {
+      ok: false,
+      reason:
+        response.text?.trim() ||
+        'That cannot be expressed as a deterministic rule over the fields Verity reads.',
+    };
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(call.arguments || '{}');
+  } catch {
+    return { ok: false, reason: 'The drafted rule was not valid JSON.' };
+  }
+
+  return parseComposedRule(parsed);
+}
+
+async function composeViaJson(request: string, config: ReturnType<typeof modelConfig>): Promise<ComposeResult> {
+  const provider = createProvider({ config });
+  const response = await provider.complete({
+    messages: [
+      {
+        role: 'system',
+        content: [
+          composerPrompt(),
+          '',
+          'Respond with a single JSON object only. No markdown fences, no tool calls.',
+          'Required keys: family, selector, comparator, onFail. Optional: compareTo, allowlistRef, tolerance.',
+        ].join('\n'),
+      },
+      { role: 'user', content: `Controller request: ${request}` },
+    ],
+    tools: [],
+  });
+
+  const parsed = extractJsonObject(response.text ?? '');
+  if (!parsed) {
+    return { ok: false, reason: 'The model did not return a parseable rule JSON.' };
+  }
+  return parseComposedRule(parsed);
+}
+
 export async function composeRule(text: string): Promise<ComposeResult> {
   const request = text.trim();
   if (request.length < 8) {
@@ -356,44 +586,45 @@ export async function composeRule(text: string): Promise<ComposeResult> {
   if (config.provider === 'fixture') return composeOffline(request);
 
   try {
-    const provider = createProvider({ config });
-    const response = await provider.complete({
-      messages: [
-        { role: 'system', content: composerPrompt() },
-        { role: 'user', content: `Controller request: ${request}` },
-      ],
-      tools: [EMIT_RULE],
-    });
+    const toolResult = await composeViaTool(request, config);
+    if (toolResult.ok) return toolResult;
 
-    const call = response.toolCalls.find((entry) => entry.name === EMIT_RULE.name);
-    if (!call) {
+    // No tool call — try plain JSON (some models explain instead of calling tools).
+    if (toolResult.reason && !toolResult.reason.includes('valid JSON')) {
+      try {
+        const jsonResult = await composeViaJson(request, config);
+        if (jsonResult.ok) return jsonResult;
+      } catch {
+        // fall through to offline / error handling
+      }
+    }
+
+    const offline = composeOffline(request);
+    if (offline.ok) return offline;
+    return toolResult;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Rule drafting failed.';
+    if (isRecoverableComposeError(message)) {
+      try {
+        const jsonResult = await composeViaJson(request, config);
+        if (jsonResult.ok) return jsonResult;
+      } catch {
+        // fall through
+      }
+    }
+    if (/does not exist|do not have access|model_not_found|404/i.test(message)) {
+      const offline = composeOffline(request);
+      if (offline.ok) return offline;
       return {
         ok: false,
         reason:
-          response.text?.trim() ||
-          'That cannot be expressed as a deterministic rule over the fields Verity reads.',
+          'The configured model is unavailable on Groq. Update VERITY_MODEL in .env (e.g. openai/gpt-oss-120b) and restart the dev server.',
+        suggestions: [...RULE_EXAMPLES],
       };
     }
-
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(call.arguments || '{}');
-    } catch {
-      return { ok: false, reason: 'The drafted rule was not valid JSON.' };
-    }
-
-    const checked = validate(parsed);
-    if (!checked.ok) return { ok: false, reason: checked.reason };
-
-    return {
-      ok: true,
-      composed: { rule: checked.rule, restatement: restate(checked.rule), source: 'model' },
-    };
-  } catch (error) {
-    return {
-      ok: false,
-      reason: error instanceof Error ? error.message : 'Rule drafting failed.',
-    };
+    const offline = composeOffline(request);
+    if (offline.ok) return offline;
+    return { ok: false, reason: message };
   }
 }
 

@@ -7,15 +7,15 @@ import type { ControllerDecision, RejectReasonCode } from '@/lib/contracts/types
 import { KbdBadge } from '../ui/KbdBadge';
 
 const REASON_CODES: { code: RejectReasonCode; label: string }[] = [
-  { code: 'UNSUPPORTED_FX_SOURCE', label: 'VERITY-FX-003: Unapproved FX source' },
-  { code: 'WRONG_RATE_DATE', label: 'VERITY-FX-005: FX rate date does not match transaction date' },
-  { code: 'MISSING_EVIDENCE', label: 'VERITY-EV-005: Citation missing direct evidence' },
-  { code: 'WRONG_ACCOUNT', label: 'VERITY-AI-003: Wrong GL account' },
-  { code: 'WRONG_ENTITY', label: 'VERITY-AI-004: Wrong legal entity' },
-  { code: 'DUPLICATE_POSTING', label: 'VERITY-AI-007: Duplicate posting risk' },
-  { code: 'CLOSED_PERIOD', label: 'VERITY-ACCT-002: Target period is closed' },
-  { code: 'INSUFFICIENT_NARRATIVE', label: 'VERITY-PP-003: Insufficient narrative' },
-  { code: 'OTHER', label: 'Other (requires rationale)' },
+  { code: 'UNSUPPORTED_FX_SOURCE', label: 'FX rate is from an unapproved source' },
+  { code: 'WRONG_RATE_DATE', label: 'FX rate date does not match the invoice date' },
+  { code: 'MISSING_EVIDENCE', label: 'Missing supporting document or citation' },
+  { code: 'WRONG_ACCOUNT', label: 'Wrong GL account used' },
+  { code: 'WRONG_ENTITY', label: 'Wrong legal entity' },
+  { code: 'DUPLICATE_POSTING', label: 'Looks like a duplicate payment' },
+  { code: 'CLOSED_PERIOD', label: 'Posting into a closed accounting period' },
+  { code: 'INSUFFICIENT_NARRATIVE', label: 'Explanation is too brief or unclear' },
+  { code: 'OTHER', label: 'Other (please add a note)' },
 ];
 
 interface ControllerDockProps {
@@ -166,7 +166,7 @@ export function ControllerDock({
         <div className="flex items-center gap-2 rounded-xl border border-black/[0.08] bg-white/95 px-3 py-2 shadow-[0_4px_24px_rgba(0,0,0,0.08)] backdrop-blur-md">
           <div className="flex items-center gap-2 border-r border-black/[0.06] pr-3 mr-1 text-xs text-zinc-500">
             <ShieldCheck className="h-4 w-4 text-emerald-600" />
-            <span className="font-medium text-zinc-700">Controller</span>
+            <span className="font-medium text-zinc-700">Your decision</span>
           </div>
 
           <a
@@ -217,10 +217,10 @@ export function ControllerDock({
           <div className="w-full max-w-md rounded-xl border border-black/[0.08] bg-white p-6 shadow-xl">
             <h4 className="text-base font-semibold text-zinc-900 mb-1 flex items-center gap-2">
               <X className="h-4 w-4 text-rose-500" />
-              Rejection Notice
+              Why are you rejecting?
             </h4>
-            <p className="text-xs text-zinc-500 mb-4 leading-relaxed">
-              Rejections feed into Verity&apos;s failure grouping to draft new Control PRs. Select a reason code:
+            <p className="text-sm text-zinc-500 mb-4 leading-relaxed">
+              Pick the main reason. This helps Verity learn which rules to add next.
             </p>
 
             <div className="space-y-2 mb-4 max-h-48 overflow-y-auto">

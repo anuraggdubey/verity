@@ -27,69 +27,65 @@ export function HorizontalPipeline({
   const steps: PipelineStep[] = [
     {
       id: 'ingest',
-      title: '1. Ingestion',
-      subtitle: 'Bank CSV',
+      title: '1. Bank feed',
+      subtitle: 'Payment received',
       status: 'passed',
       icon: FileText,
-      meta: '$14,200.00 USD',
-      details: 'Ingested raw MT940 wire line BNK-2026-08-9921 from Acme Europe B.V.',
+      meta: 'Imported',
+      details: 'The bank line was imported from your statement.',
     },
     {
       id: 'match',
-      title: '2. Deterministic Match',
-      subtitle: 'Rule Engine',
+      title: '2. Auto-match',
+      subtitle: 'Find invoices',
       status: 'passed',
       icon: CheckCircle2,
-      meta: 'Unmatched (€180 Diff)',
-      details: 'Zero LLM. Exact invoice matching found 1 EUR invoice with FX variance. Emitted as Exception.',
+      meta: 'Exception found',
+      details: 'Automatic matching flagged this as needing a human — amounts or dates did not line up exactly.',
     },
     {
       id: 'agent',
-      title: '3. Agent Worker',
-      subtitle: 'Tool Execution',
+      title: '3. AI research',
+      subtitle: 'Gather evidence',
       status: 'passed',
       icon: Cpu,
-      meta: '3 Tools Queried',
-      details: 'Worker called get_bank_line, search_ledger, and get_approved_fx_rate to draft proposal.',
+      meta: 'Proposal drafted',
+      details: 'The AI looked up bank lines, ledger entries, and FX rates to suggest how to book this payment.',
     },
     {
       id: 'controls',
-      title: '4. CI Control Gate',
-      subtitle: '3 Control Families',
+      title: '4. Policy checks',
+      subtitle: 'Automated rules',
       status: 'passed',
       icon: ShieldAlert,
-      meta: 'Rev 1 ✖ → Rev 2 ✔',
-      details: 'Evaluation blocked Rev 1 (VERITY-FX-003: unapproved spot rate). Agent repaired to Rev 2 with official ECB fix.',
+      meta: 'Checks run',
+      details: 'Built-in rules verified evidence, accounts, and FX policy. Failed checks trigger a revised proposal.',
     },
     {
       id: 'controller',
-      title: '5. Controller Gate',
-      subtitle: 'Human Approval',
+      title: '5. Your review',
+      subtitle: 'Approve or reject',
       status: 'active',
       icon: AlertTriangle,
-      meta: 'Merge Ready',
-      details: 'Human Controller review required before posting. Evidence lineage verified.',
+      meta: 'Waiting on you',
+      details: 'You confirm the proposal is correct before anything posts.',
     },
     {
       id: 'ledger',
-      title: '6. Sandbox Ledger',
-      subtitle: 'Immutable Close',
+      title: '6. Post entries',
+      subtitle: 'Sandbox ledger',
       status: 'pending',
       icon: Lock,
-      meta: 'Hash-Linked GL',
-      details: 'Upon controller approval, writes balanced double-entry journal to sandbox ledger.',
+      meta: 'After approval',
+      details: 'Approved entries are written to a test ledger for reconciliation.',
     },
   ];
 
   return (
     <div className={`w-full overflow-hidden rounded-xl border border-black/[0.06] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] ${className}`}>
       <div className="flex items-center justify-between pb-3 border-b border-black/[0.04] mb-4">
-        <h4 className="text-xs font-medium uppercase tracking-wider text-zinc-500">
-          Reconciliation Pipeline
-        </h4>
-        <span className="text-[11px] font-mono text-zinc-400">
-          Ingest → Rule Gate → CI Repair → Merge
-        </span>
+        <h4 className="text-sm font-medium text-zinc-800">Where this case is in the process</h4>
+        <span className="text-xs text-zinc-400">Bank → match → propose → check → you → post</span>
       </div>
 
       <div className="flex items-center gap-2 overflow-x-auto pb-1">

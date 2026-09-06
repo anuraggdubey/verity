@@ -10,13 +10,26 @@ import {
   DollarSign,
   Clock,
   AlertTriangle,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
+import { AppPageHeader } from '../../components/app/AppPageHeader';
+import { AppShell } from '../../components/app/AppShell';
 import { SpotlightCard } from '../../components/ui/SpotlightCard';
 import type { DashboardPayload } from '@/lib/metrics/types';
+
+type KpiCard = {
+  label: string;
+  value: string;
+  meaning: string;
+  icon: React.ElementType;
+  tone?: 'good' | 'warn' | 'neutral';
+};
 
 export default function MetricsDashboardPage() {
   const [data, setData] = useState<DashboardPayload | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showTechnical, setShowTechnical] = useState(false);
 
   useEffect(() => {
     fetch('/api/metrics')
@@ -27,196 +40,219 @@ export default function MetricsDashboardPage() {
 
   if (loading || !data) {
     return (
-      <div className="app-page max-w-7xl mx-auto py-12 text-sm text-zinc-500 font-mono">
-        Loading metrics…
-      </div>
+      <AppShell>
+        <div className="py-16 text-sm text-zinc-500">Loading your dashboard…</div>
+      </AppShell>
     );
   }
 
   const { summary, benchmarkRuns, heldOut, controlPRReplay, benchmarkIsSynthetic, packVersion } = data;
 
-  const kpis = [
+  const safetyKpis: KpiCard[] = [
     {
-      label: 'Unsafe Escapes',
+      label: 'Missed urgent cases',
       value: summary.unsafeEscapes.toString(),
-      subtext: 'Escalation-worthy cases not routed to escalate',
+      meaning: 'Missed escalations.',
       icon: ShieldAlert,
+      tone: summary.unsafeEscapes > 0 ? 'warn' : 'good',
     },
     {
-      label: 'Safe Auto-Clear Rate',
-      value: summary.safeAutoClearCoverage,
-      subtext: 'Permitted auto-clears that cleared correctly',
-      icon: CheckCircle2,
-    },
-    {
-      label: 'Controller Touch Rate',
-      value: summary.controllerTouchRate,
-      subtext: 'Cases with a controller decision',
-      icon: Activity,
-    },
-    {
-      label: 'CI Repair Success Rate',
-      value: summary.repairSuccessRate,
-      subtext: 'Blocked proposals fixed on next revision',
-      icon: TrendingUp,
-    },
-    {
-      label: 'False Positives',
+      label: 'Good proposals blocked',
       value: summary.falsePositives.toString(),
-      subtext: 'Counterexamples blocked after control PR merge',
+      meaning: 'False blocks on good proposals.',
       icon: AlertTriangle,
+      tone: summary.falsePositives > 0 ? 'warn' : 'good',
+    },
+  ];
+
+  const efficiencyKpis: KpiCard[] = [
+    {
+      label: 'Handled without you',
+      value: summary.safeAutoClearCoverage,
+      meaning: 'Auto-cleared without review.',
+      icon: CheckCircle2,
+      tone: 'good',
     },
     {
-      label: 'Median Latency',
+      label: 'Needed your review',
+      value: summary.controllerTouchRate,
+      meaning: 'Required controller decision.',
+      icon: Activity,
+      tone: 'neutral',
+    },
+    {
+      label: 'Fixed after feedback',
+      value: summary.repairSuccessRate,
+      meaning: 'Repaired after failed checks.',
+      icon: TrendingUp,
+      tone: 'good',
+    },
+  ];
+
+  const opsKpis: KpiCard[] = [
+    {
+      label: 'Typical response time',
       value: `${summary.averageLatencyMs}ms`,
-      subtext: 'Model calls from event store',
+      meaning: 'Average AI step time.',
       icon: Clock,
+      tone: 'neutral',
     },
     {
-      label: 'Cost Per Case',
+      label: 'Cost per case',
       value: summary.averageCostPerCase,
-      subtext: `${data.metrics.operational.modelCalls} model calls total`,
+      meaning: `${data.metrics.operational.modelCalls} model calls.`,
       icon: DollarSign,
+      tone: 'neutral',
     },
   ];
 
   return (
-    <div className="app-page max-w-7xl mx-auto space-y-8">
-      <div className="border-b border-black/[0.06] pb-6">
-        <div className="flex flex-wrap items-center gap-2.5">
-          <h1 className="text-xl font-semibold text-zinc-950 tracking-[-0.02em]">
-            Benchmark Telemetry
-          </h1>
-          <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-            Audit Store
-          </span>
-          {benchmarkIsSynthetic && (
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
-              Synthetic benchmark — not practitioner-reviewed
-            </span>
-          )}
-          <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 border border-zinc-200">
-            Pack {packVersion}
-          </span>
-        </div>
-        <p className="text-sm text-zinc-500 mt-1.5 max-w-2xl">
-          Raw counts derived strictly from the append-only event store. No invented controller-minutes
-          or synthetic claims.
-        </p>
-      </div>
+    <AppShell className="space-y-8">
+      <AppPageHeader
+        title="Metrics"
+        badges={[
+          { label: `Rules ${packVersion}`, tone: 'neutral' },
+          ...(benchmarkIsSynthetic
+            ? [{ label: 'Demo', tone: 'amber' as const }]
+            : []),
+        ]}
+      />
 
       {controlPRReplay?.regression && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 flex items-start gap-2">
-          <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
-          <div>
-            <strong>Auto-clear regression detected.</strong> Control pack v2 reduced auto-clear coverage
-            from {controlPRReplay.autoClearBefore} to {controlPRReplay.autoClearAfter} cases.
-          </div>
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900 flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 mt-0.5 shrink-0" />
+          <p>
+            Rule update reduced auto-clear ({controlPRReplay.autoClearBefore} →{' '}
+            {controlPRReplay.autoClearAfter}). Review before merging.
+          </p>
         </div>
       )}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {kpis.map((kpi, idx) => {
-          const Icon = kpi.icon;
-          return (
-            <SpotlightCard key={idx} className="p-5 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-mono font-medium text-zinc-400 uppercase tracking-wider">
-                  {kpi.label}
-                </span>
-                <Icon className="h-4 w-4 text-zinc-300" />
-              </div>
-              <div className="text-2xl sm:text-3xl font-semibold text-zinc-900 font-mono tracking-tight">
-                {kpi.value}
-              </div>
-              <div className="text-[11px] text-zinc-500">{kpi.subtext}</div>
-            </SpotlightCard>
-          );
-        })}
-      </div>
+      <section className="space-y-4">
+        <h2 className="section-label">Safety</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {safetyKpis.map((kpi) => (
+            <KpiCard key={kpi.label} {...kpi} />
+          ))}
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="section-label">Efficiency</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {efficiencyKpis.map((kpi) => (
+            <KpiCard key={kpi.label} {...kpi} />
+          ))}
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="section-label">Operations</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {opsKpis.map((kpi) => (
+            <KpiCard key={kpi.label} {...kpi} />
+          ))}
+        </div>
+      </section>
 
       {heldOut && (
         <SpotlightCard className="p-6 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-black/[0.06] pb-3">
             <div>
-              <h3 className="text-sm font-semibold text-zinc-900">
-                Held-Out Case: {heldOut.caseId}
-              </h3>
-              <p className="text-xs text-zinc-500 mt-0.5">{heldOut.summary}</p>
+              <h3 className="text-base font-semibold text-zinc-900">Spot-check case</h3>
+              <p className="text-sm text-zinc-500 mt-1">{heldOut.summary}</p>
             </div>
             <Link
               href={`/cases/${heldOut.caseId}`}
-              className="text-xs font-medium text-emerald-700 hover:underline"
+              className="text-sm font-medium text-blue-600 hover:underline"
             >
-              Open case →
+              Open {heldOut.caseId} →
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div className="rounded-lg border border-black/[0.06] bg-zinc-50 p-4">
-              <div className="text-[11px] font-mono uppercase text-zinc-400 mb-2">Under Pack v1</div>
+              <div className="text-xs font-medium text-zinc-500 mb-2">With older rules</div>
               <p className="text-zinc-700 leading-relaxed">{heldOut.underV1}</p>
             </div>
-            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-              <div className="text-[11px] font-mono uppercase text-emerald-600 mb-2">Under Pack v2</div>
+            <div className="rounded-lg border border-blue-100 bg-blue-50/50 p-4">
+              <div className="text-xs font-medium text-blue-700 mb-2">With current rules</div>
               <p className="text-zinc-700 leading-relaxed">{heldOut.underV2}</p>
             </div>
           </div>
-          {heldOut.note && (
-            <p className="text-[11px] font-mono text-zinc-400">{heldOut.note}</p>
-          )}
+          {heldOut.note && <p className="text-xs text-zinc-500">{heldOut.note}</p>}
         </SpotlightCard>
       )}
 
-      <SpotlightCard className="p-6 space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-black/[0.06] pb-3">
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-900">
-              Control Engine Expectations ({benchmarkRuns.length} proposals)
-            </h3>
-            <p className="text-xs text-zinc-500 mt-0.5">Pack v1.0 vs v2.0 — from frozen replay fixtures</p>
-          </div>
-          <span className="text-xs font-mono text-zinc-400">
-            {summary.benchmarkRunCount} total cases in queue
-          </span>
-        </div>
+      <section className="space-y-3">
+        <button
+          type="button"
+          onClick={() => setShowTechnical((v) => !v)}
+          className="flex items-center gap-2 text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors"
+        >
+          {showTechnical ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          {showTechnical ? 'Hide technical details' : 'Show technical details'}
+          <span className="text-zinc-400 font-normal">({benchmarkRuns.length} test scenarios)</span>
+        </button>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-mono">
-            <thead>
-              <tr className="border-b border-black/[0.06] text-zinc-400 text-[11px]">
-                <th className="pb-2.5 font-medium">Case ID</th>
-                <th className="pb-2.5 font-medium">Proposal</th>
-                <th className="pb-2.5 font-medium">Expectation</th>
-                <th className="pb-2.5 font-medium">Pack v1</th>
-                <th className="pb-2.5 font-medium">Pack v2</th>
-                <th className="pb-2.5 text-right font-medium">Regression</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-black/[0.04]">
-              {benchmarkRuns.map((run) => (
-                <tr key={run.proposalId} className="hover:bg-zinc-50 transition-colors">
-                  <td className="py-3 font-medium text-emerald-700">
-                    <Link href={`/cases/${run.caseId}`} className="hover:underline">
-                      {run.caseId}
-                    </Link>
-                  </td>
-                  <td className="py-3 text-zinc-500">{run.proposalId}</td>
-                  <td className="py-3 text-zinc-600 font-sans max-w-xs truncate">{run.category}</td>
-                  <td className="py-3 text-zinc-400">{run.v1Status}</td>
-                  <td className="py-3 text-zinc-800 font-medium">{run.v2Status}</td>
-                  <td className="py-3 text-right">
-                    {run.regression ? (
-                      <span className="text-rose-600 font-medium">REGRESSION</span>
-                    ) : (
-                      <span className="text-emerald-600 font-medium">Clean</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </SpotlightCard>
-    </div>
+        {showTechnical && (
+          <SpotlightCard className="p-6 space-y-4">
+            <p className="text-sm text-zinc-500">
+              Each row is a historical proposal re-tested against old vs new control rules.{' '}
+              {summary.benchmarkRunCount} cases in the current queue.
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-black/[0.06] text-zinc-500 text-xs">
+                    <th className="pb-2.5 font-medium">Case</th>
+                    <th className="pb-2.5 font-medium">What we tested</th>
+                    <th className="pb-2.5 font-medium">Old rules</th>
+                    <th className="pb-2.5 font-medium">New rules</th>
+                    <th className="pb-2.5 text-right font-medium">Result</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-black/[0.04]">
+                  {benchmarkRuns.map((run) => (
+                    <tr key={run.proposalId} className="hover:bg-zinc-50/80 transition-colors">
+                      <td className="py-3 font-medium text-blue-600">
+                        <Link href={`/cases/${run.caseId}`} className="hover:underline">
+                          {run.caseId}
+                        </Link>
+                      </td>
+                      <td className="py-3 text-zinc-600 max-w-xs">{run.category}</td>
+                      <td className="py-3 text-zinc-500">{run.v1Status}</td>
+                      <td className="py-3 text-zinc-800">{run.v2Status}</td>
+                      <td className="py-3 text-right">
+                        {run.regression ? (
+                          <span className="text-rose-600 font-medium">Regression</span>
+                        ) : (
+                          <span className="text-emerald-600 font-medium">OK</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </SpotlightCard>
+        )}
+      </section>
+    </AppShell>
+  );
+}
+
+function KpiCard({ label, value, meaning, icon: Icon, tone = 'neutral' }: KpiCard) {
+  const valueColor =
+    tone === 'good' ? 'text-emerald-700' : tone === 'warn' ? 'text-amber-700' : 'text-zinc-900';
+
+  return (
+    <SpotlightCard className="p-5 space-y-3">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-sm font-medium text-zinc-600">{label}</span>
+        <Icon className="h-4 w-4 text-zinc-300 shrink-0" />
+      </div>
+      <div className={`text-3xl font-semibold tracking-tight ${valueColor}`}>{value}</div>
+      <p className="text-sm text-zinc-500 leading-relaxed">{meaning}</p>
+    </SpotlightCard>
   );
 }

@@ -32,7 +32,7 @@ export function RevisionDiffViewer({
     <div className="rounded-xl border border-black/[0.06] bg-white overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/[0.06] bg-zinc-50/80 px-4 py-3">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-zinc-600">Revision</span>
+          <span className="text-sm font-medium text-zinc-700">Proposed journal entry</span>
           {hasMultiple ? (
             <div className="flex items-center rounded-lg bg-white p-0.5 border border-black/[0.06]">
               {revisions.map((rev, idx) => {
@@ -55,7 +55,7 @@ export function RevisionDiffViewer({
                     ) : (
                       <CheckCircle2 className="h-3 w-3" />
                     )}
-                    <span>Rev {rev.proposal.revision}{blocked ? ' (Blocked)' : ''}</span>
+                    <span>Attempt {rev.proposal.revision}{blocked ? ' — failed checks' : ''}</span>
                   </button>
                 );
               })}

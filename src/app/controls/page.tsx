@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { GitMerge, CheckCircle2, Check, AlertTriangle } from 'lucide-react';
 import { SpotlightCard } from '../../components/ui/SpotlightCard';
+import { AppPageHeader } from '../../components/app/AppPageHeader';
+import { AppShell } from '../../components/app/AppShell';
 import { RuleComposer } from '../../components/controls/RuleComposer';
 import { ControlPRActions } from '../../components/ControlPRActions';
 import type { ControlPR } from '@/lib/contracts/types';
@@ -36,17 +38,20 @@ export default function ControlGovernancePage() {
 
   if (loading) {
     return (
-      <div className="app-page max-w-7xl mx-auto py-12 text-sm text-zinc-500 font-mono">
-        Loading control PRs…
-      </div>
+      <AppShell>
+        <div className="py-16 text-sm text-zinc-500">Loading controls…</div>
+      </AppShell>
     );
   }
 
   if (!cpr) {
     return (
-      <div className="app-page max-w-7xl mx-auto py-12 text-sm text-zinc-500">
-        No control PRs drafted yet. Reject at least two proposals with the same reason code to draft one.
-      </div>
+      <AppShell className="space-y-4">
+        <AppPageHeader title="Control rules" />
+        <p className="text-sm text-zinc-500">
+          No rules drafted yet.
+        </p>
+      </AppShell>
     );
   }
 
@@ -56,31 +61,16 @@ export default function ControlGovernancePage() {
   const hasRegression = replay ? replay.autoClearAfter < replay.autoClearBefore : false;
 
   return (
-    <div className="app-page max-w-7xl mx-auto space-y-8">
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-black/[0.06] pb-6">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-semibold text-zinc-950 tracking-[-0.02em]">
-              Control PR Governance
-            </h1>
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200">
-              Layer 2
-            </span>
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 border border-zinc-200">
-              {cpr.status}
-            </span>
-          </div>
-          <p className="text-sm text-zinc-500 mt-1.5 max-w-2xl">
-            Human-approved guardrail evolution. Grouped controller rejections produce draft specification
-            amendments tested against historical replay fixtures.
-          </p>
-        </div>
+    <AppShell className="space-y-8">
+      <AppPageHeader
+        title="Control rules"
+        badges={[
+          { label: cpr.status, tone: 'violet' },
+          { label: cpr.id, tone: 'neutral' },
+        ]}
+        actions={<ControlPRActions controlPrId={cpr.id} status={cpr.status} onComplete={load} />}
+      />
 
-        <ControlPRActions controlPrId={cpr.id} status={cpr.status} onComplete={load} />
-      </div>
-
-      {/* Entry point for a non-technical controller: describe the policy, see
-          what it would have blocked, then propose it into the same flow. */}
       <RuleComposer onProposed={load} />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -229,6 +219,6 @@ export default function ControlGovernancePage() {
           </SpotlightCard>
         </div>
       </div>
-    </div>
+    </AppShell>
   );
 }

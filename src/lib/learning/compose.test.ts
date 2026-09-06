@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import type { ConstrainedRule } from '@/lib/contracts/types';
-import { composeRule, restate, simulateRule } from '@/lib/learning/compose';
+import { composeRule, parseComposedRule, restate, simulateRule } from '@/lib/learning/compose';
 import { RULE_EXAMPLES } from '@/lib/learning/rule-examples';
 import { resetDemo } from '@/lib/store';
 
@@ -60,6 +60,25 @@ describe('plain-English rule composer', () => {
     const simulation = simulateRule(blockEverything);
     expect(simulation.wouldBlockApproved.length).toBeGreaterThan(0);
     expect(simulation.summary).toContain('previously approved');
+  });
+
+  it('normalizes shorthand family and selector names from model output', () => {
+    const result = parseComposedRule({
+      family: 'accounting',
+      selector: 'journal.period',
+      comparator: 'in_allowlist',
+      allowlistRef: 'open_periods',
+      onFail: {
+        code: 'VERITY-AI-006',
+        title: 'Every journal line posts into an open period',
+        requiredRepair:
+          'Move the entry into an open accounting period, or route the item to the controller as a prior-period adjustment.',
+      },
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.composed.rule.family).toBe('accounting_integrity');
+    expect(result.composed.rule.selector).toBe('journal.periods');
   });
 });
 

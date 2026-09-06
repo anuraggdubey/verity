@@ -52,8 +52,8 @@ export function Navbar() {
                   href={link.href}
                   className={`px-3 py-1.5 text-[13px] font-medium rounded-md transition-colors ${
                     active
-                      ? 'text-zinc-950'
-                      : 'text-zinc-500 hover:text-zinc-900'
+                      ? 'text-blue-600 bg-blue-50'
+                      : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'
                   }`}
                 >
                   {link.label}
@@ -81,7 +81,7 @@ export function Navbar() {
           </Link>
           <Link
             href="/queue"
-            className="inline-flex items-center px-3.5 py-1.5 text-[13px] font-medium rounded-lg bg-zinc-950 text-white hover:bg-zinc-800 transition-colors"
+            className="inline-flex items-center px-3.5 py-1.5 text-[13px] font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
           >
             Get started
           </Link>
