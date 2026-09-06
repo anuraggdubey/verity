@@ -23,13 +23,12 @@ export function Navbar() {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [resetting, setResetting] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  // Navigating away should always close the sheet, including via the browser
-  // back button — otherwise it stays open over the new page.
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
+  // The menu remembers which route it was opened on, so any navigation — a link
+  // in the sheet, or the browser back button — closes it by derivation. That
+  // avoids an effect that sets state during render, which cascades.
+  const [openedOn, setOpenedOn] = useState<string | null>(null);
+  const menuOpen = openedOn === pathname;
+  const setMenuOpen = (open: boolean) => setOpenedOn(open ? pathname : null);
 
   // A panel that covers the page has to be dismissable without hunting for the
   // close button.
@@ -107,7 +106,7 @@ export function Navbar() {
 
           <button
             type="button"
-            onClick={() => setMenuOpen((open) => !open)}
+            onClick={() => setMenuOpen(!menuOpen)}
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={menuOpen}
             aria-controls="mobile-nav"
