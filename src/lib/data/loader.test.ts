@@ -22,6 +22,6 @@ describe('CSV loader and frozen reconciliation', () => {
   it('computes the promised 24/17/7 result from source records', () => {
     const source = loadFrozenReconciliation();
     const result = matchReconciliation(source.bankLines, source.ledgerEntries);
-    expect(result.counts).toEqual({ bankLines: 24, autoMatched: 17, exceptions: 7 });
+    expect(result.counts).toEqual({ bankLines: 29, autoMatched: 17, exceptions: 12 });
   });
 });

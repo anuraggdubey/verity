@@ -517,7 +517,7 @@ export function PinnedScrollytelling() {
 
                 <motion.div variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }} className="flex items-center gap-2 pt-1">
                   <Link
-                    href="/cases/CASE-2049"
+                    href="/cases/CASE-001"
                     className="flex-1 text-center py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors"
                   >
                     Submit to CI Check
@@ -1804,7 +1804,7 @@ export function PinnedScrollytelling() {
                     <div className="relative z-10 flex items-center gap-2">
                       <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                         <Link
-                          href="/cases/CASE-2049"
+                          href="/cases/CASE-001"
                           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-950 hover:bg-black text-white text-xs font-semibold shadow-md transition-all border border-zinc-800 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]"
                         >
                           <kbd className="text-[10px] font-mono bg-zinc-800 text-emerald-400 px-1 py-0.5 rounded border border-zinc-700">A</kbd>

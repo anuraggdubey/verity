@@ -1,7 +1,7 @@
 {
-  "schemaVersion": 1,
-  "seed": "verity-demo-v1",
-  "sourceHash": "sha256:054e208a0b8f95c615ad073496c60d185379587d8b545568cbcf8c454330752a",
+  "schemaVersion": 2,
+  "seed": "verity-demo-v2",
+  "sourceHash": "sha256:214cc6036bd35def6b0e62b12f2d6359b09ecb384244e10e9b129d31cb7ee8fb",
   "review": {
     "origin": "synthetic",
     "practitionerReviewed": false,
@@ -16,6 +16,7 @@
       "CASE-012": "unreviewed"
     }
   },
+  "caseCount": 29,
   "result": {
     "matches": [
       {
@@ -138,15 +139,48 @@
         "reasonCode": "NO_EXACT_MATCH"
       },
       {
+        "bankLineId": "BL-024",
+        "candidateLedgerIds": [],
+        "reasonCode": "NO_EXACT_MATCH"
+      },
+      {
         "bankLineId": "BL-026",
+        "candidateLedgerIds": [],
+        "reasonCode": "NO_EXACT_MATCH"
+      },
+      {
+        "bankLineId": "BL-027",
+        "candidateLedgerIds": [
+          "GL-2401",
+          "GL-2402"
+        ],
+        "reasonCode": "AMBIGUOUS_MATCH"
+      },
+      {
+        "bankLineId": "BL-028",
+        "candidateLedgerIds": [],
+        "reasonCode": "NO_EXACT_MATCH"
+      },
+      {
+        "bankLineId": "BL-029",
+        "candidateLedgerIds": [],
+        "reasonCode": "NO_EXACT_MATCH"
+      },
+      {
+        "bankLineId": "BL-030",
         "candidateLedgerIds": [],
         "reasonCode": "NO_EXACT_MATCH"
       }
     ],
     "counts": {
-      "bankLines": 24,
+      "bankLines": 29,
       "autoMatched": 17,
-      "exceptions": 7
+      "exceptions": 12
     }
+  },
+  "reconciliation": {
+    "bankLineCount": 29,
+    "autoClearedCount": 17,
+    "exceptionCount": 12
   }
 }

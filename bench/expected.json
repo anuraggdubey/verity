@@ -83,6 +83,30 @@
       ],
       "note": "v1 baseline failure: approved spot rate dated the settlement day. Supports CPR-001."
     },
+    "CASE-007": {
+      "split": "discovery",
+      "expectedDisposition": "escalate",
+      "expectedLane": "escalate",
+      "autoClearPermitted": false,
+      "expectedJournalAccounts": [],
+      "note": "Ambiguous match — two ledger candidates share the same reference."
+    },
+    "CASE-010": {
+      "split": "discovery",
+      "expectedDisposition": "bank_fee_journal",
+      "expectedLane": "review",
+      "autoClearPermitted": false,
+      "expectedJournalAccounts": ["2100", "1010"],
+      "note": "Wrong entity on journal lines must be blocked by VERITY-AI-003."
+    },
+    "CASE-011": {
+      "split": "discovery",
+      "expectedDisposition": "short_pay",
+      "expectedLane": "review",
+      "autoClearPermitted": false,
+      "expectedJournalAccounts": ["2100", "1010"],
+      "note": "Partial settlement against a larger invoice."
+    },
     "CASE-012": {
       "split": "held_out",
       "expectedDisposition": "fx_revaluation",

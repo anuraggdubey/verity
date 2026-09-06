@@ -1,31 +1,12 @@
 /**
  * Headless control-engine benchmark.
  *
- * Runs every stored proposal through the control engine under pack v1 (built-in
- * checks only) and under pack v2 (v1 plus the constrained rule drafted in
- * CPR-001), and checks the result against what the fixture and the Control PR
- * claim. It exits non-zero when a claim is not true, so the demo cannot rest on
- * an assertion nobody ran.
- *
  *   npm run bench
  */
 
+import { CONTROL_ENGINE_EXPECTATIONS } from '../src/lib/replay/fixtures';
 import { evaluateProposal } from '../src/lib/controls/engine';
-import { listControlPRs, listProposals } from '../src/lib/demo/store';
-
-type Expectation = { proposalId: string; v1Blocked: boolean; v2Blocked: boolean; because: string };
-
-const EXPECTATIONS: Expectation[] = [
-  { proposalId: 'PROP-001-r1', v1Blocked: true, v2Blocked: true, because: 'unapproved FX source (VERITY-FX-003)' },
-  { proposalId: 'PROP-001-r2', v1Blocked: false, v2Blocked: false, because: 'repaired: approved transaction-date spot rate' },
-  { proposalId: 'PROP-002-r1', v1Blocked: false, v2Blocked: false, because: 'bank fee journal, fully evidenced' },
-  { proposalId: 'PROP-003-r1', v1Blocked: false, v2Blocked: false, because: 'non-posting duplicate flag, advisory only' },
-  { proposalId: 'PROP-004-r1', v1Blocked: false, v2Blocked: false, because: 'correct abstention, no journal' },
-  { proposalId: 'PROP-005-r1', v1Blocked: false, v2Blocked: false, because: 'approved timing difference, non-posting' },
-  { proposalId: 'PROP-006-r1', v1Blocked: false, v2Blocked: true, because: 'settlement-date rate: escapes v1, caught by v2' },
-  { proposalId: 'PROP-008-r1', v1Blocked: false, v2Blocked: false, because: 'counterexample: correct rate date, must stay allowed' },
-  { proposalId: 'PROP-009-r1', v1Blocked: false, v2Blocked: true, because: 'month-end closing rate: escapes v1, caught by v2' },
-];
+import { listControlPRs, listProposals } from '../src/lib/store';
 
 function codes(blockedOnly: boolean, results: { code: string; status: string }[]) {
   return results
@@ -45,7 +26,7 @@ function main() {
   console.log('proposal      v1        v2        non-passing controls (v2)');
   console.log('-'.repeat(96));
 
-  for (const expectation of EXPECTATIONS) {
+  for (const expectation of CONTROL_ENGINE_EXPECTATIONS) {
     const proposal = proposals.find((p) => p.id === expectation.proposalId);
     if (!proposal) {
       console.error(`MISSING   ${expectation.proposalId} is not in the fixture`);
@@ -71,7 +52,6 @@ function main() {
 
   console.log('-'.repeat(96));
 
-  // The Control PR's own claim: every positive is caught, every counterexample survives.
   for (const id of cpr.positiveFixtures) {
     const proposal = proposals.find((p) => p.id === id);
     if (!proposal) continue;

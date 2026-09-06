@@ -1,8 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, beforeEach } from 'vitest';
 
 import type { ConstrainedRule, Proposal } from '@/lib/contracts/types';
 import { applyConstrainedRule, evaluateProposal } from '@/lib/controls/engine';
-import { getProposal } from '@/lib/demo/store';
+import { getProposal, resetDemo } from '@/lib/store';
 
 /** The blocked FX proposal from the fixture, rebuilt here so the test is self-contained. */
 const unapprovedFx: Proposal = {
@@ -33,6 +33,8 @@ const blockedCodes = (proposal: Proposal) =>
     .map((result) => result.code);
 
 describe('control engine', () => {
+  beforeEach(() => resetDemo());
+
   it('blocks a rate from a source outside the approved allowlist', () => {
     const report = evaluateProposal(unapprovedFx, { rules: [], packVersion: 'v1' });
     expect(report.blocked).toBe(true);

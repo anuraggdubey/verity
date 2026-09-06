@@ -74,6 +74,10 @@ export function modelConfig(): ModelConfig {
 
 /* ------------------------------------------------------------------- openai */
 
+function supportsCustomTemperature(model: string): boolean {
+  return !/^gpt-5/i.test(model);
+}
+
 function toOpenAIMessages(messages: AgentMessage[]): ChatCompletionMessageParam[] {
   return messages.map((message): ChatCompletionMessageParam => {
     switch (message.role) {
@@ -134,7 +138,8 @@ class OpenAIProvider implements ModelProvider {
     const startedAt = Date.now();
     const completion = await this.client.chat.completions.create({
       model: this.model,
-      temperature: this.temperature,
+      // GPT-5 models only accept the default temperature; sending 0 returns 400.
+      ...(supportsCustomTemperature(this.model) ? { temperature: this.temperature } : {}),
       messages: toOpenAIMessages(request.messages),
       tools,
       tool_choice: 'auto',

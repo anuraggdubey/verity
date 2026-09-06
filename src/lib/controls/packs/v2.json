@@ -1,0 +1,7 @@
+{
+  "version": "v2",
+  "extends": "v1",
+  "description": "Pack v1 plus constrained rules merged from controller-approved Control PRs.",
+  "constrainedRuleCodes": ["VERITY-FX-005"],
+  "mergeSource": "CPR-001"
+}

@@ -1,0 +1,30 @@
+{
+  "version": "v1",
+  "description": "Built-in deterministic checks — evidence lineage, accounting integrity, policy and market-data provenance.",
+  "families": {
+    "evidence_lineage": [
+      "VERITY-EV-001",
+      "VERITY-EV-002",
+      "VERITY-EV-003",
+      "VERITY-EV-004",
+      "VERITY-EV-005"
+    ],
+    "accounting_integrity": [
+      "VERITY-AI-001",
+      "VERITY-AI-002",
+      "VERITY-AI-003",
+      "VERITY-AI-004",
+      "VERITY-AI-005",
+      "VERITY-AI-006",
+      "VERITY-AI-007"
+    ],
+    "policy_provenance": [
+      "VERITY-PP-001",
+      "VERITY-PP-002",
+      "VERITY-PP-003",
+      "VERITY-FX-003",
+      "VERITY-FX-004",
+      "VERITY-FX-006"
+    ]
+  }
+}
