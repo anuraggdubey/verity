@@ -8,6 +8,8 @@ import { RevisionDiffViewer } from '../../../components/finance-pr/RevisionDiffV
 import { ControlChecklist } from '../../../components/finance-pr/ControlChecklist';
 import { CitationInspector } from '../../../components/finance-pr/CitationInspector';
 import { ControllerDock } from '../../../components/finance-pr/ControllerDock';
+import { RunButtons } from '../../../components/app/RunActions';
+import { WorkerActivity } from '../../../components/app/WorkerActivity';
 import { SpotlightCard } from '../../../components/ui/SpotlightCard';
 import { StatusPill } from '../../../components/ui/StatusPill';
 import type { CaseDetail } from '@/lib/store';
@@ -23,8 +25,10 @@ export default function CaseDetailPage({
   const [loading, setLoading] = useState(true);
   const [activeRevIndex, setActiveRevIndex] = useState(0);
 
+  // `loading` stays true only until the first response. A refetch after a run
+  // or a decision must not blank the page, or it unmounts the trace panel
+  // mid-stream and the run disappears from view.
   const loadDetail = React.useCallback(() => {
-    setLoading(true);
     fetch(`/api/cases/${id}`)
       .then((res) => res.json())
       .then((body) => {
@@ -127,6 +131,12 @@ export default function CaseDetailPage({
             <div className="text-zinc-400 text-[10px] uppercase tracking-wider">Bank Line</div>
             <div className="text-zinc-600">{detail.case.bankLineId}</div>
           </div>
+          {!detail.decision && (
+            <>
+              <div className="h-8 w-px bg-black/[0.06]" />
+              <RunButtons caseId={detail.case.id} onDone={loadDetail} />
+            </>
+          )}
         </div>
       </div>
 
@@ -147,6 +157,8 @@ export default function CaseDetailPage({
 
         <div className="lg:col-span-5 space-y-6">
           <ControlChecklist report={currentReport} activeRevIndex={activeRevIndex} />
+
+          <WorkerActivity caseId={detail.case.id} />
 
           <SpotlightCard className="p-4 space-y-3">
             <div className="flex items-center justify-between border-b border-black/[0.06] pb-2">

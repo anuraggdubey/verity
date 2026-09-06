@@ -7,6 +7,8 @@ import type { ReconciliationStatus } from '@/lib/contracts/types';
 import type { CaseRow } from '@/lib/store';
 import { SpotlightCard } from '../../components/ui/SpotlightCard';
 import { StatusPill } from '../../components/ui/StatusPill';
+import { ResetDemoButton, RunButtons } from '../../components/app/RunActions';
+import { WorkerActivity } from '../../components/app/WorkerActivity';
 
 type QueueCase = {
   id: string;
@@ -19,6 +21,7 @@ type QueueCase = {
   workerId?: string;
   blocked: boolean;
   revisionCount: number;
+  decided: boolean;
 };
 
 function laneFor(row: CaseRow): 'auto' | 'review' | 'escalate' {
@@ -27,7 +30,7 @@ function laneFor(row: CaseRow): 'auto' | 'review' | 'escalate' {
   return 'review';
 }
 
-function toQueueCase(row: CaseRow, investigating: Set<string>): QueueCase {
+function toQueueCase(row: CaseRow): QueueCase {
   const bank = row.bankLine;
   return {
     id: row.case.id,
@@ -36,10 +39,11 @@ function toQueueCase(row: CaseRow, investigating: Set<string>): QueueCase {
     amount: row.case.amount ?? Math.abs(bank?.amount ?? 0),
     lane: laneFor(row),
     state: row.case.state,
-    workerActive: investigating.has(row.case.id) || row.case.state === 'investigating',
+    workerActive: row.case.state === 'investigating',
     workerId: row.case.workerId,
     blocked: row.blocked,
     revisionCount: row.revisionCount,
+    decided: Boolean(row.decision),
   };
 }
 
@@ -51,18 +55,25 @@ export default function ExceptionQueuePage() {
   const [investigating, setInvestigating] = useState<Set<string>>(new Set());
   const [traceLines, setTraceLines] = useState<Record<string, string>>({});
 
+  // Deliberately depends on nothing: `investigating` is applied at render time
+  // instead. Reading it here made every streamed trace event change this
+  // callback's identity, which re-ran the effect below and refetched the whole
+  // queue once per trace line during a run.
   const loadCases = useCallback(async () => {
     const res = await fetch('/api/cases');
     const body = await res.json();
     if (!res.ok) return;
     const rows = (body.cases ?? []) as CaseRow[];
-    setCases(rows.map((row) => toQueueCase(row, investigating)));
+    setCases(rows.map((row) => toQueueCase(row)));
     setReconciliation(body.reconciliation ?? null);
     setLoading(false);
-  }, [investigating]);
+  }, []);
 
   useEffect(() => {
-    loadCases();
+    // Fetch once on mount. `loadCases` has stable identity, so this cannot
+    // cascade; the lint rule cannot see that across the callback boundary.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadCases();
   }, [loadCases]);
 
   useEffect(() => {
@@ -82,31 +93,18 @@ export default function ExceptionQueuePage() {
     return () => source.close();
   }, []);
 
-  async function investigate(caseId: string) {
-    setInvestigating((prev) => new Set(prev).add(caseId));
-    const res = await fetch(`/api/cases/${caseId}/investigate`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ live: false }),
-    });
-    setInvestigating((prev) => {
-      const next = new Set(prev);
-      next.delete(caseId);
-      return next;
-    });
-    if (res.ok) await loadCases();
-  }
-
   const filtered = useMemo(() => {
     const q = searchQuery.toLowerCase();
-    return cases.filter(
-      (c) =>
-        !q ||
-        c.id.toLowerCase().includes(q) ||
-        c.counterparty.toLowerCase().includes(q) ||
-        c.title.toLowerCase().includes(q),
-    );
-  }, [cases, searchQuery]);
+    return cases
+      .filter(
+        (c) =>
+          !q ||
+          c.id.toLowerCase().includes(q) ||
+          c.counterparty.toLowerCase().includes(q) ||
+          c.title.toLowerCase().includes(q),
+      )
+      .map((c) => ({ ...c, workerActive: c.workerActive || investigating.has(c.id) }));
+  }, [cases, searchQuery, investigating]);
 
   const lanes = useMemo(
     () => ({
@@ -148,6 +146,7 @@ export default function ExceptionQueuePage() {
         </div>
 
         <div className="flex items-center gap-2">
+          <ResetDemoButton onDone={loadCases} />
           <button
             onClick={() => loadCases()}
             className="flex h-8 w-8 items-center justify-center rounded-lg border border-black/[0.08] bg-white text-zinc-400 hover:text-zinc-700 transition-colors"
@@ -179,6 +178,7 @@ export default function ExceptionQueuePage() {
           description="Non-posting exact matches & verified timing differences."
           cases={lanes.auto}
           emptyLabel="No auto-cleared cases"
+          onRunDone={loadCases}
         />
 
         <LaneColumn
@@ -188,7 +188,7 @@ export default function ExceptionQueuePage() {
           cases={lanes.review}
           emptyLabel="No cases in review"
           linkable
-          onInvestigate={investigate}
+          onRunDone={loadCases}
           traceLines={traceLines}
         />
 
@@ -199,8 +199,12 @@ export default function ExceptionQueuePage() {
           cases={lanes.escalate}
           emptyLabel="No escalations"
           linkable
+          onRunDone={loadCases}
+          traceLines={traceLines}
         />
       </div>
+
+      <WorkerActivity />
     </div>
   );
 }
@@ -212,7 +216,7 @@ function LaneColumn({
   cases,
   emptyLabel,
   linkable,
-  onInvestigate,
+  onRunDone,
   traceLines,
 }: {
   title: string;
@@ -221,7 +225,7 @@ function LaneColumn({
   cases: QueueCase[];
   emptyLabel: string;
   linkable?: boolean;
-  onInvestigate?: (id: string) => void;
+  onRunDone?: () => void | Promise<void>;
   traceLines?: Record<string, string>;
 }) {
   const border = color === 'emerald' ? 'border-emerald-200' : color === 'amber' ? 'border-amber-200' : 'border-rose-200';
@@ -298,17 +302,10 @@ function LaneColumn({
                 </span>
               </div>
 
-              {linkable && c.revisionCount === 0 && onInvestigate && (
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onInvestigate(c.id);
-                  }}
-                  className="w-full mt-1 text-[10px] font-medium text-blue-700 border border-blue-200 bg-blue-50 rounded-md py-1 hover:bg-blue-100 transition-colors"
-                >
-                  Investigate
-                </button>
+              {linkable && !c.decided && (
+                <div className="mt-1">
+                  <RunButtons caseId={c.id} onDone={onRunDone} compact />
+                </div>
               )}
 
               {linkable && c.revisionCount > 0 && (
