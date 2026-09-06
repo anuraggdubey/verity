@@ -117,7 +117,7 @@ reconciliation-consistency check. Keep `evaluateProposal`'s signature.
 | Dodo test API key | settlement ingestion | **code done**, read-only, disabled without the key. Payouts → bank lines |
 | A practitioner's time (Maximor) | the synthetic caveat | **pack generates now**: `npm run review:pack`. Nobody has filled it in |
 | Per-1k token prices | honest cost numbers | `VERITY_COST_PER_1K_IN` / `_OUT`. Unset means every run reports $0.00 |
-| Deployment target | judges clicking a link | not set up. `npm run build && npm start` works locally |
+| Deployment target | judges clicking a link | **done** — https://verity-merge-control.vercel.app (Vercel project `verity`, protection off, public) |
 | Devpost account + submission | entry | not started |
 | Video hosting with public permissions | entry | not started |
 

@@ -10,6 +10,36 @@ Just as Git and CI give software engineering isolated branches, automated regres
 
 ---
 
+## Live deployment
+
+**https://verity-merge-control.vercel.app**
+
+| Page | What it shows |
+|---|---|
+| [/queue](https://verity-merge-control.vercel.app/queue) | Exception queue, Auto / Review / Escalate lanes, live worker activity |
+| [/cases/CASE-001](https://verity-merge-control.vercel.app/cases/CASE-001) | The Finance PR: evidence, accounting impact, control checklist, revision diff |
+| [/controls](https://verity-merge-control.vercel.app/controls) | Failure groups, the drafted Control PR, replay, merge to pack v2 |
+| [/metrics](https://verity-merge-control.vercel.app/metrics) | Raw counts from the event log |
+
+Verified on the deployment: run CASE-001, revision 1 blocked by `VERITY-FX-003`,
+revision 2 repaired and passing, approve, posted to the hash-linked sandbox
+ledger. `POST /api/reset` returns everything to the frozen initial state.
+
+Two things to know before demoing from the deployed URL:
+
+- **Runs are pre-recorded there.** No model key is set in the deployment, so the
+  worker replays transcripts. That is deliberate — the deployed demo should not
+  spend money or depend on a provider — but it means anything you show from it
+  must be described as pre-recorded. For live agent behaviour, run locally with
+  `ANTHROPIC_API_KEY` set, or add the key in Vercel's project settings.
+- **State is in memory.** Decisions and merges persist while the serverless
+  instance stays warm, and reset to the frozen benchmark on a cold start. Fine
+  for a demo — a cold instance simply starts from the correct initial state —
+  but do not leave a half-finished flow on screen and expect it to survive a
+  long pause.
+
+---
+
 ## How It Works
 
 ```
