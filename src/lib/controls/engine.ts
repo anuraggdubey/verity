@@ -493,7 +493,9 @@ function policyProvenance(proposal: Proposal, policy: PolicyPack): ControlResult
 
 /* ------------------------------------------------------- constrained rules (v2+) */
 
-function selectorValue(selector: string, proposal: Proposal): string | number | undefined {
+type SelectorValue = string | number | string[] | undefined;
+
+function selectorValue(selector: string, proposal: Proposal): SelectorValue {
   switch (selector) {
     case 'fx.rateDate':
       return proposal.fx?.rateDate;
@@ -505,6 +507,37 @@ function selectorValue(selector: string, proposal: Proposal): string | number | 
       return proposal.fx?.rate;
     case 'disposition':
       return proposal.disposition;
+    case 'journal.accounts':
+      return proposal.journal.length > 0 ? proposal.journal.map((line) => line.account) : undefined;
+    case 'journal.periods':
+      return proposal.journal.length > 0 ? proposal.journal.map((line) => line.period) : undefined;
+    case 'journal.entities':
+      return proposal.journal.length > 0 ? proposal.journal.map((line) => line.entity) : undefined;
+    case 'journal.currencies':
+      return proposal.journal.length > 0 ? proposal.journal.map((line) => line.currency) : undefined;
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * Named lists a rule may reference. A rule cannot inline its own allowlist — it
+ * points at one the policy pack owns, so policy stays in a single place.
+ */
+function allowlist(ref: string, policy: PolicyPack): string[] | undefined {
+  switch (ref) {
+    case 'approved_fx_sources':
+      return policy.fx.approvedSources;
+    case 'permitted_accounts':
+      return Object.keys(policy.chartOfAccounts);
+    case 'open_periods':
+      return policy.openPeriods;
+    case 'closed_periods':
+      return policy.closedPeriods;
+    case 'permitted_entities':
+      return policy.entities;
+    case 'auto_clear_dispositions':
+      return policy.autoClearDispositions;
     default:
       return undefined;
   }
@@ -525,7 +558,17 @@ function compareValue(compareTo: string, proposal: Proposal): string | number | 
   return compareTo;
 }
 
-const SUPPORTED_SELECTORS = ['fx.rateDate', 'fx.rateType', 'fx.sourceId', 'fx.rate', 'disposition'];
+const SUPPORTED_SELECTORS = [
+  'fx.rateDate',
+  'fx.rateType',
+  'fx.sourceId',
+  'fx.rate',
+  'disposition',
+  'journal.accounts',
+  'journal.periods',
+  'journal.entities',
+  'journal.currencies',
+];
 
 export function applyConstrainedRule(rule: ConstrainedRule, proposal: Proposal): ControlResult | undefined {
   if (!SUPPORTED_SELECTORS.includes(rule.selector)) {
@@ -549,7 +592,7 @@ export function applyConstrainedRule(rule: ConstrainedRule, proposal: Proposal):
     family: rule.family,
     status: 'blocked',
     title: rule.onFail.title,
-    claim: `${rule.selector} = ${String(actual)}`,
+    claim: `${rule.selector} = ${Array.isArray(actual) ? actual.join(', ') : String(actual)}`,
     failure,
     requiredRepair: rule.onFail.requiredRepair,
   });
@@ -590,6 +633,41 @@ export function applyConstrainedRule(rule: ConstrainedRule, proposal: Proposal):
     }
     case 'not_equals':
       return actual !== expected ? pass : fail(`${rule.selector} must not equal ${String(expected)}.`);
+    case 'in_allowlist':
+    case 'not_in_allowlist': {
+      if (!rule.allowlistRef) {
+        return {
+          code: rule.onFail.code,
+          family: rule.family,
+          status: 'warn',
+          title: rule.onFail.title,
+          failure: 'The rule names no allowlist, so it was not enforced.',
+          requiredRepair: rule.onFail.requiredRepair,
+        };
+      }
+      const permitted = allowlist(rule.allowlistRef, policyPack());
+      if (!permitted) {
+        return {
+          code: rule.onFail.code,
+          family: rule.family,
+          status: 'warn',
+          title: rule.onFail.title,
+          failure: `The policy pack has no allowlist named "${rule.allowlistRef}", so this rule was not enforced.`,
+          requiredRepair: rule.onFail.requiredRepair,
+        };
+      }
+      const values = (Array.isArray(actual) ? actual : [String(actual)]).map(String);
+      const offenders =
+        rule.comparator === 'in_allowlist'
+          ? values.filter((value) => !permitted.includes(value))
+          : values.filter((value) => permitted.includes(value));
+      if (offenders.length === 0) return pass;
+      return fail(
+        rule.comparator === 'in_allowlist'
+          ? `${[...new Set(offenders)].join(', ')} is not in ${rule.allowlistRef} (${permitted.join(', ')}).`
+          : `${[...new Set(offenders)].join(', ')} is in ${rule.allowlistRef} and must not be.`,
+      );
+    }
     default:
       return {
         code: rule.onFail.code,

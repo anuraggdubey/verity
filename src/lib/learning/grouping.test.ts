@@ -48,3 +48,35 @@ describe('reviewer-grounded failure grouping', () => {
     if (!draft.ok) expect(draft.reason).toContain('No constrained rule schema');
   });
 });
+
+describe('rule templates', () => {
+  const group = (reasonCode: Parameters<typeof draftControlPR>[0]['reasonCode']) => ({
+    id: `GRP-${reasonCode}`,
+    reasonCode,
+    proposalIds: ['PROP-006-r1', 'PROP-009-r1'],
+    caseIds: ['CASE-006', 'CASE-009'],
+    rationales: [],
+    coherence: 0,
+    sharedTraits: [],
+  });
+
+  it('drafts an allowlist rule for an unapproved FX source', () => {
+    const draft = draftControlPR(group('UNSUPPORTED_FX_SOURCE'));
+    expect(draft.ok).toBe(true);
+    if (!draft.ok) return;
+    expect(draft.controlPR.rule.comparator).toBe('in_allowlist');
+    expect(draft.controlPR.rule.allowlistRef).toBe('approved_fx_sources');
+  });
+
+  it('drafts an open-period rule for a closed-period rejection', () => {
+    const draft = draftControlPR(group('CLOSED_PERIOD'));
+    expect(draft.ok).toBe(true);
+    if (!draft.ok) return;
+    expect(draft.controlPR.rule.selector).toBe('journal.periods');
+    expect(draft.controlPR.rule.allowlistRef).toBe('open_periods');
+  });
+
+  it('still refuses a reason code with no enforceable schema', () => {
+    expect(draftControlPR(group('INSUFFICIENT_NARRATIVE')).ok).toBe(false);
+  });
+});

@@ -151,3 +151,68 @@ describe('control engine', () => {
     expect(timing && evaluateProposal(timing, { rules: [], packVersion: 'v1' }).blocked).toBe(false);
   });
 });
+
+describe('allowlist rules', () => {
+  const sourceRule: ConstrainedRule = {
+    family: 'policy_provenance',
+    selector: 'fx.sourceId',
+    comparator: 'in_allowlist',
+    allowlistRef: 'approved_fx_sources',
+    onFail: { code: 'VERITY-FX-007', title: 'approved provider', requiredRepair: 'use an approved provider' },
+  };
+
+  it('blocks a value outside the named allowlist', () => {
+    const result = applyConstrainedRule(sourceRule, unapprovedFx);
+    expect(result?.status).toBe('blocked');
+    expect(result?.failure).toContain('approved_fx_sources');
+  });
+
+  it('passes a value inside the named allowlist', () => {
+    const approved: Proposal = {
+      ...unapprovedFx,
+      fx: { rate: 1.0785, rateDate: '2026-08-11', rateType: 'spot', sourceId: 'APEX-REF-RATES' },
+    };
+    expect(applyConstrainedRule(sourceRule, approved)?.status).toBe('pass');
+  });
+
+  it('checks every journal line, not just the first', () => {
+    const periodRule: ConstrainedRule = {
+      family: 'accounting_integrity',
+      selector: 'journal.periods',
+      comparator: 'in_allowlist',
+      allowlistRef: 'open_periods',
+      onFail: { code: 'VERITY-AI-006', title: 'open period', requiredRepair: 'post into an open period' },
+    };
+    expect(applyConstrainedRule(periodRule, unapprovedFx)?.status).toBe('pass');
+
+    const oneClosedLine: Proposal = {
+      ...unapprovedFx,
+      journal: [
+        unapprovedFx.journal[0],
+        { ...unapprovedFx.journal[1], period: '2026-07' },
+      ],
+    };
+    const result = applyConstrainedRule(periodRule, oneClosedLine);
+    expect(result?.status).toBe('blocked');
+    expect(result?.failure).toContain('2026-07');
+  });
+
+  it('warns when the policy pack has no such allowlist', () => {
+    const bogus: ConstrainedRule = { ...sourceRule, allowlistRef: 'not_a_real_list' };
+    const result = applyConstrainedRule(bogus, unapprovedFx);
+    expect(result?.status).toBe('warn');
+    expect(result?.failure).toContain('no allowlist named');
+  });
+
+  it('does not apply a journal rule to a non-posting proposal', () => {
+    const nonPosting: Proposal = { ...unapprovedFx, journal: [], fx: undefined };
+    const accountRule: ConstrainedRule = {
+      family: 'accounting_integrity',
+      selector: 'journal.accounts',
+      comparator: 'in_allowlist',
+      allowlistRef: 'permitted_accounts',
+      onFail: { code: 'VERITY-AI-007', title: 'permitted chart', requiredRepair: 'use a permitted account' },
+    };
+    expect(applyConstrainedRule(accountRule, nonPosting)).toBeUndefined();
+  });
+});
