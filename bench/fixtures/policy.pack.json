@@ -24,5 +24,9 @@
     "criticalAtOrAbove": 10000
   },
   "autoClearDispositions": ["matched", "timing_difference"],
-  "amountToleranceMinorUnits": 1
+  "amountToleranceMinorUnits": 1,
+  "matching": {
+    "dateToleranceDays": 5,
+    "timingDifferenceMaxDays": 45
+  }
 }

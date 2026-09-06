@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { ConstrainedRule, Proposal } from '@/lib/contracts/types';
 import { applyConstrainedRule, evaluateProposal } from '@/lib/controls/engine';
+import { getProposal } from '@/lib/demo/store';
 
 /** The blocked FX proposal from the fixture, rebuilt here so the test is self-contained. */
 const unapprovedFx: Proposal = {
@@ -120,5 +121,31 @@ describe('control engine', () => {
     };
     const noFx: Proposal = { ...unapprovedFx, fx: undefined };
     expect(applyConstrainedRule(rule, noFx)).toBeUndefined();
+  });
+
+  it('blocks a journal whose cash impact does not tie to its bank line', () => {
+    const proposal: Proposal = {
+      ...unapprovedFx,
+      journal: [
+        { ...unapprovedFx.journal[0], debit: 8700 },
+        { ...unapprovedFx.journal[1], credit: 8700 },
+      ],
+    };
+    expect(blockedCodes(proposal)).toContain('VERITY-AI-006');
+  });
+
+  it('blocks journal lines on a non-posting disposition', () => {
+    expect(blockedCodes({ ...unapprovedFx, disposition: 'duplicate' })).toContain('VERITY-AI-004');
+  });
+
+  it('blocks stale policy versions', () => {
+    expect(blockedCodes({ ...unapprovedFx, policyVersion: 'policy-old' })).toContain('VERITY-PP-001');
+  });
+
+  it('allows the repaired FX proposal and the approved timing rule', () => {
+    const repaired = getProposal('PROP-001-r2');
+    const timing = getProposal('PROP-005-r1');
+    expect(repaired && evaluateProposal(repaired, { rules: [], packVersion: 'v1' }).blocked).toBe(false);
+    expect(timing && evaluateProposal(timing, { rules: [], packVersion: 'v1' }).blocked).toBe(false);
   });
 });
