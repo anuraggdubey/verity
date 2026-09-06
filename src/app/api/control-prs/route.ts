@@ -3,9 +3,11 @@ import { NextResponse } from 'next/server';
 import { addControlPR, listControlPRs } from '@/lib/demo/store';
 import { draftControlPR } from '@/lib/learning/control-pr';
 import { groupReviewerRejections } from '@/lib/learning/grouping';
+import { ensureStoreReady } from '@/lib/store/ensure';
 
 /** Owner: Builder B. Failure groups and the Control PRs drafted from them. */
 export async function GET() {
+  await ensureStoreReady();
   return NextResponse.json({
     groups: groupReviewerRejections(),
     controlPRs: listControlPRs(),
@@ -17,6 +19,7 @@ export async function GET() {
  * Body: { reasonCode?: string } — defaults to the largest group.
  */
 export async function POST(request: Request) {
+  await ensureStoreReady();
   let body: { reasonCode?: string } = {};
   try {
     body = (await request.json()) as typeof body;

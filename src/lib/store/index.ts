@@ -7,3 +7,4 @@
  */
 
 export * from './kernel';
+export type { CaseRow, CaseDetail } from './types';

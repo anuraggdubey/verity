@@ -12,7 +12,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { SpotlightCard } from '../../components/ui/SpotlightCard';
-import type { DashboardPayload } from '@/lib/metrics/dashboard';
+import type { DashboardPayload } from '@/lib/metrics/types';
 
 export default function MetricsDashboardPage() {
   const [data, setData] = useState<DashboardPayload | null>(null);

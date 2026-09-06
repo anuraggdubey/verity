@@ -2,9 +2,11 @@ import { NextResponse } from 'next/server';
 
 import type { RejectReasonCode } from '@/lib/contracts/types';
 import { recordControllerDecision } from '@/lib/demo/store';
+import { ensureStoreReady } from '@/lib/store/ensure';
 
 /** Owner: Builder C. Controller merge gate. */
 export async function POST(request: Request, ctx: { params: Promise<{ id: string }> }) {
+  await ensureStoreReady();
   const { id } = await ctx.params;
   const body = (await request.json()) as {
     decision?: 'approve' | 'reject';

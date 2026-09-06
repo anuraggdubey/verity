@@ -5,6 +5,7 @@ import { createProvider, liveProvider, modelConfig } from '@/lib/agent/model';
 import { investigateCase } from '@/lib/agent/worker';
 import { resetCaseForInvestigation } from '@/lib/demo/store';
 import { getTrace } from '@/lib/trace/trace';
+import { ensureStoreReady } from '@/lib/store/ensure';
 
 /**
  * Owner: Builder B. Runs the worker on one case.
@@ -15,6 +16,7 @@ import { getTrace } from '@/lib/trace/trace';
  *   reset — clear existing revisions first so the case can be re-investigated.
  */
 export async function POST(request: Request, ctx: { params: Promise<{ id: string }> }) {
+  await ensureStoreReady();
   const { id } = await ctx.params;
 
   let body: { live?: boolean; reset?: boolean } = {};

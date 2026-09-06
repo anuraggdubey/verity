@@ -13,7 +13,7 @@ import { WorkerActivity } from '../../../components/app/WorkerActivity';
 import { EvidenceUpload } from '../../../components/finance-pr/EvidenceUpload';
 import { SpotlightCard } from '../../../components/ui/SpotlightCard';
 import { StatusPill } from '../../../components/ui/StatusPill';
-import type { CaseDetail } from '@/lib/store';
+import type { CaseDetail } from '@/lib/store/types';
 import type { Proposal } from '@/lib/contracts/types';
 
 export default function CaseDetailPage({

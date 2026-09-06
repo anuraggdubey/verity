@@ -15,6 +15,7 @@ import { investigateCase } from '../src/lib/agent/worker';
 import { corePromptHash } from '../src/lib/agent/prompt';
 import { getTrace } from '../src/lib/trace/trace';
 import { resetCaseForInvestigation } from '../src/lib/demo/store';
+import { ensureStoreReady } from '../src/lib/store/ensure';
 
 function loadEnv() {
   const loader = (process as NodeJS.Process & { loadEnvFile?: (path: string) => void }).loadEnvFile;
@@ -30,6 +31,7 @@ function loadEnv() {
 
 async function main() {
   loadEnv();
+  await ensureStoreReady();
 
   const args = process.argv.slice(2);
   const live = args.includes('--live');

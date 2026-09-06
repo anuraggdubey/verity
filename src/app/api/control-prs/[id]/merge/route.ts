@@ -2,9 +2,11 @@ import { NextResponse } from 'next/server';
 
 import { getControlPR, mergeControlPR } from '@/lib/demo/store';
 import { replayIsMergeable } from '@/lib/learning/replay-runner';
+import { ensureStoreReady } from '@/lib/store/ensure';
 
 /** Controller merge of a control pack version. */
 export async function POST(_request: Request, ctx: { params: Promise<{ id: string }> }) {
+  await ensureStoreReady();
   const { id } = await ctx.params;
   const pr = getControlPR(id);
   if (!pr) return NextResponse.json({ error: 'Unknown control PR' }, { status: 404 });

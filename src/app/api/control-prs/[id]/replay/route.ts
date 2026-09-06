@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { getControlPR, setControlPRReplay } from '@/lib/demo/store';
 import { runReplay } from '@/lib/learning/replay-runner';
+import { ensureStoreReady } from '@/lib/store/ensure';
 
 /**
  * Owner: Builder B (replay runner) over Builder A's control engine.
@@ -9,6 +10,7 @@ import { runReplay } from '@/lib/learning/replay-runner';
  * rule: positives must now be caught, counterexamples must still be allowed.
  */
 export async function POST(_request: Request, ctx: { params: Promise<{ id: string }> }) {
+  await ensureStoreReady();
   const { id } = await ctx.params;
   const pr = getControlPR(id);
   if (!pr) return NextResponse.json({ error: 'Unknown control PR' }, { status: 404 });

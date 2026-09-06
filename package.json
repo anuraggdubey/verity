@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
-    "build": "next build --webpack",
+    "build": "tsx scripts/prebuild-db.ts && next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "generate:bench": "tsx bench/generate.ts",
@@ -15,11 +15,14 @@
     "replay": "tsx bench/replay.ts",
     "test": "vitest run --configLoader runner",
     "review:pack": "tsx bench/review.ts pack",
-    "review:import": "tsx bench/review.ts import"
+    "review:import": "tsx bench/review.ts import",
+    "db:migrate": "tsx bench/db-migrate.ts",
+    "db:reset": "tsx bench/db-migrate.ts --force-reseed"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.124.0",
     "@google/genai": "^2.21.0",
+    "@neondatabase/serverless": "^1.1.0",
     "clsx": "^2.1.1",
     "framer-motion": "^13.2.0",
     "gsap": "^3.15.0",

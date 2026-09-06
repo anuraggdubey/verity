@@ -20,8 +20,17 @@ import { bindRuntime } from '@/lib/data/access';
 import { loadBenchmark, type BenchmarkFixture } from '@/lib/data/benchmark';
 import { calculateReconciliationStatus } from '@/lib/ledger/close';
 import { createLedgerRecord, verifyLedgerChain } from '@/lib/ledger/sandbox';
+import { useDatabase } from '@/lib/db/env';
 import { orderedEvents } from '@/lib/store/events';
 import { appendImmutableProposal } from '@/lib/store/state';
+import type { CaseDetail, CaseRow } from '@/lib/store/types';
+
+export type { CaseDetail, CaseRow } from '@/lib/store/types';
+
+function syncDb(fn: (db: typeof import('@/lib/db/sync').dbSync) => void): void {
+  if (!useDatabase()) return;
+  void import('@/lib/db/sync').then(({ dbSync }) => fn(dbSync));
+}
 
 /**
  * Finance kernel runtime store (Builder A).
@@ -92,6 +101,18 @@ export function resetDemo(): void {
   globalRef.__verityState = freshState();
 }
 
+export async function resetDemoWithDatabase(): Promise<void> {
+  if (!useDatabase()) {
+    resetDemo();
+    return;
+  }
+  const { resetDatabaseToFixture } = await import('@/lib/db/migrate');
+  const { clearHydratedState, hydrateStoreFromDatabase } = await import('@/lib/db/hydrate');
+  await resetDatabaseToFixture();
+  clearHydratedState();
+  await hydrateStoreFromDatabase();
+}
+
 /* ---------------------------------------------------------------- reads */
 
 export function meta() {
@@ -118,27 +139,6 @@ export function listCases(): CaseRow[] {
     };
   });
 }
-
-export type CaseRow = {
-  case: Case;
-  bankLine?: BankLine;
-  latestProposal?: Proposal;
-  report?: ControlReport;
-  lane: RouteDecision['lane'];
-  blocked: boolean;
-  revisionCount: number;
-  decision?: ControllerDecision;
-};
-
-export type CaseDetail = {
-  case: Case;
-  bankLine?: BankLine;
-  candidates: LedgerEntry[];
-  revisions: { proposal: Proposal; report?: ControlReport; route?: RouteDecision }[];
-  decision?: ControllerDecision;
-  ledgerRecord?: LedgerRecord;
-  packVersion: string;
-};
 
 export function getCaseDetail(caseId: string): CaseDetail | undefined {
   const s = state();
@@ -264,12 +264,17 @@ export function recordControllerDecision(input: DecisionInput):
     decidedAt: at,
   };
   s.controllerDecisions.push(decision);
-  s.events.push({
-    type: 'controller_decided',
+  const decidedEvent = {
+    type: 'controller_decided' as const,
     at,
     proposalId: input.proposalId,
     decision: input.decision,
     reasonCode: input.reasonCode,
+  };
+  s.events.push(decidedEvent);
+  syncDb((db) => {
+    db.controllerDecision(decision);
+    db.event(decidedEvent);
   });
 
   if (input.decision === 'approve') {
@@ -280,10 +285,13 @@ export function recordControllerDecision(input: DecisionInput):
   } else {
     c.state = 'rejected';
   }
+  syncDb((db) => db.case(c));
 
   const status = reconciliationStatus();
   if (status.closed) {
-    s.events.push({ type: 'reconciliation_closed', at, unresolvedCount: 0 });
+    const closedEvent = { type: 'reconciliation_closed' as const, at, unresolvedCount: 0 };
+    s.events.push(closedEvent);
+    syncDb((db) => db.event(closedEvent));
   }
   return { ok: true, caseId: c.id };
 }
@@ -303,7 +311,17 @@ export function postApprovedProposal(proposalId: string):
   if (proposal.journal.length === 0) return { ok: false, error: 'This proposal has no journal to post' };
   const record = createLedgerRecord(s.ledgerRecords, proposal.id, proposal.journal);
   s.ledgerRecords.push(record);
-  s.events.push({ type: 'journal_posted', at: record.postedAt, proposalId, ledgerRecordId: record.id });
+  const postedEvent = {
+    type: 'journal_posted' as const,
+    at: record.postedAt,
+    proposalId,
+    ledgerRecordId: record.id,
+  };
+  s.events.push(postedEvent);
+  syncDb((db) => {
+    db.ledgerRecord(record);
+    db.event(postedEvent);
+  });
   return { ok: true, record, existing: false };
 }
 
@@ -322,7 +340,18 @@ export function mergeControlPR(id: string):
   pr.status = 'merged';
   pr.mergedAt = at;
   s.packVersion = pr.replay.packVersion;
-  s.events.push({ type: 'control_pr_merged', at, controlPrId: pr.id, packVersion: s.packVersion });
+  const mergedEvent = {
+    type: 'control_pr_merged' as const,
+    at,
+    controlPrId: pr.id,
+    packVersion: s.packVersion,
+  };
+  s.events.push(mergedEvent);
+  syncDb((db) => {
+    db.controlPR(pr);
+    db.packVersion(s.packVersion);
+    db.event(mergedEvent);
+  });
   return { ok: true, packVersion: s.packVersion };
 }
 
@@ -366,12 +395,18 @@ export function getCase(id: string): Case | undefined {
 
 export function appendEvent(event: VerityEvent): void {
   state().events.push(event);
+  syncDb((db) => db.event(event));
 }
 
 /** Appends a revision. Earlier revisions are never mutated. */
 export function appendProposal(proposal: Proposal): void {
   const s = state();
   appendImmutableProposal(s.proposals, s.cases, proposal);
+  const caseRow = s.cases.find((c) => c.id === proposal.caseId);
+  syncDb((db) => {
+    db.proposal(proposal);
+    if (caseRow) db.case(caseRow);
+  });
 }
 
 export function appendControlReport(report: ControlReport): void {
@@ -379,6 +414,7 @@ export function appendControlReport(report: ControlReport): void {
   const existing = s.controlReports.findIndex((r) => r.proposalId === report.proposalId);
   if (existing >= 0) s.controlReports[existing] = report;
   else s.controlReports.push(report);
+  syncDb((db) => db.controlReport(report));
 }
 
 export function appendRouteDecision(decision: RouteDecision): void {
@@ -386,11 +422,15 @@ export function appendRouteDecision(decision: RouteDecision): void {
   const existing = s.routeDecisions.findIndex((r) => r.proposalId === decision.proposalId);
   if (existing >= 0) s.routeDecisions[existing] = decision;
   else s.routeDecisions.push(decision);
+  syncDb((db) => db.routeDecision(decision));
 }
 
 export function setCaseState(caseId: string, next: Case['state']): void {
   const c = state().cases.find((x) => x.id === caseId);
-  if (c) c.state = next;
+  if (c) {
+    c.state = next;
+    syncDb((db) => db.case(c));
+  }
 }
 
 export function nextProposalId(caseId: string, revision: number): string {
@@ -427,6 +467,11 @@ export function resetCaseForInvestigation(caseId: string): { ok: boolean; error?
   s.routeDecisions = s.routeDecisions.filter((r) => !proposalIds.has(r.proposalId));
   c.revisions = [];
   c.state = 'unmatched';
+  syncDb((db) => {
+    db.deleteProposals([...proposalIds]);
+    db.events(s.events);
+    db.case(c);
+  });
   return { ok: true };
 }
 
@@ -436,12 +481,17 @@ export function setControlPRReplay(id: string, replay: ReplayReport): { ok: bool
   if (!pr) return { ok: false, error: `Unknown control PR ${id}` };
   pr.replay = replay;
   pr.status = 'replayed';
-  s.events.push({
-    type: 'control_pr_replayed',
+  const replayEvent = {
+    type: 'control_pr_replayed' as const,
     at: replay.ranAt,
     controlPrId: id,
     positivesCaught: replay.positives.filter((p) => p.caught).length,
     negativesAllowed: replay.negatives.filter((n) => n.stillAllowed).length,
+  };
+  s.events.push(replayEvent);
+  syncDb((db) => {
+    db.controlPR(pr);
+    db.event(replayEvent);
   });
   return { ok: true };
 }
@@ -450,7 +500,12 @@ export function addControlPR(pr: ControlPR): void {
   const s = state();
   if (s.controlPRs.some((existing) => existing.id === pr.id)) return;
   s.controlPRs.push(pr);
-  s.events.push({ type: 'control_pr_drafted', at: pr.draftedAt, controlPrId: pr.id });
+  const draftedEvent = { type: 'control_pr_drafted' as const, at: pr.draftedAt, controlPrId: pr.id };
+  s.events.push(draftedEvent);
+  syncDb((db) => {
+    db.controlPR(pr);
+    db.event(draftedEvent);
+  });
 }
 
 /**

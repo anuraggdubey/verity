@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Search, Filter, Cpu, RefreshCw } from 'lucide-react';
 import type { ReconciliationStatus } from '@/lib/contracts/types';
-import type { CaseRow } from '@/lib/store';
+import type { CaseRow } from '@/lib/store/types';
 import { SpotlightCard } from '../../components/ui/SpotlightCard';
 import { StatusPill } from '../../components/ui/StatusPill';
 import { ResetDemoButton, RunButtons } from '../../components/app/RunActions';

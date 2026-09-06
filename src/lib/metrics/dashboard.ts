@@ -3,42 +3,9 @@ import { computeMetrics } from '@/lib/metrics/compute';
 import { heldOutCase, listCases, listControlPRs, listProposals } from '@/lib/demo/store';
 import { CONTROL_ENGINE_EXPECTATIONS, loadExpectedLabels } from '@/lib/replay/fixtures';
 
-export type BenchmarkRunRow = {
-  caseId: string;
-  proposalId: string;
-  category: string;
-  v1Status: string;
-  v2Status: string;
-  regression: boolean;
-};
+import type { DashboardPayload, BenchmarkRunRow } from '@/lib/metrics/types';
 
-export type DashboardPayload = {
-  metrics: ReturnType<typeof computeMetrics>;
-  summary: {
-    unsafeEscapes: number;
-    falsePositives: number;
-    controllerTouchRate: string;
-    safeAutoClearCoverage: string;
-    repairSuccessRate: string;
-    benchmarkRunCount: number;
-    averageCostPerCase: string;
-    averageLatencyMs: number;
-  };
-  heldOut: ReturnType<typeof heldOutCase>;
-  controlPRReplay: {
-    autoClearBefore: number;
-    autoClearAfter: number;
-    regression: boolean;
-  } | null;
-  benchmarkRuns: BenchmarkRunRow[];
-  practitionerReviewed: boolean;
-  benchmarkIsSynthetic: boolean;
-  /** Cases with a held-back label. Quality counts are out of this. */
-  scoredCases: number;
-  /** Cases in the dataset that no label covers, so nothing scores them. */
-  unlabelledCases: number;
-  packVersion: string;
-};
+export type { DashboardPayload, BenchmarkRunRow } from '@/lib/metrics/types';
 
 function pct(numerator: number, denominator: number): string {
   if (denominator === 0) return '0%';

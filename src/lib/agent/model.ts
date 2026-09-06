@@ -61,14 +61,14 @@ export type ModelResponse = {
 };
 
 export interface ModelProvider {
-  readonly id: 'anthropic' | 'openai' | 'fixture';
+  readonly id: 'anthropic' | 'openai' | 'groq' | 'fixture';
   readonly model: string;
   readonly temperature: number;
   complete(request: { messages: AgentMessage[]; tools: ToolSpec[] }): Promise<ModelResponse>;
 }
 
 export type ModelConfig = {
-  provider: 'anthropic' | 'openai' | 'fixture';
+  provider: 'anthropic' | 'openai' | 'groq' | 'fixture';
   model: string;
   temperature: number;
   baseUrl?: string;
@@ -79,18 +79,19 @@ export type ModelConfig = {
 const DEFAULT_MODELS: Record<ModelConfig['provider'], string> = {
   anthropic: 'claude-opus-5',
   openai: 'gpt-4o-mini',
+  groq: 'llama-3.3-70b-versatile',
   fixture: 'recorded-transcript',
 };
 
 export function modelConfig(): ModelConfig {
   const requested = (process.env.VERITY_MODEL_PROVIDER ?? 'fixture') as ModelConfig['provider'];
   const provider: ModelConfig['provider'] =
-    requested === 'anthropic' || requested === 'openai' ? requested : 'fixture';
+    requested === 'anthropic' || requested === 'openai' || requested === 'groq' ? requested : 'fixture';
   return {
     provider,
     model: process.env.VERITY_MODEL ?? DEFAULT_MODELS[provider],
     temperature: Number(process.env.VERITY_MODEL_TEMPERATURE ?? '0'),
-    baseUrl: process.env.VERITY_MODEL_BASE_URL || undefined,
+    baseUrl: process.env.VERITY_MODEL_BASE_URL || (provider === 'groq' ? 'https://api.groq.com/openai/v1' : undefined),
     costPer1kIn: Number(process.env.VERITY_COST_PER_1K_IN ?? '0'),
     costPer1kOut: Number(process.env.VERITY_COST_PER_1K_OUT ?? '0'),
   };
@@ -105,7 +106,7 @@ export function modelConfig(): ModelConfig {
 export function liveProvider(config: ModelConfig): ModelConfig {
   if (config.provider === 'fixture') {
     throw new Error(
-      'A live run needs VERITY_MODEL_PROVIDER set to anthropic or openai (see .env.example).',
+      'A live run needs VERITY_MODEL_PROVIDER set to anthropic, openai, or groq (see .env.example).',
     );
   }
   return config;
@@ -182,6 +183,82 @@ class OpenAIProvider implements ModelProvider {
       messages: toOpenAIMessages(request.messages),
       tools,
       tool_choice: 'auto',
+    });
+    const latencyMs = Date.now() - startedAt;
+
+    const choice = completion.choices[0];
+    const rawToolCalls = choice?.message?.tool_calls ?? [];
+    const toolCalls: ToolCall[] = rawToolCalls.flatMap((call) =>
+      call.type === 'function'
+        ? [{ id: call.id, name: call.function.name, arguments: call.function.arguments }]
+        : [],
+    );
+
+    const tokensIn = completion.usage?.prompt_tokens ?? 0;
+    const tokensOut = completion.usage?.completion_tokens ?? 0;
+
+    return {
+      text: choice?.message?.content ?? null,
+      toolCalls,
+      tokensIn,
+      tokensOut,
+      costUsd:
+        (tokensIn / 1000) * this.config.costPer1kIn + (tokensOut / 1000) * this.config.costPer1kOut,
+      latencyMs,
+      finishReason: choice?.finish_reason ?? null,
+    };
+  }
+}
+
+/* --------------------------------------------------------------------- groq */
+
+/**
+ * Groq Provider (ultra-fast inference for Llama, Mixtral, DeepSeek).
+ * Operates over OpenAI-compatible endpoints with high throughput.
+ */
+class GroqProvider implements ModelProvider {
+  readonly id = 'groq' as const;
+  readonly model: string;
+  readonly temperature: number;
+  private client: OpenAI;
+  private config: ModelConfig;
+
+  constructor(config: ModelConfig) {
+    const apiKey =
+      process.env.GROQ_API_KEY ??
+      process.env.VERITY_MODEL_API_KEY ??
+      process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new Error(
+        'No Groq API key found. Set GROQ_API_KEY or VERITY_MODEL_API_KEY in .env, or run with VERITY_MODEL_PROVIDER=fixture.',
+      );
+    }
+    this.client = new OpenAI({
+      apiKey,
+      baseURL: config.baseUrl ?? 'https://api.groq.com/openai/v1',
+    });
+    this.model = config.model;
+    this.temperature = config.temperature;
+    this.config = config;
+  }
+
+  async complete(request: { messages: AgentMessage[]; tools: ToolSpec[] }): Promise<ModelResponse> {
+    const tools: ChatCompletionTool[] = request.tools.map((tool) => ({
+      type: 'function',
+      function: {
+        name: tool.name,
+        description: tool.description,
+        parameters: tool.parameters,
+      },
+    }));
+
+    const startedAt = Date.now();
+    const completion = await this.client.chat.completions.create({
+      model: this.model,
+      temperature: this.temperature,
+      messages: toOpenAIMessages(request.messages),
+      tools: tools.length > 0 ? tools : undefined,
+      tool_choice: tools.length > 0 ? 'auto' : undefined,
     });
     const latencyMs = Date.now() - startedAt;
 
@@ -412,5 +489,6 @@ export function createProvider(options?: {
   const config = options?.config ?? modelConfig();
   if (config.provider === 'anthropic') return new AnthropicProvider(config);
   if (config.provider === 'openai') return new OpenAIProvider(config);
+  if (config.provider === 'groq') return new GroqProvider(config);
   return new FixtureProvider(config, options?.fixtureTurns ?? []);
 }

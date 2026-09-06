@@ -10,6 +10,35 @@ Just as Git and CI give software engineering isolated branches, automated regres
 
 ---
 
+## Vercel deployment (fresh)
+
+The Neon database link in Vercel env is enough — the build runs `db:migrate` automatically
+and seeds the demo benchmark on first deploy.
+
+### Required Vercel environment variables
+
+| Variable | Value | Notes |
+|----------|-------|-------|
+| `DATABASE_URL` | *(from Neon integration)* | Already linked |
+| `VERITY_MODEL_PROVIDER` | `fixture` | Pre-recorded demo, no model spend |
+
+Optional for live agent runs: `GROQ_API_KEY`, `VERITY_MODEL`, etc.
+
+### Deploy steps
+
+1. Push to GitHub (or connect repo in Vercel).
+2. **Redeploy** with “Clear build cache” for a truly fresh build.
+3. Open `/queue` — you should see 29 cases from Postgres.
+4. Use navbar **Reset** or `POST /api/reset` to restore demo state anytime.
+
+To re-seed the database manually (e.g. before recording):
+
+```bash
+npm run db:reset
+```
+
+---
+
 ## Live deployment
 
 **https://verity-merge-control.vercel.app**
@@ -32,11 +61,11 @@ Two things to know before demoing from the deployed URL:
   spend money or depend on a provider — but it means anything you show from it
   must be described as pre-recorded. For live agent behaviour, run locally with
   `ANTHROPIC_API_KEY` set, or add the key in Vercel's project settings.
-- **State is in memory.** Decisions and merges persist while the serverless
-  instance stays warm, and reset to the frozen benchmark on a cold start. Fine
-  for a demo — a cold instance simply starts from the correct initial state —
-  but do not leave a half-finished flow on screen and expect it to survive a
-  long pause.
+- **State persists in Neon PostgreSQL when `DATABASE_URL` is set.** Controller
+  decisions, proposals, events, and ledger records survive server restarts and
+  cold starts. Without `DATABASE_URL`, the app falls back to in-memory state
+  (fine for local fixture-only runs). Use **Reset** in the navbar or
+  `POST /api/reset` to restore the frozen benchmark demo data.
 
 ---
 
@@ -86,6 +115,24 @@ git clone https://github.com/anuraggdubey/verity.git
 cd verity
 npm install
 ```
+
+### Database (Neon PostgreSQL)
+
+Add your Neon connection string to `.env`:
+
+```env
+DATABASE_URL=postgresql://...
+```
+
+Then seed the demo benchmark (29 cases, proposals, events, CPR-001, ledger records):
+
+```bash
+npm run db:migrate    # first-time schema + seed
+npm run db:reset      # restore frozen demo data (video reset)
+```
+
+When `DATABASE_URL` is set, all API routes load and persist state through Postgres.
+Tests always use the in-memory store so `npm test` stays fast and offline.
 
 ### Running Locally
 
