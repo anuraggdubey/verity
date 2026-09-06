@@ -21,6 +21,14 @@ export const metadata: Metadata = {
   title: 'Verity — Merge Control for Finance Agents',
   description:
     'Git gives coding agents PRs and CI. Verity gives finance agents isolated decisions, evidence-backed controls, repair loops, and controller approval.',
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: 'any' },
+    ],
+    apple: '/apple-touch-icon.png',
+  },
 };
 
 export default function RootLayout({

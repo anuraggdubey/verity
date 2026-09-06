@@ -1,0 +1,59 @@
+<svg width="512" height="512" viewBox="13 16 70 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    :root {
+      --v-col-1: #18181B;
+      --v-col-2: #27272A;
+      --v-col-3: #3F3F46;
+      --v-col-4: #52525B;
+      --y-col-1: #27272A;
+      --y-col-2: #3F3F46;
+      --y-col-3: #52525B;
+      --y-col-4: #71717A;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --v-col-1: #FFFFFF;
+        --v-col-2: #E4E4E7;
+        --v-col-3: #A1A1AA;
+        --v-col-4: #8E8E93;
+        --y-col-1: #F4F4F5;
+        --y-col-2: #D4D4D8;
+        --y-col-3: #A1A1AA;
+        --y-col-4: #52525B;
+      }
+    }
+    .v-stroke { fill: url(#vy_v_grad); }
+    .y-wing { fill: url(#vy_y_grad); opacity: 0.95; }
+    .y-blade { fill: url(#vy_y_grad); }
+  </style>
+
+  <defs>
+    <linearGradient id="vy_v_grad" x1="16" y1="18" x2="56" y2="72" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="var(--v-col-1, #18181B)" />
+      <stop offset="40%" stop-color="var(--v-col-2, #27272A)" />
+      <stop offset="85%" stop-color="var(--v-col-3, #3F3F46)" />
+      <stop offset="100%" stop-color="var(--v-col-4, #52525B)" />
+    </linearGradient>
+
+    <linearGradient id="vy_y_grad" x1="48" y1="34" x2="82" y2="90" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="var(--y-col-1, #27272A)" />
+      <stop offset="35%" stop-color="var(--y-col-2, #3F3F46)" />
+      <stop offset="70%" stop-color="var(--y-col-3, #52525B)" />
+      <stop offset="100%" stop-color="var(--y-col-4, #71717A)" />
+    </linearGradient>
+  </defs>
+
+  <g id="vy-mark">
+    <!-- Capital V Left Pillar -->
+    <polygon class="v-stroke" points="16,19 28,19 42.5,70 30.5,70" />
+
+    <!-- Capital V Right Arm (attaches to y apex) -->
+    <polygon class="v-stroke" points="30.5,70 42.5,70 57,34 47.5,34" />
+
+    <!-- Conjoined Lowercase y Left Wing -->
+    <polygon class="y-wing" points="47.5,34 57,34 66.5,54 58,54.5" />
+
+    <!-- Lowercase y Descender Blade with architectural return terminal -->
+    <path class="y-blade" d="M 70 34 L 81 34 L 54.5 84 L 40 84 L 40 76.5 L 51 76.5 Z" />
+  </g>
+</svg>

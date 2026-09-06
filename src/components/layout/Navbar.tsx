@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { RotateCcw } from 'lucide-react';
+import { VyLogo } from '../ui/VyLogo';
 
 const navLinks = [
   { href: '/queue', label: 'Exceptions' },
@@ -37,9 +38,9 @@ export function Navbar() {
         <div className="flex items-center gap-8">
           <Link
             href="/"
-            className="text-[15px] font-semibold tracking-[-0.02em] text-zinc-950"
+            className="flex items-center gap-2 transition-opacity hover:opacity-90"
           >
-            verity
+            <VyLogo size={22} theme="light" showWordmark={true} />
           </Link>
 
           <nav className="hidden md:flex items-center gap-1">
