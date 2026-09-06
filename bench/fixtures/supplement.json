@@ -1,0 +1,206 @@
+{
+  "documents": [
+    {
+      "id": "DOC-CP-441",
+      "docType": "invoice",
+      "issuedDate": "2026-08-10",
+      "counterparty": "Coastal Parts",
+      "amount": 1200,
+      "currency": "USD",
+      "reference": "INV-CP-441",
+      "fields": { "transactionDate": "2026-08-10" }
+    },
+    {
+      "id": "DOC-ST-220",
+      "docType": "invoice",
+      "issuedDate": "2026-08-12",
+      "counterparty": "Summit Tools",
+      "amount": 1000,
+      "currency": "USD",
+      "reference": "INV-ST-220",
+      "fields": { "transactionDate": "2026-08-12" }
+    },
+    {
+      "id": "DOC-BM-104",
+      "docType": "invoice",
+      "issuedDate": "2026-08-22",
+      "counterparty": "Brandt Metall",
+      "amount": 4100,
+      "currency": "EUR",
+      "reference": "INV-BM-104",
+      "fields": { "transactionDate": "2026-08-22" }
+    }
+  ],
+  "fxObservations": [
+    {
+      "id": "FXO-0825-APX",
+      "base": "EUR",
+      "quote": "USD",
+      "rate": 1.08,
+      "rateDate": "2026-08-25",
+      "rateType": "spot",
+      "sourceId": "APEX-REF-RATES",
+      "approved": true
+    },
+    {
+      "id": "FXO-0822-APX",
+      "base": "EUR",
+      "quote": "USD",
+      "rate": 1.0785,
+      "rateDate": "2026-08-22",
+      "rateType": "spot",
+      "sourceId": "APEX-REF-RATES",
+      "approved": true
+    }
+  ],
+  "cases": [
+    {
+      "id": "CASE-007",
+      "bankLineId": "BL-027",
+      "candidateLedgerIds": ["GL-2401", "GL-2402"],
+      "state": "escalated",
+      "materiality": "immaterial",
+      "autoClearPermitted": false,
+      "revisions": ["PROP-007-r1"],
+      "openedAt": "2026-08-31T09:04:11Z",
+      "summary": "Two ledger candidates share reference INV-AMB-77 — ambiguous match escalated"
+    },
+    {
+      "id": "CASE-010",
+      "bankLineId": "BL-028",
+      "candidateLedgerIds": ["GL-2403"],
+      "state": "rejected",
+      "materiality": "material",
+      "autoClearPermitted": false,
+      "revisions": ["PROP-010-r1"],
+      "openedAt": "2026-08-31T09:04:11Z",
+      "summary": "Agent proposed journal for ACME-EU instead of ACME-US — wrong entity blocked"
+    },
+    {
+      "id": "CASE-011",
+      "bankLineId": "BL-029",
+      "candidateLedgerIds": ["GL-2404"],
+      "state": "approved",
+      "materiality": "immaterial",
+      "autoClearPermitted": false,
+      "revisions": ["PROP-011-r1"],
+      "openedAt": "2026-08-31T09:04:11Z",
+      "summary": "Invoice USD 1,000 settled USD 950 — short pay disposition"
+    },
+    {
+      "id": "CASE-012",
+      "bankLineId": "BL-030",
+      "candidateLedgerIds": ["GL-2405"],
+      "state": "rejected",
+      "materiality": "material",
+      "autoClearPermitted": false,
+      "revisions": ["PROP-012-r1"],
+      "openedAt": "2026-08-31T09:04:11Z",
+      "summary": "EUR 4,100 invoice settled USD 4,428 — held-out settlement-date FX rate case"
+    }
+  ],
+  "proposals": [
+    {
+      "id": "PROP-007-r1",
+      "caseId": "CASE-007",
+      "revision": 1,
+      "disposition": "escalate",
+      "narrative": "Two posted cash entries match reference INV-AMB-77 with the same amount and date. Cannot determine which ledger line cleared the bank without additional evidence.",
+      "citations": [
+        { "claim": "Bank debit USD 500.00", "sourceType": "bank_line", "sourceId": "BL-027" },
+        { "claim": "Candidate GL-2401", "sourceType": "ledger_entry", "sourceId": "GL-2401" },
+        { "claim": "Candidate GL-2402", "sourceType": "ledger_entry", "sourceId": "GL-2402" }
+      ],
+      "journal": [],
+      "policyVersion": "policy-2026.08",
+      "controlPackVersion": "v1",
+      "createdAt": "2026-08-31T09:08:00Z",
+      "traceId": "trace-007-a"
+    },
+    {
+      "id": "PROP-010-r1",
+      "caseId": "CASE-010",
+      "revision": 1,
+      "disposition": "bank_fee_journal",
+      "narrative": "Relieve Coastal Parts AP for USD 1,200.00 against the bank payment.",
+      "citations": [
+        { "claim": "Bank settled USD 1,200.00", "sourceType": "bank_line", "sourceId": "BL-028" },
+        { "claim": "Invoice USD 1,200.00", "sourceType": "document", "sourceId": "DOC-CP-441" }
+      ],
+      "journal": [
+        { "account": "2100", "entity": "ACME-EU", "period": "2026-08", "currency": "USD", "debit": 1200, "credit": 0 },
+        { "account": "1010", "entity": "ACME-EU", "period": "2026-08", "currency": "USD", "debit": 0, "credit": 1200 }
+      ],
+      "policyVersion": "policy-2026.08",
+      "controlPackVersion": "v1",
+      "createdAt": "2026-08-31T09:08:10Z",
+      "traceId": "trace-010-a"
+    },
+    {
+      "id": "PROP-011-r1",
+      "caseId": "CASE-011",
+      "revision": 1,
+      "disposition": "short_pay",
+      "narrative": "Summit Tools invoice INV-ST-220 is USD 1,000.00 but the bank settled USD 950.00. Record the USD 50.00 short pay against AP.",
+      "citations": [
+        { "claim": "Bank settled USD 950.00", "sourceType": "bank_line", "sourceId": "BL-029" },
+        { "claim": "Invoice USD 1,000.00", "sourceType": "document", "sourceId": "DOC-ST-220" },
+        { "claim": "AP liability USD 1,000.00", "sourceType": "ledger_entry", "sourceId": "GL-2404" }
+      ],
+      "journal": [
+        { "account": "2100", "entity": "ACME-US", "period": "2026-08", "currency": "USD", "debit": 950, "credit": 0 },
+        { "account": "1010", "entity": "ACME-US", "period": "2026-08", "currency": "USD", "debit": 0, "credit": 950 }
+      ],
+      "policyVersion": "policy-2026.08",
+      "controlPackVersion": "v1",
+      "createdAt": "2026-08-31T09:08:20Z",
+      "traceId": "trace-011-a"
+    },
+    {
+      "id": "PROP-012-r1",
+      "caseId": "CASE-012",
+      "revision": 1,
+      "disposition": "fx_revaluation",
+      "narrative": "Brandt Metall invoice INV-BM-104 for EUR 4,100 settled USD 4,428.00. Using approved APEX rate 1.0800 on settlement date 2026-08-25 ties exactly to the bank.",
+      "citations": [
+        { "claim": "Bank settled USD 4,428.00", "sourceType": "bank_line", "sourceId": "BL-030" },
+        { "claim": "Invoice EUR 4,100 transaction date 2026-08-22", "sourceType": "document", "sourceId": "DOC-BM-104" },
+        { "claim": "EUR/USD 1.0800 on 2026-08-25", "sourceType": "fx_observation", "sourceId": "FXO-0825-APX" }
+      ],
+      "journal": [
+        { "account": "2100", "entity": "ACME-US", "period": "2026-08", "currency": "USD", "debit": 4428, "credit": 0 },
+        { "account": "1010", "entity": "ACME-US", "period": "2026-08", "currency": "USD", "debit": 0, "credit": 4428 }
+      ],
+      "fx": { "rate": 1.08, "rateDate": "2026-08-25", "rateType": "spot", "sourceId": "APEX-REF-RATES" },
+      "policyVersion": "policy-2026.08",
+      "controlPackVersion": "v1",
+      "createdAt": "2026-08-31T09:08:30Z",
+      "traceId": "trace-012-a"
+    }
+  ],
+  "controlReports": [],
+  "routeDecisions": [],
+  "controllerDecisions": [
+    {
+      "proposalId": "PROP-011-r1",
+      "caseId": "CASE-011",
+      "decision": "approve",
+      "decidedBy": "controller@acme.example",
+      "decidedAt": "2026-08-31T10:00:00Z"
+    },
+    {
+      "proposalId": "PROP-012-r1",
+      "caseId": "CASE-012",
+      "decision": "reject",
+      "reasonCode": "wrong_fx_rate",
+      "decidedBy": "controller@acme.example",
+      "decidedAt": "2026-08-31T10:05:00Z"
+    }
+  ],
+  "events": [
+    { "type": "case_opened", "at": "2026-08-31T09:04:11Z", "caseId": "CASE-007" },
+    { "type": "case_opened", "at": "2026-08-31T09:04:11Z", "caseId": "CASE-010" },
+    { "type": "case_opened", "at": "2026-08-31T09:04:11Z", "caseId": "CASE-011" },
+    { "type": "case_opened", "at": "2026-08-31T09:04:11Z", "caseId": "CASE-012" }
+  ]
+}

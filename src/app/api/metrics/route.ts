@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 
-import { computeMetrics } from '@/lib/metrics/compute';
+import { buildDashboardMetrics } from '@/lib/metrics/dashboard';
 
 /** Owner: Builder C. Raw counts for the benchmark dashboard. */
 export async function GET() {
-  return NextResponse.json(computeMetrics());
+  return NextResponse.json(buildDashboardMetrics());
 }

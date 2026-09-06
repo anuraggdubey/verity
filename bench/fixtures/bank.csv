@@ -22,4 +22,9 @@ BL-011,2026-08-13,2026-08-13,12400.00,USD,UNKNOWN REMITTER,,Incoming wire withou
 BL-014,2026-08-14,2026-08-14,-8712.00,USD,Lyra GmbH,INV-LG-2291,EUR invoice settled in USD
 BL-016,2026-08-18,2026-08-18,-6120.00,USD,Vantage Freight,CHK-10442,Prior-period check cleared
 BL-019,2026-08-21,2026-08-21,-5400.00,USD,Meridian Cloud SARL,INV-MC-118,FX settlement-date rate case
+BL-024,2026-08-28,2026-08-28,-2145.00,USD,Orion Print BV,INV-OP-771,INTL WIRE EUR INVOICE SETTLEMENT
 BL-026,2026-08-29,2026-08-29,-2484.00,USD,Halden Werke,INV-HW-903,FX month-end rate case
+BL-027,2026-08-15,2026-08-15,-500.00,USD,Delta Supplies,INV-AMB-77,Duplicate reference candidates
+BL-028,2026-08-16,2026-08-16,-1200.00,USD,Coastal Parts,INV-CP-441,Wrong entity proposal test
+BL-029,2026-08-17,2026-08-17,-950.00,USD,Summit Tools,INV-ST-220,Short pay against invoice
+BL-030,2026-08-25,2026-08-25,-4428.00,USD,Brandt Metall,INV-BM-104,Held-out FX settlement-date rate

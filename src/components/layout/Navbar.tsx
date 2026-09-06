@@ -1,11 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useState, useTransition } from 'react';
+import { RotateCcw } from 'lucide-react';
 
 const navLinks = [
   { href: '/queue', label: 'Exceptions' },
-  { href: '/cases/CASE-2049', label: 'Finance PR' },
+  { href: '/cases/CASE-001', label: 'Finance PR' },
   { href: '/controls', label: 'Controls' },
   { href: '/metrics', label: 'Metrics' },
 ];
@@ -17,6 +19,17 @@ function isActive(pathname: string, href: string) {
 
 export function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [, startTransition] = useTransition();
+  const [resetting, setResetting] = useState(false);
+
+  async function resetDemo() {
+    setResetting(true);
+    await fetch('/api/reset', { method: 'POST' });
+    setResetting(false);
+    startTransition(() => router.refresh());
+    if (pathname !== '/queue') router.push('/queue');
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-black/[0.06] bg-white/90 backdrop-blur-md">
@@ -50,8 +63,17 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={resetDemo}
+            disabled={resetting}
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium text-zinc-500 hover:text-zinc-900 transition-colors disabled:opacity-50"
+            title="Reset demo to frozen initial state"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            Reset
+          </button>
           <Link
-            href="/cases/CASE-2049"
+            href="/cases/CASE-001"
             className="hidden sm:inline-flex px-3 py-1.5 text-[13px] font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
           >
             Demo

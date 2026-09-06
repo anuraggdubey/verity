@@ -8,7 +8,7 @@ import {
   recordControllerDecision,
   resetDemo,
   verifyLedgerRecords,
-} from '@/lib/demo/store';
+} from '@/lib/store';
 
 describe('finance store and close', () => {
   beforeEach(() => resetDemo());
@@ -42,6 +42,6 @@ describe('finance store and close', () => {
       expect(getProposal(proposalId)).toBeTruthy();
       expect(recordControllerDecision({ proposalId, decision: 'approve' }).ok).toBe(true);
     }
-    expect(reconciliationStatus()).toMatchObject({ bankLineCount: 24, autoClearedCount: 17, exceptionCount: 7, unresolvedCount: 0, closed: true });
+    expect(reconciliationStatus()).toMatchObject({ bankLineCount: 29, autoClearedCount: 17, exceptionCount: 12, unresolvedCount: 0, closed: true });
   });
 });

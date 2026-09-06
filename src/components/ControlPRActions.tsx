@@ -6,9 +6,11 @@ import { useState, useTransition } from 'react';
 export function ControlPRActions({
   controlPrId,
   status,
+  onComplete,
 }: {
   controlPrId: string;
   status: 'draft' | 'replayed' | 'merged' | 'rejected';
+  onComplete?: () => void;
 }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
@@ -25,6 +27,7 @@ export function ControlPRActions({
       setError(body.error ?? `${action} failed`);
       return;
     }
+    onComplete?.();
     startTransition(() => router.refresh());
   }
 

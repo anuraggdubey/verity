@@ -101,7 +101,7 @@ export default function VerityLandingPage() {
         <div ref={heroTextRef} className="flex flex-col items-center text-center max-w-4xl mx-auto will-change-transform">
           {/* Top pill badge */}
           <Link
-            href="/cases/CASE-2049"
+            href="/cases/CASE-001"
             className="inline-flex items-center gap-1.5 px-3 py-1 mb-6 rounded-full border border-black/[0.08] bg-white text-zinc-600 text-[11px] font-medium shadow-2xs hover:border-black/20 transition-colors"
           >
             <span>Merge control for finance agents: Read the 2026 Benchmark</span>
@@ -121,7 +121,7 @@ export default function VerityLandingPage() {
           {/* Action buttons */}
           <div className="flex items-center gap-2.5 mt-6 mb-10">
             <Link
-              href="/cases/CASE-2049"
+              href="/cases/CASE-001"
               className="px-3.5 py-1.5 rounded-lg border border-black/[0.12] bg-white text-xs font-medium text-zinc-900 hover:bg-zinc-50 transition-colors shadow-2xs"
             >
               Talk to sales
@@ -967,7 +967,7 @@ export default function VerityLandingPage() {
             </h2>
             <div className="flex items-center justify-center gap-3 pt-2">
               <Link
-                href="/cases/CASE-2049"
+                href="/cases/CASE-001"
                 className="px-4 py-2 rounded-lg border border-white/20 bg-[#16171a] text-xs font-medium text-white hover:bg-white/[0.1] transition-colors shadow-xs"
               >
                 Talk to sales
@@ -1009,7 +1009,7 @@ export default function VerityLandingPage() {
                 <h4 className="text-[13px] font-medium text-[#60a5fa] mb-3.5">Platform</h4>
                 <ul className="space-y-2.5 text-zinc-400 font-normal">
                   <li>
-                    <Link href="/cases/CASE-2049" className="hover:text-white transition-colors inline-flex items-center">
+                    <Link href="/cases/CASE-001" className="hover:text-white transition-colors inline-flex items-center">
                       Finance PRs
                       <span className="ml-1.5 px-1.5 py-0.5 text-[9px] font-medium bg-blue-950/80 text-blue-400 border border-blue-500/30 rounded-full leading-none">
                         New
@@ -1042,7 +1042,7 @@ export default function VerityLandingPage() {
               <div>
                 <h4 className="text-[13px] font-medium text-[#60a5fa] mb-3.5">Governance</h4>
                 <ul className="space-y-2.5 text-zinc-400 font-normal">
-                  <li><Link href="/cases/CASE-2049" className="hover:text-white transition-colors">Controller Review</Link></li>
+                  <li><Link href="/cases/CASE-001" className="hover:text-white transition-colors">Controller Review</Link></li>
                   <li><Link href="/controls" className="hover:text-white transition-colors">Policy Provenance</Link></li>
                   <li>
                     <Link href="/metrics" className="hover:text-white transition-colors inline-flex items-center">

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, use } from 'react';
+import React, { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { HorizontalPipeline } from '../../../components/pipeline/HorizontalPipeline';
@@ -10,20 +10,79 @@ import { CitationInspector } from '../../../components/finance-pr/CitationInspec
 import { ControllerDock } from '../../../components/finance-pr/ControllerDock';
 import { SpotlightCard } from '../../../components/ui/SpotlightCard';
 import { StatusPill } from '../../../components/ui/StatusPill';
-import eurUsdCaseData from '../../../lib/data/fixtures/eur-usd-case.json';
-import { Proposal } from '../../../lib/contracts/types';
+import type { CaseDetail } from '@/lib/store';
+import type { Proposal } from '@/lib/contracts/types';
 
 export default function CaseDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const resolvedParams = use(params);
-  const [activeRevIndex, setActiveRevIndex] = useState(1);
-  const caseMeta = eurUsdCaseData.case;
-  const rev1 = eurUsdCaseData.revisions[0] as unknown as Proposal;
-  const rev2 = eurUsdCaseData.revisions[1] as unknown as Proposal;
-  const currentProposal = activeRevIndex === 0 ? rev1 : rev2;
+  const { id } = use(params);
+  const [detail, setDetail] = useState<CaseDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [activeRevIndex, setActiveRevIndex] = useState(0);
+
+  const loadDetail = React.useCallback(() => {
+    setLoading(true);
+    fetch(`/api/cases/${id}`)
+      .then((res) => res.json())
+      .then((body) => {
+        if (body.ok) {
+          const { ok: _ok, ...rest } = body;
+          setDetail(rest as CaseDetail);
+          const lastIdx = Math.max(0, (rest.revisions?.length ?? 1) - 1);
+          setActiveRevIndex(lastIdx);
+        } else {
+          setDetail(null);
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  useEffect(() => {
+    loadDetail();
+  }, [loadDetail]);
+
+  if (loading) {
+    return (
+      <div className="app-page max-w-7xl mx-auto py-12 text-sm text-zinc-500 font-mono">
+        Loading Finance PR…
+      </div>
+    );
+  }
+
+  if (!detail) {
+    return (
+      <div className="app-page max-w-7xl mx-auto py-12 space-y-4">
+        <p className="text-sm text-rose-600 font-mono">Unknown case {id}</p>
+        <Link href="/queue" className="text-sm text-emerald-700 hover:underline">
+          Back to queue
+        </Link>
+      </div>
+    );
+  }
+
+  const revisions = detail.revisions;
+  const rev1 = revisions[0]?.proposal as Proposal;
+  const rev2 = revisions[1]?.proposal as Proposal | undefined;
+  const currentRev = revisions[activeRevIndex] ?? revisions[revisions.length - 1];
+  const currentProposal = currentRev.proposal;
+  const currentReport = currentRev.report;
+  const isBlocked = currentReport?.blocked ?? false;
+  const amount = detail.case.amount ?? Math.abs(detail.bankLine?.amount ?? 0);
+  const currency = detail.case.currency ?? detail.bankLine?.currency ?? 'USD';
+
+  const statusLabel =
+    detail.decision?.decision === 'approve'
+      ? 'Approved'
+      : detail.decision?.decision === 'reject'
+        ? 'Rejected'
+        : isBlocked
+          ? 'Controls Failed'
+          : detail.case.state === 'merge_ready'
+            ? 'Merge Ready'
+            : detail.case.state;
 
   return (
     <div className="app-page max-w-7xl mx-auto space-y-6 pb-24">
@@ -36,16 +95,22 @@ export default function CaseDetailPage({
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-mono font-medium text-emerald-700">
-                {caseMeta.id}
-              </span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-mono font-medium text-emerald-700">{detail.case.id}</span>
               <span className="text-zinc-300">·</span>
-              <span className="text-xs text-zinc-500">{caseMeta.counterparty}</span>
-              <StatusPill status="review" label="Merge Ready (Rev 2)" />
+              <span className="text-xs text-zinc-500">
+                {detail.case.counterparty ?? detail.bankLine?.counterparty}
+              </span>
+              <StatusPill
+                status={detail.case.state === 'escalated' ? 'escalate' : 'review'}
+                label={statusLabel}
+              />
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-500 border border-zinc-200">
+                Pack {detail.packVersion}
+              </span>
             </div>
             <h1 className="text-lg sm:text-xl font-semibold text-zinc-950 tracking-[-0.02em] mt-0.5">
-              {caseMeta.title}
+              {detail.case.title ?? detail.case.summary}
             </h1>
           </div>
         </div>
@@ -54,24 +119,26 @@ export default function CaseDetailPage({
           <div className="text-right">
             <div className="text-zinc-400 text-[10px] uppercase tracking-wider">Amount</div>
             <div className="font-medium text-zinc-900 text-sm">
-              ${caseMeta.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })} {caseMeta.currency}
+              ${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })} {currency}
             </div>
           </div>
           <div className="h-8 w-px bg-black/[0.06]" />
           <div className="text-right">
             <div className="text-zinc-400 text-[10px] uppercase tracking-wider">Bank Line</div>
-            <div className="text-zinc-600">{caseMeta.bankLineId}</div>
+            <div className="text-zinc-600">{detail.case.bankLineId}</div>
           </div>
         </div>
       </div>
 
-      <HorizontalPipeline currentStepId="controller" />
+      <HorizontalPipeline currentStepId={detail.decision ? 'ledger' : 'controller'} />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-7 space-y-6">
           <RevisionDiffViewer
-            rev1={rev1}
-            rev2={rev2}
+            revisions={revisions.map((r) => ({
+              proposal: r.proposal,
+              report: r.report,
+            }))}
             activeRevIndex={activeRevIndex}
             onSelectRev={setActiveRevIndex}
           />
@@ -79,39 +146,54 @@ export default function CaseDetailPage({
         </div>
 
         <div className="lg:col-span-5 space-y-6">
-          <ControlChecklist
-            report={currentProposal.controlReport}
-            activeRevIndex={activeRevIndex}
-          />
+          <ControlChecklist report={currentReport} activeRevIndex={activeRevIndex} />
 
           <SpotlightCard className="p-4 space-y-3">
             <div className="flex items-center justify-between border-b border-black/[0.06] pb-2">
-              <span className="text-xs font-medium text-zinc-700 font-mono">
-                Sandbox Ledger Gate
-              </span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                Balanced
+              <span className="text-xs font-medium text-zinc-700 font-mono">Sandbox Ledger Gate</span>
+              <span
+                className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
+                  detail.ledgerRecord
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : 'bg-zinc-50 text-zinc-500 border-zinc-200'
+                }`}
+              >
+                {detail.ledgerRecord ? 'Posted' : 'Pending approval'}
               </span>
             </div>
             <div className="text-xs text-zinc-500 leading-relaxed">
-              Once approved by the controller, journal entries are written to Verity&apos;s
-              hash-linked sandbox ledger. Rerunning reconciliation guarantees zero discrepancy.
+              Once approved by the controller, journal entries are written to Verity&apos;s hash-linked
+              sandbox ledger. Rerunning reconciliation guarantees zero discrepancy.
             </div>
-            <div className="rounded-md bg-zinc-50 border border-black/[0.06] p-2 text-[11px] font-mono text-zinc-500 flex items-center justify-between">
-              <span>Parent Hash</span>
-              <span className="text-emerald-700">0x39a1c...b092</span>
-            </div>
+            {detail.ledgerRecord && (
+              <div className="rounded-md bg-zinc-50 border border-black/[0.06] p-2 text-[11px] font-mono text-zinc-500 flex items-center justify-between">
+                <span>Parent Hash</span>
+                <span className="text-emerald-700">{detail.ledgerRecord.prevHash.slice(0, 12)}…</span>
+              </div>
+            )}
           </SpotlightCard>
         </div>
       </div>
 
-      <ControllerDock
-        proposalId={currentProposal.id}
-        isBlocked={currentProposal.controlReport?.blocked || false}
-        onDecision={(dec, reason) => {
-          console.log('Controller decision:', dec, reason);
-        }}
-      />
+      {currentProposal && !detail.decision && (
+        <ControllerDock
+          caseId={detail.case.id}
+          proposalId={currentProposal.id}
+          isBlocked={isBlocked}
+          decision={detail.decision}
+          onComplete={loadDetail}
+        />
+      )}
+
+      {detail.decision && (
+        <ControllerDock
+          caseId={detail.case.id}
+          proposalId={detail.decision.proposalId}
+          isBlocked={false}
+          decision={detail.decision}
+          onComplete={loadDetail}
+        />
+      )}
     </div>
   );
 }

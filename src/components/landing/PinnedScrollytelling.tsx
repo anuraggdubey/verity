@@ -458,7 +458,7 @@ export function PinnedScrollytelling() {
 
                 <div className="flex items-center gap-2 pt-1">
                   <Link
-                    href="/cases/CASE-2049"
+                    href="/cases/CASE-001"
                     className="flex-1 text-center py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors"
                   >
                     Submit to CI Check
@@ -1421,7 +1421,7 @@ export function PinnedScrollytelling() {
 
                     <div className="flex items-center gap-2">
                       <Link
-                        href="/cases/CASE-2049"
+                        href="/cases/CASE-001"
                         className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-black hover:bg-zinc-800 text-white text-xs font-semibold shadow-xs transition-colors"
                       >
                         <kbd className="text-[10px] font-mono bg-white/20 px-1 py-0.5 rounded">A</kbd>

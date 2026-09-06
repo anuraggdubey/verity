@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
 
-import { resetDemo } from '@/lib/demo/store';
+import { resetDemo } from '@/lib/store';
 
 /**
- * Demo reset. Listed as Builder A's route in IMPLEMENTATION.md; C stubbed it so
- * the reset button works today. A takes it over with the real store.
+ * Demo reset — restores the frozen benchmark to its initial state.
  */
 export async function POST() {
   resetDemo();

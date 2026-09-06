@@ -1,13 +1,50 @@
 'use client';
 
-import React, { useState } from 'react';
-import { ShieldCheck, GitMerge, CheckCircle2, Check } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { GitMerge, CheckCircle2, Check, AlertTriangle } from 'lucide-react';
 import { SpotlightCard } from '../../components/ui/SpotlightCard';
-import controlPrData from '../../lib/data/fixtures/control-prs.json';
+import { ControlPRActions } from '../../components/ControlPRActions';
+import type { ControlPR } from '@/lib/contracts/types';
 
 export default function ControlGovernancePage() {
-  const [merged, setMerged] = useState(false);
-  const cpr = controlPrData.controlPrs[0];
+  const [controlPRs, setControlPRs] = useState<ControlPR[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = React.useCallback(() => {
+    fetch('/api/control-prs')
+      .then((res) => res.json())
+      .then((body) => {
+        setControlPRs(body.controlPRs ?? []);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const cpr = controlPRs.find((pr) => pr.id === 'CPR-001') ?? controlPRs[0];
+
+  if (loading) {
+    return (
+      <div className="app-page max-w-7xl mx-auto py-12 text-sm text-zinc-500 font-mono">
+        Loading control PRs…
+      </div>
+    );
+  }
+
+  if (!cpr) {
+    return (
+      <div className="app-page max-w-7xl mx-auto py-12 text-sm text-zinc-500">
+        No control PRs drafted yet. Reject at least two proposals with the same reason code to draft one.
+      </div>
+    );
+  }
+
+  const replay = cpr.replay;
+  const positivesCaught = replay?.positives.filter((p) => p.caught).length ?? 0;
+  const negativesOk = replay?.negatives.filter((n) => n.stillAllowed).length ?? 0;
+  const hasRegression = replay ? replay.autoClearAfter < replay.autoClearBefore : false;
 
   return (
     <div className="app-page max-w-7xl mx-auto space-y-8">
@@ -20,24 +57,17 @@ export default function ControlGovernancePage() {
             <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200">
               Layer 2
             </span>
+            <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 border border-zinc-200">
+              {cpr.status}
+            </span>
           </div>
           <p className="text-sm text-zinc-500 mt-1.5 max-w-2xl">
-            Human-approved guardrail evolution. Grouped controller rejections produce draft specification amendments tested against historical replay fixtures.
+            Human-approved guardrail evolution. Grouped controller rejections produce draft specification
+            amendments tested against historical replay fixtures.
           </p>
         </div>
 
-        <button
-          onClick={() => setMerged(true)}
-          disabled={merged}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-colors select-none ${
-            merged
-              ? 'bg-zinc-100 text-zinc-400 border border-zinc-200 cursor-not-allowed'
-              : 'bg-zinc-950 text-white hover:bg-zinc-800'
-          }`}
-        >
-          <GitMerge className="h-3.5 w-3.5" />
-          <span>{merged ? 'Merged into Control Pack v2.0' : 'Merge Control PR'}</span>
-        </button>
+        <ControlPRActions controlPrId={cpr.id} status={cpr.status} onComplete={load} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -47,15 +77,23 @@ export default function ControlGovernancePage() {
               <div className="flex items-center gap-2 text-xs font-mono">
                 <span className="font-medium text-emerald-700">{cpr.id}</span>
                 <span className="text-zinc-300">·</span>
-                <span className="text-zinc-500">Status: {merged ? 'Merged' : cpr.status}</span>
+                <span className="text-zinc-500">Status: {cpr.status}</span>
               </div>
-              <span className="text-[11px] font-mono text-zinc-400">Target: Policy Pack v2.0</span>
+              <span className="text-[11px] font-mono text-zinc-400">
+                Target: Policy Pack {replay?.packVersion ?? 'v2'}
+              </span>
             </div>
 
             <div>
               <h3 className="text-base font-semibold text-zinc-900 mb-1">{cpr.failureMode}</h3>
               <div className="text-xs text-zinc-500 leading-relaxed">
-                Supporting Failures: <code className="text-rose-600 font-mono bg-rose-50 px-1 rounded">prop-rev-1</code> and <code className="text-rose-600 font-mono bg-rose-50 px-1 rounded">prop-2044-fail</code> (≥ 2 confirmed reviewer rejections required).
+                Supporting failures:{' '}
+                {cpr.supportingProposalIds.map((pid) => (
+                  <code key={pid} className="text-rose-600 font-mono bg-rose-50 px-1 rounded mr-1">
+                    {pid}
+                  </code>
+                ))}
+                (≥ 2 confirmed reviewer rejections required).
               </div>
             </div>
 
@@ -63,9 +101,7 @@ export default function ControlGovernancePage() {
               <div className="text-[11px] uppercase font-mono font-medium text-zinc-400">
                 Proposed Specification Amendment
               </div>
-              <p className="text-sm text-zinc-700 leading-relaxed">
-                &ldquo;{cpr.specAmendment}&rdquo;
-              </p>
+              <p className="text-sm text-zinc-700 leading-relaxed">&ldquo;{cpr.specAmendment}&rdquo;</p>
             </div>
 
             <div className="space-y-2">
@@ -88,9 +124,22 @@ export default function ControlGovernancePage() {
                   Historical Replay
                 </h3>
               </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                Zero Regressions
-              </span>
+              {replay ? (
+                hasRegression ? (
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1">
+                    <AlertTriangle className="h-3 w-3" />
+                    Auto-clear regression
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    Clean replay
+                  </span>
+                )
+              ) : (
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                  Not replayed
+                </span>
+              )}
             </div>
 
             <p className="text-xs text-zinc-500 leading-relaxed">
@@ -98,17 +147,34 @@ export default function ControlGovernancePage() {
               It must catch all positive failure fixtures while preserving negative counterexamples.
             </p>
 
+            {replay && (
+              <div className="rounded-lg border border-black/[0.06] bg-zinc-50 p-3 text-xs font-mono text-zinc-600">
+                Auto-clear: {replay.autoClearBefore} → {replay.autoClearAfter}
+                {hasRegression && (
+                  <span className="block mt-1 text-rose-600">
+                    v2 reduces auto-clear coverage — regression flagged on metrics screen.
+                  </span>
+                )}
+              </div>
+            )}
+
             <div className="grid grid-cols-3 gap-2 text-center">
               <div className="rounded-lg border border-black/[0.06] bg-zinc-50 p-2.5">
-                <div className="text-base font-semibold text-zinc-900 font-mono">{cpr.replay.totalFixtures}</div>
+                <div className="text-base font-semibold text-zinc-900 font-mono">
+                  {(cpr.positiveFixtures.length + cpr.negativeFixtures.length) || '—'}
+                </div>
                 <div className="text-[10px] text-zinc-500 font-mono mt-0.5">Fixtures</div>
               </div>
               <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-2.5">
-                <div className="text-base font-semibold text-emerald-700 font-mono">2 / 2</div>
+                <div className="text-base font-semibold text-emerald-700 font-mono">
+                  {replay ? `${positivesCaught} / ${cpr.positiveFixtures.length}` : '—'}
+                </div>
                 <div className="text-[10px] text-emerald-600 font-mono mt-0.5">Positives</div>
               </div>
               <div className="rounded-lg border border-black/[0.06] bg-zinc-50 p-2.5">
-                <div className="text-base font-semibold text-emerald-700 font-mono">100%</div>
+                <div className="text-base font-semibold text-emerald-700 font-mono">
+                  {replay ? `${negativesOk} / ${cpr.negativeFixtures.length}` : '—'}
+                </div>
                 <div className="text-[10px] text-zinc-500 font-mono mt-0.5">Negatives</div>
               </div>
             </div>
@@ -118,8 +184,8 @@ export default function ControlGovernancePage() {
                 Positive Fixtures (Must Be Blocked)
               </span>
               <ul className="space-y-1 text-xs font-mono text-zinc-600">
-                {cpr.positiveFixtures.map((f, i) => (
-                  <li key={i} className="flex items-center gap-2">
+                {cpr.positiveFixtures.map((f) => (
+                  <li key={f} className="flex items-center gap-2">
                     <Check className="h-3 w-3 text-emerald-600" />
                     <span>{f}</span>
                   </li>
@@ -132,14 +198,21 @@ export default function ControlGovernancePage() {
                 Negative Counterexamples (Must Still Pass)
               </span>
               <ul className="space-y-1 text-xs font-mono text-zinc-600">
-                {cpr.negativeFixtures.map((f, i) => (
-                  <li key={i} className="flex items-center gap-2">
+                {cpr.negativeFixtures.map((f) => (
+                  <li key={f} className="flex items-center gap-2">
                     <Check className="h-3 w-3 text-emerald-600" />
                     <span>{f}</span>
                   </li>
                 ))}
               </ul>
             </div>
+
+            {cpr.status === 'merged' && (
+              <div className="flex items-center gap-2 text-xs text-emerald-700 border border-emerald-200 bg-emerald-50 rounded-lg p-3">
+                <GitMerge className="h-4 w-4" />
+                Merged into control pack {replay?.packVersion ?? 'v2'}.
+              </div>
+            )}
           </SpotlightCard>
         </div>
       </div>

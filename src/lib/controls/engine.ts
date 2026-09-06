@@ -15,20 +15,18 @@ import {
   listLedgerEntries,
   listSupportingDocuments,
   packVersion,
-} from '@/lib/demo/store';
+} from '@/lib/data/access';
 
 /**
- * Deterministic control engine.
+ * Deterministic control engine (Builder A).
  *
- * OWNERSHIP: Builder A per IMPLEMENTATION.md §2. Builder B wrote this cut-down
- * version because the block → feedback → repair loop cannot exist without a real
- * evaluator. It implements the checks the demo exercises, not the full families;
- * A replaces it with the complete pack and keeps the signature.
+ * Three families behind one evaluator:
+ *   1. Evidence lineage
+ *   2. Accounting integrity
+ *   3. Policy and market-data provenance
  *
- * Two layers:
- *   1. Built-in checks — pack v1.
- *   2. Constrained rules merged from Control PRs — everything above v1.
- * A rule the engine cannot evaluate warns; it never silently passes.
+ * Pack v1 checks are defined in packs/v1.json. Pack v2 adds constrained rules
+ * merged from approved Control PRs (packs/v2.json).
  */
 
 type PolicyPack = {
@@ -163,6 +161,41 @@ function evidenceLineage(proposal: Proposal): ControlResult[] {
       failure: 'Evidence is absent, so no disposition can be evidenced.',
       requiredRepair: 'Route to escalation and request the missing document from treasury.',
     });
+  }
+
+  // EV-005 — duplicate payment: reference already cleared in the ledger.
+  if (proposal.disposition === 'duplicate') {
+    const bankCitation = proposal.citations.find((c) => c.sourceType === 'bank_line');
+    const bank = bankCitation ? getBankLine(bankCitation.sourceId) : undefined;
+    const reference = bank?.reference?.trim();
+    const priorCash = reference
+      ? listLedgerEntries().filter(
+          (entry) =>
+            entry.posted &&
+            entry.account === '1010' &&
+            entry.reference.toLowerCase() === reference.toLowerCase() &&
+            Math.abs(entry.amount + (bank?.amount ?? 0)) < 0.01,
+        )
+      : [];
+    results.push(
+      priorCash.length > 0
+        ? {
+            code: 'VERITY-EV-005',
+            family: 'evidence_lineage',
+            status: 'pass',
+            title: 'Duplicate payment reference detected',
+            claim: `Reference ${reference} already cleared by ${priorCash.map((e) => e.id).join(', ')}.`,
+          }
+        : {
+            code: 'VERITY-EV-005',
+            family: 'evidence_lineage',
+            status: 'warn',
+            title: 'Duplicate payment reference detected',
+            claim: 'Disposition is duplicate, but no prior cash posting was found for this reference.',
+            failure: 'Cannot confirm this is a duplicate without a prior ledger clearance.',
+            requiredRepair: 'Cite the ledger entry that already cleared this reference, or route for review.',
+          },
+    );
   }
 
   return results;
@@ -311,6 +344,32 @@ function accountingIntegrity(proposal: Proposal, policy: PolicyPack): ControlRes
     );
   }
 
+  // AI-007 — short pay must not fully relieve the invoice liability.
+  if (proposal.disposition === 'short_pay' && lines.length > 0) {
+    const docCitation = proposal.citations.find((c) => c.sourceType === 'document');
+    const doc = docCitation ? getSupportingDocument(docCitation.sourceId) : undefined;
+    const apDebit = lines.filter((line) => line.account === '2100').reduce((sum, line) => sum + line.debit, 0);
+    const invoiceAmount = typeof doc?.amount === 'number' ? doc.amount : undefined;
+    results.push(
+      invoiceAmount !== undefined && apDebit >= invoiceAmount - 0.005
+        ? {
+            code: 'VERITY-AI-007',
+            family: 'accounting_integrity',
+            status: 'blocked',
+            title: 'Short pay leaves residual AP open',
+            claim: `AP debit ${money(apDebit)} against invoice ${money(invoiceAmount)}.`,
+            failure: 'A short-pay disposition must not fully relieve the invoice liability.',
+            requiredRepair: 'Debit AP only for the amount actually settled and record the residual separately.',
+          }
+        : {
+            code: 'VERITY-AI-007',
+            family: 'accounting_integrity',
+            status: 'pass',
+            title: 'Short pay leaves residual AP open',
+          },
+    );
+  }
+
   return results;
 }
 
@@ -327,6 +386,28 @@ function policyProvenance(proposal: Proposal, policy: PolicyPack): ControlResult
           claim: `Proposal declares ${proposal.policyVersion}.`,
           failure: `The active policy is ${policy.policyVersion}.`,
           requiredRepair: `Re-evaluate the case under ${policy.policyVersion} and resubmit.`,
+        },
+  );
+
+  const bankCitation = proposal.citations.find((c) => c.sourceType === 'bank_line');
+  const bankLine = bankCitation ? getBankLine(bankCitation.sourceId) : undefined;
+  const materialAmount = Math.abs(bankLine?.amount ?? 0);
+  results.push(
+    materialAmount < policy.materiality.criticalAtOrAbove || proposal.journal.length === 0
+      ? {
+          code: 'VERITY-PP-003',
+          family: 'policy_provenance',
+          status: 'pass',
+          title: 'Critical materiality requires controller review',
+        }
+      : {
+          code: 'VERITY-PP-003',
+          family: 'policy_provenance',
+          status: 'warn',
+          title: 'Critical materiality requires controller review',
+          claim: `Bank amount ${money(materialAmount)} is at or above the critical threshold ${money(policy.materiality.criticalAtOrAbove)}.`,
+          failure: 'Posting proposals at critical materiality cannot auto-clear and require explicit controller approval.',
+          requiredRepair: 'Route to the controller review lane before merge.',
         },
   );
 
