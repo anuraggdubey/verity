@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { AlertTriangle, Check, Loader2, Sparkles, X } from 'lucide-react';
 
 import type { ConstrainedRule } from '../../lib/contracts/types';
+import { RULE_EXAMPLES } from '../../lib/learning/rule-examples';
 
 type Simulation = {
   wouldBlock: { proposalId: string; caseId: string; why: string }[];
@@ -20,13 +21,6 @@ type Draft = {
   simulation: Simulation;
   draftedBy: 'model' | 'offline';
 };
-
-const EXAMPLES = [
-  'FX rates must be dated the invoice transaction date',
-  'Only use FX rates from an approved provider',
-  'Never post into a closed accounting period',
-  'Any journal entry must cite a supporting document',
-];
 
 /**
  * Write a control in plain English.
@@ -129,7 +123,7 @@ export function RuleComposer({ onProposed }: { onProposed?: () => void | Promise
           {busy === 'draft' ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
           {busy === 'draft' ? 'Drafting…' : 'Draft the rule'}
         </button>
-        {EXAMPLES.map((example) => (
+        {RULE_EXAMPLES.map((example) => (
           <button
             key={example}
             onClick={() => setText(example)}

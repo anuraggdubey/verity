@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import type { ConstrainedRule } from '@/lib/contracts/types';
 import { composeRule, restate, simulateRule } from '@/lib/learning/compose';
+import { RULE_EXAMPLES } from '@/lib/learning/rule-examples';
 import { resetDemo } from '@/lib/store';
 
 const rateDateRule: ConstrainedRule = {
@@ -59,5 +60,17 @@ describe('plain-English rule composer', () => {
     const simulation = simulateRule(blockEverything);
     expect(simulation.wouldBlockApproved.length).toBeGreaterThan(0);
     expect(simulation.summary).toContain('previously approved');
+  });
+});
+
+describe('offline coverage of the suggested examples', () => {
+  // The deployed demo has no model key, so it composes from the offline
+  // library. Every chip the UI offers must actually work there — offering a
+  // suggestion that then fails is worse than offering none.
+  it('composes every example the UI suggests', async () => {
+    for (const example of RULE_EXAMPLES) {
+      const result = await composeRule(example);
+      expect(result.ok, `${example} should compose offline`).toBe(true);
+    }
   });
 });

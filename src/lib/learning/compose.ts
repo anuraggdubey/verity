@@ -2,6 +2,7 @@ import type { ConstrainedRule, ControlFamily, Proposal } from '@/lib/contracts/t
 import { createProvider, modelConfig, type ToolSpec } from '@/lib/agent/model';
 import { applyConstrainedRule, policyPack } from '@/lib/controls/engine';
 import { listCases, listControllerDecisions, listProposals } from '@/lib/store';
+import { RULE_EXAMPLES } from '@/lib/learning/rule-examples';
 
 /**
  * Plain-English rule composer.
@@ -173,7 +174,7 @@ export function restate(rule: ConstrainedRule): string {
  */
 const OFFLINE: { match: RegExp; rule: ConstrainedRule }[] = [
   {
-    match: /(rate|fx).*(date|day)|transaction.date|settlement.date/i,
+    match: /(?:rate|fx)[^.]{0,30}(?:date|day)|transaction[ -]?date|settlement[ -]?date/i,
     rule: {
       family: 'policy_provenance',
       selector: 'fx.rateDate',
@@ -189,7 +190,7 @@ const OFFLINE: { match: RegExp; rule: ConstrainedRule }[] = [
     },
   },
   {
-    match: /(approved|allowed|trusted|official).*(source|provider|feed)|unapproved|street/i,
+    match: /(?:approved|allowed|trusted|official|permitted)[^.]{0,30}(?:source|provider|feed|rate)|unapproved|street/i,
     rule: {
       family: 'policy_provenance',
       selector: 'fx.sourceId',
@@ -204,7 +205,7 @@ const OFFLINE: { match: RegExp; rule: ConstrainedRule }[] = [
     },
   },
   {
-    match: /closed period|open period|prior period|period is closed/i,
+    match: /closed[^.]{0,20}period|period[^.]{0,20}closed|open[^.]{0,20}period|prior[ -]?period/i,
     rule: {
       family: 'accounting_integrity',
       selector: 'journal.periods',
@@ -219,7 +220,7 @@ const OFFLINE: { match: RegExp; rule: ConstrainedRule }[] = [
     },
   },
   {
-    match: /(receipt|invoice|document|evidence|attachment).*(cite|attach|require|support)|no evidence|without evidence/i,
+    match: /(?:cite|attach|require|support|provide)[^.]{0,30}(?:receipt|invoice|document|evidence)|(?:receipt|invoice|document|evidence)[^.]{0,30}(?:cite|attach|required|support)|no evidence|without evidence/i,
     rule: {
       family: 'evidence_lineage',
       selector: 'citations.documentCount',
@@ -234,7 +235,7 @@ const OFFLINE: { match: RegExp; rule: ConstrainedRule }[] = [
     },
   },
   {
-    match: /duplicate|paid twice|already paid|second payment/i,
+    match: /duplicate|twice|already (?:paid|posted|recorded|entered)|second (?:payment|entry)/i,
     rule: {
       family: 'accounting_integrity',
       selector: 'duplicate.postedMatchExists',
@@ -272,13 +273,7 @@ function composeOffline(text: string): ComposeResult {
       ok: false,
       reason:
         'No model is configured, so rule drafting is running from a small offline library and this request did not match any of it.',
-      suggestions: [
-        'FX rates must be dated the invoice transaction date',
-        'Only use FX rates from an approved provider',
-        'Never post into a closed accounting period',
-        'Any journal entry must cite a supporting document',
-        'Do not post a second entry for a payment already recorded',
-      ],
+      suggestions: [...RULE_EXAMPLES],
     };
   }
   return { ok: true, composed: { rule: hit.rule, restatement: restate(hit.rule), source: 'offline' } };
