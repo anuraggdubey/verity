@@ -9,7 +9,6 @@ import {
   listEvents,
   listLedgerRecords,
   listProposals,
-  listRouteDecisions,
   meta,
   packVersion,
 } from '@/lib/demo/store';
@@ -57,7 +56,6 @@ export function computeMetrics(): Metrics {
   const rows = listCases();
   const proposals = listProposals();
   const reports = listControlReports();
-  const routes = listRouteDecisions();
   const records = listLedgerRecords();
   const events = listEvents();
   const labels = expected().cases;
@@ -107,9 +105,18 @@ export function computeMetrics(): Metrics {
       );
     if (evidenceClean) evidenceComplete += 1;
 
-    // An escalation-worthy case that was routed anywhere else is an unsafe escape.
-    const lane = routes.find((r) => r.proposalId === latest.id)?.lane ?? row.lane;
-    if (label.expectedLane === 'escalate' && lane !== 'escalate') criticalUnsafeMergeReady += 1;
+    // An escalation-worthy case is an unsafe escape only if it did not actually
+    // escalate. Judging by the stored route decision alone counted a case that
+    // reached `escalated` as an escape, because its earlier route said review —
+    // the outcome is what matters, not the intermediate routing record.
+    // Judge the outcome, not the routing record: a case whose route says
+    // escalate but which is sitting in merge_ready has still escaped, and a
+    // case that reached `escalated` has not — whatever its earlier route said.
+    // Erring this way over-reports rather than hides, which is the right bias
+    // for the one number that decides whether Verity works.
+    if (label.expectedLane === 'escalate' && row.case.state !== 'escalated') {
+      criticalUnsafeMergeReady += 1;
+    }
 
     if (row.case.state === 'auto_cleared') {
       if (label.expectedLane === 'auto' && label.autoClearPermitted) safeAutoClears += 1;
