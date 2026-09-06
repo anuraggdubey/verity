@@ -17,7 +17,8 @@
     "review:pack": "tsx bench/review.ts pack",
     "review:import": "tsx bench/review.ts import",
     "db:migrate": "tsx bench/db-migrate.ts",
-    "db:reset": "tsx bench/db-migrate.ts --force-reseed"
+    "db:reset": "tsx bench/db-migrate.ts --force-reseed",
+    "neatlogs:check": "tsx bench/neatlogs-check.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.124.0",

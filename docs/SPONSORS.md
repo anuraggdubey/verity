@@ -10,7 +10,7 @@ worse than none.
 
 ---
 
-## Neatlogs — observability *(implemented, needs a key)*
+## Neatlogs — observability *(implemented and verified end to end)*
 
 **What it does.** One worker run becomes one Neatlogs trace. The case is the
 workflow; every model call, tool call and control evaluation is a child span
@@ -56,10 +56,20 @@ core-prompt hash, outcome and `pre_recorded: true`.
 - Every trace carries `pre_recorded: true|false` in its metadata, so a replayed
   transcript can never look like live agent behaviour on their dashboard either.
 
-**Not done:** nobody has run this against a real key yet. The payload shape is
-covered by unit tests ([`neatlogs.test.ts`](../src/lib/trace/neatlogs.test.ts))
-and by the dry run above, so what is unverified is the wire call itself, not the
-body. First run with a real key may still need a field adjusted.
+**Verified, not assumed.** `npm run neatlogs:check` posts one small trace and
+prints the status: the ingest returned `HTTP 200 {"success":true,"trace_id":
+"a95c5397…","spans":3}`. Real runs followed — a live `claude-opus-5` pass on
+CASE-001, and two Haiku runs including CASE-011, which was blocked by
+`VERITY-AI-004` and repaired on revision 2. Those are the traces worth reviewing:
+they show the control firing and the same worker fixing it.
+
+The sink is still fire-and-forget, but a rejection is no longer silent — it warns
+once per process, because a dropped trace used to mean an empty dashboard that
+nobody noticed. Enforcement is unaffected either way.
+
+The key is set in `.env.local` locally and in the Vercel project's environment,
+so deployed runs trace too. Runs from the deployed URL are replayed transcripts
+and carry `pre_recorded: true` in their trace metadata.
 
 ---
 
@@ -168,7 +178,7 @@ One narrow question for them, if there is time for nothing else:
 
 | Sponsor | Code | Works without credentials | Blocked on |
 |---|---|---|---|
-| Neatlogs | yes | disabled, no-op | a write key |
+| Neatlogs | yes | disabled, no-op | nothing — verified, HTTP 200 |
 | TensorMux | config only | yes (unrouted) | a gateway URL |
 | Dodo Payments | yes | disabled, no-op | a test API key |
 | Maximor | yes (review pack) | yes — the pack generates now | a practitioner's time |

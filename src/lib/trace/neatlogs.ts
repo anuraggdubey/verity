@@ -26,6 +26,9 @@ import type { TraceEntry } from '@/lib/trace/trace';
 
 const DEFAULT_ENDPOINT = 'https://ingest.neatlogs.com/v1/trace';
 
+/** Warn once per process about a failing sink, not once per run. */
+let rejectionWarned = false;
+
 export type NeatlogsConfig = {
   apiKey: string;
   endpoint: string;
@@ -184,9 +187,26 @@ export function sendRunTrace(entries: TraceEntry[], meta: RunTraceMeta): void {
       authorization: `Bearer ${config.apiKey}`,
     },
     body: JSON.stringify(payload),
-  }).catch(() => {
-    // Observability must never affect enforcement.
-  });
+  })
+    .then((response) => {
+      // Still fire-and-forget — nothing here can change a control result — but
+      // a rejected trace is now audible. Silent drops would mean an empty
+      // dashboard that nobody notices until someone goes looking for evidence.
+      if (!response.ok && !rejectionWarned) {
+        rejectionWarned = true;
+        console.warn(
+          `[verity] Neatlogs rejected a trace: HTTP ${response.status}. Traces are not being recorded. Check NEATLOGS_API_KEY and NEATLOGS_ENDPOINT, then run npm run neatlogs:check.`,
+        );
+      }
+    })
+    .catch((error: unknown) => {
+      if (!rejectionWarned) {
+        rejectionWarned = true;
+        console.warn(
+          `[verity] Neatlogs trace failed to send: ${error instanceof Error ? error.message : 'unknown error'}. Enforcement is unaffected.`,
+        );
+      }
+    });
 }
 
 /** Exposed for tests: the child spans we would send for a run. */

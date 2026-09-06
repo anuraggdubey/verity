@@ -112,7 +112,7 @@ reconciliation-consistency check. Keep `evaluateProposal`'s signature.
 | Thing | Needed for | Status |
 |---|---|---|
 | Model API key | live agent runs | **missing** — everything else is ready for it |
-| Neatlogs write key (`nlw_…`) | observability | **code done**, disabled without the key. One run = one nested trace, posted to their documented ingest. See [SPONSORS.md](./SPONSORS.md) |
+| Neatlogs write key | observability | **done and verified** — ingest returned HTTP 200 with a trace_id; live runs including a block-and-repair are in the workspace. Key set locally and in Vercel |
 | TensorMux gateway URL | inference routing | **no code needed** — set `VERITY_MODEL_BASE_URL`; it is an OpenAI-compatible gateway |
 | Dodo test API key | settlement ingestion | **code done**, read-only, disabled without the key. Payouts → bank lines |
 | A practitioner's time (Maximor) | the synthetic caveat | **pack generates now**: `npm run review:pack`. Nobody has filled it in |
