@@ -7,9 +7,11 @@ import {
   extractDocument,
 } from '@/lib/integrations/documents';
 import { addSupportingDocument, nextUploadedDocumentId } from '@/lib/store';
+import { ensureStoreReady } from '@/lib/store/ensure';
 
 /** What Verity accepts, so the client can say so before a user picks a file. */
 export async function GET() {
+  await ensureStoreReady();
   return NextResponse.json({
     supportedExtensions: SUPPORTED_EXTENSIONS,
     maxBytes: MAX_UPLOAD_BYTES,
@@ -24,6 +26,7 @@ export async function GET() {
  * certainty than we have.
  */
 export async function POST(request: Request) {
+  await ensureStoreReady();
   let form: FormData;
   try {
     form = await request.formData();

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { addControlPR, listControlPRs } from '@/lib/store';
 import { composeRule, fixturesFor, restate, simulateRule } from '@/lib/learning/compose';
+import { ensureStoreReady } from '@/lib/store/ensure';
 
 /**
  * Draft a control from plain English, and show what it would do — before any
@@ -10,6 +11,7 @@ import { composeRule, fixturesFor, restate, simulateRule } from '@/lib/learning/
  * has to be replayed and merged by a human.
  */
 export async function POST(request: Request) {
+  await ensureStoreReady();
   let body: { text?: string; propose?: boolean; failureMode?: string } = {};
   try {
     body = (await request.json()) as typeof body;

@@ -7,11 +7,17 @@ import { ensureStoreReady } from '@/lib/store/ensure';
 
 /** Owner: Builder B. Failure groups and the Control PRs drafted from them. */
 export async function GET() {
-  await ensureStoreReady();
-  return NextResponse.json({
-    groups: groupReviewerRejections(),
-    controlPRs: listControlPRs(),
-  });
+  try {
+    await ensureStoreReady();
+    return NextResponse.json({
+      groups: groupReviewerRejections(),
+      controlPRs: listControlPRs(),
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to load control PRs';
+    console.error('[verity] GET /api/control-prs', err);
+    return NextResponse.json({ error: message, controlPRs: [], groups: [] }, { status: 500 });
+  }
 }
 
 /**

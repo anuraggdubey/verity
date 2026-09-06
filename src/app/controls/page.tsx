@@ -13,7 +13,15 @@ export default function ControlGovernancePage() {
 
   const load = React.useCallback(() => {
     fetch('/api/control-prs')
-      .then((res) => res.json())
+      .then(async (res) => {
+        const text = await res.text();
+        if (!text) return { controlPRs: [] as ControlPR[] };
+        try {
+          return JSON.parse(text) as { controlPRs?: ControlPR[] };
+        } catch {
+          return { controlPRs: [] as ControlPR[] };
+        }
+      })
       .then((body) => {
         setControlPRs(body.controlPRs ?? []);
       })

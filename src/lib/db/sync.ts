@@ -20,6 +20,7 @@ import {
   persistPackVersion,
   persistProposal,
   persistRouteDecision,
+  persistSupportingDocument,
   replaceAllEvents,
 } from '@/lib/db/persistence';
 
@@ -38,6 +39,8 @@ export const dbSync = {
   controlPR: (row: ControlPR) => fire(persistControlPR(row)),
   event: (row: VerityEvent) => fire(persistEvent(row)),
   packVersion: (version: string) => fire(persistPackVersion(version)),
+  supportingDocument: (row: import('@/lib/contracts/types').SupportingDocument) =>
+    fire(persistSupportingDocument(row)),
   events: (rows: VerityEvent[]) => fire(replaceAllEvents(rows)),
   deleteProposals: (ids: string[]) => fire(deleteProposalsForCase(ids)),
 };

@@ -70,7 +70,7 @@ function meanPairwiseCoherence(rationales: string[]): number {
 }
 
 function transactionDateOf(proposal: Proposal): string | undefined {
-  const citation = proposal.citations.find((c) => c.sourceType === 'document');
+  const citation = proposal.citations?.find((c) => c.sourceType === 'document');
   if (!citation) return undefined;
   const value = listSupportingDocuments().find((d) => d.id === citation.sourceId)?.fields
     ?.transactionDate;
@@ -102,7 +102,7 @@ function sharedTraits(proposals: Proposal[]): string[] {
     }
 
     const relievedInFull = proposals.every(
-      (p) => !p.journal.some((line) => line.account === '7420'),
+      (p) => !p.journal?.some((line) => line.account === '7420'),
     );
     if (relievedInFull) traits.push('no proposal recognized a realized FX gain or loss');
   }

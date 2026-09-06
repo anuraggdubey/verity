@@ -249,6 +249,25 @@ export async function persistCase(caseRow: Case): Promise<void> {
   `;
 }
 
+export async function persistSupportingDocument(document: import('@/lib/contracts/types').SupportingDocument): Promise<void> {
+  const sql = getSql();
+  await sql`
+    INSERT INTO supporting_documents (id, doc_type, issued_date, counterparty, amount, currency, reference, fields)
+    VALUES (
+      ${document.id}, ${document.docType}, ${document.issuedDate}, ${document.counterparty},
+      ${document.amount}, ${document.currency}, ${document.reference}, ${JSON.stringify(document.fields ?? {})}
+    )
+    ON CONFLICT (id) DO UPDATE SET
+      doc_type = EXCLUDED.doc_type,
+      issued_date = EXCLUDED.issued_date,
+      counterparty = EXCLUDED.counterparty,
+      amount = EXCLUDED.amount,
+      currency = EXCLUDED.currency,
+      reference = EXCLUDED.reference,
+      fields = EXCLUDED.fields
+  `;
+}
+
 export async function persistPackVersion(version: string): Promise<void> {
   const sql = getSql();
   await sql`

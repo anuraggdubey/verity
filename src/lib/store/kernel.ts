@@ -94,6 +94,10 @@ function freshState(): State {
 const globalRef = globalThis as unknown as { __verityState?: State };
 function state(): State {
   if (!globalRef.__verityState) return freshState();
+  // Hydration can set global state without binding this module's data-access
+  // singleton. Rebind on every read so control-engine helpers never see an
+  // unbound runtime (the /api/control-prs 500 after Postgres hydrate).
+  bindDataAccess();
   return globalRef.__verityState;
 }
 
@@ -520,6 +524,7 @@ export function addSupportingDocument(document: SupportingDocument): SupportingD
   const existing = s.fixture.documents.findIndex((entry) => entry.id === document.id);
   if (existing >= 0) s.fixture.documents[existing] = document;
   else s.fixture.documents.push(document);
+  syncDb((db) => db.supportingDocument(document));
   return document;
 }
 

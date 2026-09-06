@@ -51,7 +51,10 @@ export async function hydrateStoreFromDatabase(): Promise<void> {
 
 export async function ensureStoreReady(): Promise<void> {
   if (!useDatabase()) return;
-  if (globalRef.__verityState) return;
+  if (globalRef.__verityState) {
+    bindDataAccessFromState(globalRef.__verityState);
+    return;
+  }
   if (!globalRef.__verityStoreInit) {
     globalRef.__verityStoreInit = hydrateStoreFromDatabase().finally(() => {
       globalRef.__verityStoreInit = undefined;
