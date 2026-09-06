@@ -70,11 +70,17 @@ Missing categories: short pay, wrong entity, closed-period proposal, additional
 exact matches and timing differences, and more held-out FX cases. Also needs the
 generator that produces them, and expected labels added to `bench/expected.json`.
 
-### 1.5 Real deterministic matching  *(owner: A)*
-`bench/fixtures/demo.json` states 24 bank lines with 17 auto-matched, but no
-matcher produced that — the numbers are asserted. Needs CSV ingestion,
-normalisation, and a matcher that actually clears the routine lines, or the
-0:25–0:55 beat is a claim rather than a demonstration.
+### 1.5 Expected labels for 17 of the 29 cases  *(owner: A)*
+The matcher is real now — `loadBenchmark()` runs `matchReconciliation()` over
+`bench/fixtures/bank.csv` and `ledger.csv`, and the bank-line, auto-matched and
+exception counts on screen come from it. That closes the old "asserted numbers"
+gap.
+
+What is open: the dataset has 29 cases and `bench/expected.json` labels 12, so
+17 cases are unscored. `npm run baseline` now prints the gap instead of hiding
+it, and quality counts are reported out of scored cases rather than out of all
+of them. Every new case needs an expected disposition, lane and journal accounts
+or it contributes nothing to a quality number.
 
 ### 1.6 The full control pack  *(owner: A)*
 `src/lib/controls/engine.ts` is a cut-down engine B wrote so the repair loop had
@@ -102,15 +108,19 @@ reconciliation-consistency check. Keep `evaluateProposal`'s signature.
 
 | Thing | Needed for | Status |
 |---|---|---|
-| Model API key | live agent runs | **missing** |
-| Neatlogs account + ingest URL and key | trace/eval layer | **not wired** — `src/lib/trace/neatlogs.ts` posts to `VERITY_TRACE_INGEST_URL` with `VERITY_TRACE_API_KEY`; the URL and payload shape were never confirmed against their docs, so it stays disabled rather than silently dropping spans |
-| TensorMux | inference routing | optional. `VERITY_MODEL_BASE_URL` already points the OpenAI client at any compatible gateway. Cut it if it is not working early — do not risk the demo |
+| Model API key | live agent runs | **missing** — everything else is ready for it |
+| Neatlogs write key (`nlw_…`) | observability | **code done**, disabled without the key. One run = one nested trace, posted to their documented ingest. See [SPONSORS.md](./SPONSORS.md) |
+| TensorMux gateway URL | inference routing | **no code needed** — set `VERITY_MODEL_BASE_URL`; it is an OpenAI-compatible gateway |
+| Dodo test API key | settlement ingestion | **code done**, read-only, disabled without the key. Payouts → bank lines |
+| A practitioner's time (Maximor) | the synthetic caveat | **pack generates now**: `npm run review:pack`. Nobody has filled it in |
 | Per-1k token prices | honest cost numbers | `VERITY_COST_PER_1K_IN` / `_OUT`. Unset means every run reports $0.00 |
 | Deployment target | judges clicking a link | not set up. `npm run build && npm start` works locally |
 | Devpost account + submission | entry | not started |
 | Video hosting with public permissions | entry | not started |
 
-Dodo Payments: deliberately not integrated.
+Dodo Payments is integrated as a **read-only payout connector**, not a payments
+feature: a processor payout is a statement line that has to be reconciled. There
+is one HTTP verb in that module and it is GET.
 
 ---
 

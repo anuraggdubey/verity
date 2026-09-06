@@ -1,5 +1,5 @@
 import { appendEvent } from '@/lib/demo/store';
-import { getTraceSink } from '@/lib/trace/neatlogs';
+import { sendRunTrace, type RunTraceMeta } from '@/lib/trace/neatlogs';
 
 /**
  * Trace instrumentation for the worker: every model call, tool call, control
@@ -79,7 +79,6 @@ export class Trace {
     const list = traces().get(this.id) ?? [];
     list.push(full);
     traces().set(this.id, list);
-    getTraceSink()?.emit(full);
     for (const subscriber of subscribers()) {
       try {
         subscriber(full);
@@ -143,6 +142,19 @@ export class Trace {
 
   entries(): TraceEntry[] {
     return traces().get(this.id) ?? [];
+  }
+
+  /**
+   * Ships the finished run to the observability layer as one nested trace.
+   * Called once, at the end of a run; a sink failure cannot affect the result.
+   */
+  finish(meta: Omit<RunTraceMeta, 'caseId' | 'provider' | 'model'>): void {
+    sendRunTrace(this.entries(), {
+      caseId: this.caseId,
+      provider: this.provider,
+      model: this.model,
+      ...meta,
+    });
   }
 }
 

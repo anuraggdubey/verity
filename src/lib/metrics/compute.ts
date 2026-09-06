@@ -82,6 +82,7 @@ export function computeMetrics(): Metrics {
   let outOfPolicyPostings = 0;
   let safeAutoClears = 0;
   let correctAbstentions = 0;
+  let scoredCases = 0;
   let correctDisposition = 0;
   let correctJournal = 0;
   let evidenceComplete = 0;
@@ -91,6 +92,7 @@ export function computeMetrics(): Metrics {
     const label = labels[row.case.id];
     const latest = row.latestProposal;
     if (!label || !latest) continue;
+    scoredCases += 1;
 
     if (latest.disposition === label.expectedDisposition) correctDisposition += 1;
     if (sameAccounts(latest.journal.map((l) => l.account), label.expectedJournalAccounts)) {
@@ -161,6 +163,7 @@ export function computeMetrics(): Metrics {
       correctAbstentions,
     },
     quality: {
+      scoredCases,
       correctDisposition,
       correctJournal,
       evidenceComplete,

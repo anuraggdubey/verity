@@ -311,6 +311,16 @@ export async function investigateCase(caseId: string, options: RunOptions = {}):
 
     const finalState = getCase(caseId)?.state ?? 'unmatched';
 
+    // Ship the whole run to the observability layer as one nested trace.
+    // No-op unless NEATLOGS_API_KEY is set, and it cannot affect the result.
+    trace.finish({
+      preRecorded: provider.id === 'fixture',
+      policyVersion: policy.policyVersion,
+      controlPackVersion: packVersion(),
+      corePromptHash: corePromptHash(),
+      outcome: stoppedBecause ? `stopped: ${stoppedBecause}` : (route?.lane ?? finalState),
+    });
+
     return {
       caseId,
       traceId: trace.id,

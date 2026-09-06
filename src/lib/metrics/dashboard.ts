@@ -1,3 +1,4 @@
+import { benchmarkReview } from '@/lib/data/review';
 import { computeMetrics } from '@/lib/metrics/compute';
 import { heldOutCase, listCases, listControlPRs, listProposals } from '@/lib/demo/store';
 import { CONTROL_ENGINE_EXPECTATIONS, loadExpectedLabels } from '@/lib/replay/fixtures';
@@ -32,6 +33,10 @@ export type DashboardPayload = {
   benchmarkRuns: BenchmarkRunRow[];
   practitionerReviewed: boolean;
   benchmarkIsSynthetic: boolean;
+  /** Cases with a held-back label. Quality counts are out of this. */
+  scoredCases: number;
+  /** Cases in the dataset that no label covers, so nothing scores them. */
+  unlabelledCases: number;
   packVersion: string;
 };
 
@@ -91,7 +96,11 @@ export function buildDashboardMetrics(): DashboardPayload {
         }
       : null,
     benchmarkRuns,
-    practitionerReviewed: labels.practitionerReviewed,
+    // bench/fixtures/review.json is the only place a human verdict is recorded;
+    // the flag in expected.json is documentation, not evidence.
+    practitionerReviewed: benchmarkReview().practitionerReviewed,
+    unlabelledCases: Math.max(metrics.efficiency.totalCases - metrics.quality.scoredCases, 0),
+    scoredCases: metrics.quality.scoredCases,
     benchmarkIsSynthetic: labels.benchmarkIsSynthetic,
     packVersion: metrics.packVersion,
   };

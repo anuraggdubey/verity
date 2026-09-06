@@ -142,9 +142,18 @@ async function main() {
   console.log(
     `Repairs:  ${metrics.efficiency.repairSuccesses}/${metrics.efficiency.repairAttempts} succeeded · safe auto-clears ${metrics.efficiency.safeAutoClears} · correct abstentions ${metrics.efficiency.correctAbstentions}`,
   );
+  // Quality is scored only against cases that carry a held-back label. Printing
+  // it over every case would understate it and hide the labelling gap instead.
+  const scored = metrics.quality.scoredCases;
+  const unlabelled = metrics.efficiency.totalCases - scored;
   console.log(
-    `Quality:  disposition ${metrics.quality.correctDisposition}/${metrics.efficiency.totalCases} · journal ${metrics.quality.correctJournal}/${metrics.efficiency.totalCases} · evidence-complete ${metrics.quality.evidenceComplete}/${metrics.efficiency.totalCases}`,
+    `Quality:  disposition ${metrics.quality.correctDisposition}/${scored} · journal ${metrics.quality.correctJournal}/${scored} · evidence-complete ${metrics.quality.evidenceComplete}/${scored} (scored cases only)`,
   );
+  if (unlabelled > 0) {
+    console.log(
+      `Coverage: ${unlabelled} of ${metrics.efficiency.totalCases} cases have no expected label, so nothing scores them. Add them to bench/expected.json.`,
+    );
+  }
   console.log(
     `Cost:     ${metrics.operational.modelCalls} model calls · ${metrics.operational.tokens} tokens · $${metrics.operational.costUsd.toFixed(3)} · median ${metrics.operational.medianLatencyMs}ms · tool failures ${metrics.operational.toolFailures}`,
   );

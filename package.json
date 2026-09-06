@@ -13,7 +13,9 @@
     "learn": "tsx bench/learn.ts",
     "baseline": "tsx bench/baseline.ts",
     "replay": "tsx bench/replay.ts",
-    "test": "vitest run --configLoader runner"
+    "test": "vitest run --configLoader runner",
+    "review:pack": "tsx bench/review.ts pack",
+    "review:import": "tsx bench/review.ts import"
   },
   "dependencies": {
     "@google/genai": "^2.21.0",

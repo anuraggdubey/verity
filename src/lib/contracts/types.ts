@@ -349,6 +349,8 @@ export interface Metrics {
     correctAbstentions: number;
   };
   quality: {
+    /** Cases carrying a held-back label. Quality counts are out of this, not out of every case. */
+    scoredCases: number;
     correctDisposition: number;
     correctJournal: number;
     evidenceComplete: number;
