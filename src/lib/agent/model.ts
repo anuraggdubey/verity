@@ -12,7 +12,8 @@ import type {
  * Three providers ship today:
  *   - `anthropic` — the official Anthropic SDK. Default model claude-opus-5,
  *                 where adaptive thinking is on by default and sampling
- *                 parameters are rejected, so none are sent.
+ *                 parameters are rejected, so temperature is sent only to the
+ *                 models that accept it (Haiku 4.5, the 4.6 family).
  *   - `openai`  — the installed OpenAI SDK, pointed at any OpenAI-compatible
  *                 base URL (that is also how a router like TensorMux would be
  *                 wired in: set VERITY_MODEL_BASE_URL, change nothing else).
@@ -301,6 +302,17 @@ class GroqProvider implements ModelProvider {
  *     recorded in the fingerprint but not transmitted.
  *   - The system prompt is a top-level parameter, not a message.
  */
+/**
+ * Sampling parameters were removed on the Opus 5 / Sonnet 5 / Fable family and
+ * are rejected with a 400 there; Haiku 4.5 and the 4.6 models still accept them.
+ * Send the configured temperature where it is legal, so a run at temperature 0
+ * is actually reproducible — the replay fingerprint records that number, and it
+ * should not be a claim we quietly do not honour.
+ */
+function anthropicAcceptsTemperature(model: string): boolean {
+  return !/^claude-(?:opus-5|opus-4-[78]|sonnet-5|fable|mythos)/i.test(model);
+}
+
 class AnthropicProvider implements ModelProvider {
   readonly id = 'anthropic' as const;
   readonly model: string;
@@ -385,6 +397,7 @@ class AnthropicProvider implements ModelProvider {
     const response = await this.client.messages.create({
       model: this.model,
       max_tokens: 16000,
+      ...(anthropicAcceptsTemperature(this.model) ? { temperature: this.temperature } : {}),
       system,
       messages,
       tools,
