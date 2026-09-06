@@ -10,6 +10,7 @@ import { CitationInspector } from '../../../components/finance-pr/CitationInspec
 import { ControllerDock } from '../../../components/finance-pr/ControllerDock';
 import { RunButtons } from '../../../components/app/RunActions';
 import { WorkerActivity } from '../../../components/app/WorkerActivity';
+import { EvidenceUpload } from '../../../components/finance-pr/EvidenceUpload';
 import { SpotlightCard } from '../../../components/ui/SpotlightCard';
 import { StatusPill } from '../../../components/ui/StatusPill';
 import type { CaseDetail } from '@/lib/store';
@@ -159,6 +160,9 @@ export default function CaseDetailPage({
           <ControlChecklist report={currentReport} activeRevIndex={activeRevIndex} />
 
           <WorkerActivity caseId={detail.case.id} />
+
+          {/* Attach receipts and invoices; they become evidence the agent must cite. */}
+          <EvidenceUpload onUploaded={loadDetail} />
 
           <SpotlightCard className="p-4 space-y-3">
             <div className="flex items-center justify-between border-b border-black/[0.06] pb-2">

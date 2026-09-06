@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { GitMerge, CheckCircle2, Check, AlertTriangle } from 'lucide-react';
 import { SpotlightCard } from '../../components/ui/SpotlightCard';
+import { RuleComposer } from '../../components/controls/RuleComposer';
 import { ControlPRActions } from '../../components/ControlPRActions';
 import type { ControlPR } from '@/lib/contracts/types';
 
@@ -69,6 +70,10 @@ export default function ControlGovernancePage() {
 
         <ControlPRActions controlPrId={cpr.id} status={cpr.status} onComplete={load} />
       </div>
+
+      {/* Entry point for a non-technical controller: describe the policy, see
+          what it would have blocked, then propose it into the same flow. */}
+      <RuleComposer onProposed={load} />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-7 space-y-6">

@@ -452,3 +452,23 @@ export function addControlPR(pr: ControlPR): void {
   s.controlPRs.push(pr);
   s.events.push({ type: 'control_pr_drafted', at: pr.draftedAt, controlPrId: pr.id });
 }
+
+/**
+ * Registers an uploaded document as evidence the agent's tools can retrieve.
+ *
+ * Evidence only: a document never becomes a decision, and adding one does not
+ * clear, post or approve anything. It exists so a proposal can cite it — and so
+ * the evidence-lineage controls can check that citation like any other.
+ */
+export function addSupportingDocument(document: SupportingDocument): SupportingDocument {
+  const s = state();
+  const existing = s.fixture.documents.findIndex((entry) => entry.id === document.id);
+  if (existing >= 0) s.fixture.documents[existing] = document;
+  else s.fixture.documents.push(document);
+  return document;
+}
+
+export function nextUploadedDocumentId(): string {
+  const count = state().fixture.documents.filter((entry) => entry.id.startsWith('DOC-UP-')).length;
+  return `DOC-UP-${String(count + 1).padStart(3, '0')}`;
+}

@@ -1,0 +1,14 @@
+LYRA GmbH
+Friedrichstrasse 12, 10117 Berlin
+
+INVOICE  INV-LG-2291
+
+Bill to: ACME-US
+Transaction date: 2026-08-11
+Payment terms: NET 3
+
+Description                                   Amount
+Platform licence, August 2026              EUR 8,000.00
+
+Total due: EUR 8,000.00
+VAT ID: DE811907980

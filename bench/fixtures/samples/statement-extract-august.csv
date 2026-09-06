@@ -1,0 +1,3 @@
+id,postedDate,valueDate,amount,currency,counterparty,reference,description
+BL-901,2026-08-05,2026-08-05,-1275.00,USD,Northwind Ltd,INV-4482,ACH DEBIT NORTHWIND
+BL-902,2026-08-19,2026-08-19,9400.00,USD,Cobalt Systems,REM-8890,INCOMING WIRE

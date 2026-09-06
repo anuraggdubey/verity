@@ -1,0 +1,9 @@
+{
+  "documentType": "remittance",
+  "counterparty": "Cobalt Systems",
+  "reference": "REM-8901",
+  "currency": "USD",
+  "amount": 31050.00,
+  "transactionDate": "2026-08-26",
+  "invoices": ["INV-CS-1180", "INV-CS-1181"]
+}
