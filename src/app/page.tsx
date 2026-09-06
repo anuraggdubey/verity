@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { motion } from 'framer-motion';
 import {
   ArrowRight,
   ShieldCheck,
@@ -98,7 +99,21 @@ export default function VerityLandingPage() {
         className="hero-section relative z-30 w-full min-h-screen pt-28 pb-16 px-4 sm:px-6 lg:px-8 mx-auto flex flex-col items-center text-center overflow-hidden transition-colors -mt-16"
         style={{ backgroundColor: '#F8F9FB' }}
       >
-        <div ref={heroTextRef} className="flex flex-col items-center text-center max-w-4xl mx-auto will-change-transform">
+        {/* ========================================================================= */}
+        {/* BACKGROUND VIDEO PLACEHOLDER */}
+        {/* USER: Replace the src below with your video URL, e.g., src="/bg-video.mp4" */}
+        {/* ========================================================================= */}
+        <video 
+          autoPlay 
+          loop 
+          muted 
+          playsInline 
+          className="absolute inset-0 w-full h-full object-cover opacity-40 grayscale z-0 pointer-events-none"
+        >
+          <source src="/my-video.mp4" type="video/mp4" />
+        </video>
+
+        <div ref={heroTextRef} className="relative z-10 flex flex-col items-center text-center max-w-4xl mx-auto will-change-transform">
           {/* Top pill badge */}
           <Link
             href="/cases/CASE-001"
@@ -349,7 +364,7 @@ export default function VerityLandingPage() {
             preserveAspectRatio="none"
           >
             <defs>
-              {/* Full Rainbow Horizon Rim Gradient: Orange -> Amber -> Yellow -> Chartreuse -> Mint -> Cyan -> Royal Blue */}
+              {/* Full Rainbow Horizon Rim Gradient with Animated Coordinates */}
               <linearGradient id="universalArcGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="#ea580c" stopOpacity="0.85" />
                 <stop offset="6%" stopColor="#f97316" />
@@ -361,6 +376,8 @@ export default function VerityLandingPage() {
                 <stop offset="82%" stopColor="#38bdf8" />
                 <stop offset="94%" stopColor="#3b82f6" />
                 <stop offset="100%" stopColor="#1d4ed8" stopOpacity="0.85" />
+                <animate attributeName="x1" values="-20%; 0%; -20%" dur="8s" repeatCount="indefinite" />
+                <animate attributeName="x2" values="80%; 100%; 80%" dur="8s" repeatCount="indefinite" />
               </linearGradient>
 
               {/* Wide Atmospheric Glow Blur */}
@@ -381,92 +398,110 @@ export default function VerityLandingPage() {
               </linearGradient>
             </defs>
 
-            {/* Diffuse Warm Ambient Glow along the Curve */}
-            <path
+            {/* Diffuse Warm Ambient Glow along the Curve (Pulsing) */}
+            <motion.path
               d="M -120 460 Q 720 -30 1560 460"
               stroke="url(#universalArcGradient)"
               strokeWidth="28"
-              strokeOpacity="0.32"
               filter="url(#arcWideGlow)"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: [0.1, 0.4, 0.2] }}
+              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
             />
 
             {/* Mid-Intensity Haze */}
-            <path
+            <motion.path
               d="M -120 460 Q 720 -30 1560 460"
               stroke="url(#universalArcGradient)"
               strokeWidth="10"
-              strokeOpacity="0.65"
               filter="url(#arcWideGlow)"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 0.65 }}
+              transition={{ duration: 2, delay: 0.5, ease: "easeInOut" }}
             />
 
             {/* Solid Dark Body of the Planet / Dome */}
-            <path
+            <motion.path
               d="M -120 460 Q 720 -30 1560 460 L 1560 500 L -120 500 Z"
               fill="url(#planetBodyFill)"
+              initial={{ y: 50 }}
+              whileInView={{ y: 0 }}
+              transition={{ duration: 1.5, ease: "easeOut" }}
             />
 
-            {/* Crisp High-Intensity Glowing Rim Stroke */}
-            <path
+            {/* Crisp High-Intensity Glowing Rim Stroke (Draws itself) */}
+            <motion.path
               d="M -120 460 Q 720 -30 1560 460"
               stroke="url(#universalArcGradient)"
               strokeWidth="2.5"
               strokeLinecap="round"
+              initial={{ pathLength: 0, opacity: 0 }}
+              whileInView={{ pathLength: 1, opacity: 1 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 2, ease: "easeOut" }}
             />
           </svg>
         </div>
 
         {/* 5-Column Feature Grid Inside the Dark Dome Base (Exact Image 1) */}
         <div className="relative z-10 w-full border-t border-b border-white/[0.08] bg-[#050608] mt-4">
-          <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 text-left divide-y sm:divide-y-0 sm:divide-x divide-white/[0.08]">
-            {/* Card 1 */}
-            <div className="p-6 sm:p-8 space-y-3">
-              <div className="h-5 w-5 flex items-center justify-center text-zinc-400">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                  <rect width="18" height="18" x="3" y="3" rx="3" />
-                  <path d="M7 13v4M12 9v8M17 11v6" />
-                </svg>
-              </div>
-              <div className="font-bold text-white text-sm">It audits itself.</div>
-              <p className="text-[#8896a6] leading-relaxed text-xs">
-                Every bank wire, MT940 line, invoice, and FX fix captured with immutable cryptographic lineage.
-              </p>
-            </div>
-
-            {/* Card 2 */}
-            <div className="p-6 sm:p-8 space-y-3">
-              <Globe className="h-4 w-4 text-zinc-400" />
-              <div className="font-bold text-white text-sm">Your ledger tools talk.</div>
-              <p className="text-[#8896a6] leading-relaxed text-xs">
-                Stripe, NetSuite, Mercury, SAP, and bank feeds unified into one deterministic close engine.
-              </p>
-            </div>
-
-            {/* Card 3 */}
-            <div className="p-6 sm:p-8 space-y-3">
-              <BookOpen className="h-4 w-4 text-zinc-400" />
-              <div className="font-bold text-white text-sm">Gets sharper with every PR.</div>
-              <p className="text-[#8896a6] leading-relaxed text-xs">
-                Rejected entries produce versioned Control PRs so the same accounting mistake never happens twice.
-              </p>
-            </div>
-
-            {/* Card 4 */}
-            <div className="p-6 sm:p-8 space-y-3">
-              <MessageSquare className="h-4 w-4 text-zinc-400" />
-              <div className="font-bold text-white text-sm">Ask, and the citation is there.</div>
-              <p className="text-[#8896a6] leading-relaxed text-xs">
-                Every journal proposal backed by clickable source invoices and approved ECB rate fixes.
-              </p>
-            </div>
-
-            {/* Card 5 */}
-            <div className="p-6 sm:p-8 space-y-3">
-              <Headphones className="h-4 w-4 text-zinc-400" />
-              <div className="font-bold text-white text-sm">No agent left guessing.</div>
-              <p className="text-[#8896a6] leading-relaxed text-xs">
-                Deterministic gates catch FX drift, missing receipts, and unbalanced debits before human review.
-              </p>
-            </div>
+          <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 text-left divide-y sm:divide-y-0 sm:divide-x divide-white/[0.08] overflow-hidden">
+            {[
+              {
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                    <rect width="18" height="18" x="3" y="3" rx="3" />
+                    <path d="M7 13v4M12 9v8M17 11v6" />
+                  </svg>
+                ),
+                title: "It audits itself.",
+                desc: "Every bank wire, MT940 line, invoice, and FX fix captured with immutable cryptographic lineage.",
+                dir: -1
+              },
+              {
+                icon: <Globe className="h-4 w-4 text-current" />,
+                title: "Your ledger tools talk.",
+                desc: "Stripe, NetSuite, Mercury, SAP, and bank feeds unified into one deterministic close engine.",
+                dir: 1
+              },
+              {
+                icon: <BookOpen className="h-4 w-4 text-current" />,
+                title: "Gets sharper with every PR.",
+                desc: "Rejected entries produce versioned Control PRs so the same accounting mistake never happens twice.",
+                dir: -1
+              },
+              {
+                icon: <MessageSquare className="h-4 w-4 text-current" />,
+                title: "Ask, and the citation is there.",
+                desc: "Every journal proposal backed by clickable source invoices and approved ECB rate fixes.",
+                dir: 1
+              },
+              {
+                icon: <Headphones className="h-4 w-4 text-current" />,
+                title: "No agent left guessing.",
+                desc: "Deterministic gates catch FX drift, missing receipts, and unbalanced debits before human review.",
+                dir: -1
+              }
+            ].map((card, i) => (
+              <motion.div 
+                key={i}
+                initial={{ opacity: 0, x: card.dir * 40 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.7, delay: i * 0.1, type: "spring", bounce: 0.3 }}
+                className="p-6 sm:p-8 space-y-4 group cursor-pointer hover:bg-white/[0.02] transition-colors relative"
+              >
+                <div className="h-9 w-9 flex items-center justify-center rounded-lg bg-white/[0.05] text-zinc-400 group-hover:bg-blue-500/10 group-hover:text-blue-400 transition-all duration-300">
+                  {card.icon}
+                </div>
+                <div>
+                  <div className="font-bold text-white text-sm group-hover:text-blue-400 transition-colors duration-300">{card.title}</div>
+                  <p className="text-[#8896a6] leading-relaxed text-xs mt-1.5">
+                    {card.desc}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
 
@@ -599,95 +634,106 @@ export default function VerityLandingPage() {
           </div>
 
           {/* App Icons Dock Row (Exact Icons from Image 2) */}
-          <div className="flex items-center justify-center gap-3 sm:gap-4 overflow-x-auto py-4 px-2 no-scrollbar">
-            {/* 1. Notion */}
-            <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-[#121316] border border-white/[0.08] flex items-center justify-center hover:scale-110 hover:border-white/30 transition-all cursor-pointer shadow-lg shrink-0">
-              <svg viewBox="0 0 24 24" className="w-6 h-6 fill-white" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4.459 4.208c.746.606 1.026.56 2.428.466l11.238-.839c.373 0 .466-.187.327-.467L17.26 1.83C16.84 1.177 16.094 1 15.068 1.093L3.107 2.026C2.36 2.073 2.08 2.399 2.22 2.866l2.239 1.342zm.886 4.385v12.315c0 .746.467 1.026 1.306 1.026l12.778-.746c.746 0 .933-.56.933-1.12V7.659c0-.653-.28-1.026-.84-1.026l-13.337.84c-.56 0-.84.373-.84 1.12zm12.314.933c.093.466 0 .933-.466.933l-1.027.093v8.303c-.466.373-.933.56-1.399.56-.653 0-.933-.28-1.399-1.026l-4.292-6.623v6.717l1.306.186c.093.467 0 .933-.467.933l-3.265.187c-.093-.467 0-.933.467-.933l1.026-.093V10.738l-1.306-.093c-.093-.467 0-.933.467-.933l3.452-.187 4.57 6.81V10.18l-1.213-.093c-.093-.467 0-.933.467-.933l3.078-.187z" />
-              </svg>
-            </div>
+          {/* App Icons Dock Row (Animated Marquee) */}
+          <div className="relative flex overflow-hidden py-4 px-2 max-w-5xl mx-auto [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+            <motion.div
+              className="flex gap-3 sm:gap-4 shrink-0 min-w-max pr-3 sm:pr-4"
+              animate={{ x: ["0%", "-50%"] }}
+              transition={{ repeat: Infinity, duration: 30, ease: "linear" }}
+            >
+              {[1, 2].map((set) => (
+                <div key={set} className="flex gap-3 sm:gap-4 shrink-0">
+                  {/* 1. Notion */}
+                  <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-[#121316] border border-white/[0.08] flex items-center justify-center hover:scale-110 hover:border-white/30 transition-all cursor-pointer shadow-lg shrink-0">
+                    <svg viewBox="0 0 24 24" className="w-6 h-6 fill-white" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M4.459 4.208c.746.606 1.026.56 2.428.466l11.238-.839c.373 0 .466-.187.327-.467L17.26 1.83C16.84 1.177 16.094 1 15.068 1.093L3.107 2.026C2.36 2.073 2.08 2.399 2.22 2.866l2.239 1.342zm.886 4.385v12.315c0 .746.467 1.026 1.306 1.026l12.778-.746c.746 0 .933-.56.933-1.12V7.659c0-.653-.28-1.026-.84-1.026l-13.337.84c-.56 0-.84.373-.84 1.12zm12.314.933c.093.466 0 .933-.466.933l-1.027.093v8.303c-.466.373-.933.56-1.399.56-.653 0-.933-.28-1.399-1.026l-4.292-6.623v6.717l1.306.186c.093.467 0 .933-.467.933l-3.265.187c-.093-.467 0-.933.467-.933l1.026-.093V10.738l-1.306-.093c-.093-.467 0-.933.467-.933l3.452-.187 4.57 6.81V10.18l-1.213-.093c-.093-.467 0-.933.467-.933l3.078-.187z" />
+                    </svg>
+                  </div>
 
-            {/* 2. Raycast Asterisk */}
-            <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-[#121316] border border-white/[0.08] flex items-center justify-center hover:scale-110 hover:border-white/30 transition-all cursor-pointer shadow-lg shrink-0">
-              <svg viewBox="0 0 24 24" className="w-6 h-6 stroke-white" strokeWidth="2.2" strokeLinecap="round">
-                <line x1="12" y1="3" x2="12" y2="21" />
-                <line x1="3" y1="12" x2="21" y2="12" />
-                <line x1="5.64" y1="5.64" x2="18.36" y2="18.36" />
-                <line x1="5.64" y1="18.36" x2="18.36" y2="5.64" />
-              </svg>
-            </div>
+                  {/* 2. Raycast Asterisk */}
+                  <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-[#121316] border border-white/[0.08] flex items-center justify-center hover:scale-110 hover:border-white/30 transition-all cursor-pointer shadow-lg shrink-0">
+                    <svg viewBox="0 0 24 24" className="w-6 h-6 stroke-white" strokeWidth="2.2" strokeLinecap="round">
+                      <line x1="12" y1="3" x2="12" y2="21" />
+                      <line x1="3" y1="12" x2="21" y2="12" />
+                      <line x1="5.64" y1="5.64" x2="18.36" y2="18.36" />
+                      <line x1="5.64" y1="18.36" x2="18.36" y2="5.64" />
+                    </svg>
+                  </div>
 
-            {/* 3. Linear */}
-            <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-[#121316] border border-white/[0.08] flex items-center justify-center hover:scale-110 hover:border-white/30 transition-all cursor-pointer shadow-lg shrink-0">
-              <svg viewBox="0 0 24 24" className="w-6 h-6 stroke-white" strokeWidth="2" fill="none">
-                <circle cx="12" cy="12" r="9" />
-                <path d="M7 17L17 7M7 12L12 7M12 17L17 12" />
-              </svg>
-            </div>
+                  {/* 3. Linear */}
+                  <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-[#121316] border border-white/[0.08] flex items-center justify-center hover:scale-110 hover:border-white/30 transition-all cursor-pointer shadow-lg shrink-0">
+                    <svg viewBox="0 0 24 24" className="w-6 h-6 stroke-white" strokeWidth="2" fill="none">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M7 17L17 7M7 12L12 7M12 17L17 12" />
+                    </svg>
+                  </div>
 
-            {/* 4. Slack */}
-            <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-[#121316] border border-white/[0.08] flex items-center justify-center hover:scale-110 hover:border-white/30 transition-all cursor-pointer shadow-lg shrink-0">
-              <svg viewBox="0 0 24 24" className="w-6 h-6 fill-white">
-                <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z" />
-              </svg>
-            </div>
+                  {/* 4. Slack */}
+                  <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-[#121316] border border-white/[0.08] flex items-center justify-center hover:scale-110 hover:border-white/30 transition-all cursor-pointer shadow-lg shrink-0">
+                    <svg viewBox="0 0 24 24" className="w-6 h-6 fill-white">
+                      <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z" />
+                    </svg>
+                  </div>
 
-            {/* 5. Clay / Expensify */}
-            <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-[#121316] border border-white/[0.08] flex items-center justify-center hover:scale-110 hover:border-white/30 transition-all cursor-pointer shadow-lg shrink-0">
-              <div className="h-7 w-7 rounded-lg border-2 border-white flex items-center justify-center text-white font-bold text-sm">
-                E
-              </div>
-            </div>
+                  {/* 5. Clay / Expensify */}
+                  <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-[#121316] border border-white/[0.08] flex items-center justify-center hover:scale-110 hover:border-white/30 transition-all cursor-pointer shadow-lg shrink-0">
+                    <div className="h-7 w-7 rounded-lg border-2 border-white flex items-center justify-center text-white font-bold text-sm">
+                      E
+                    </div>
+                  </div>
 
-            {/* 6. Granola Spiral */}
-            <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-[#121316] border border-white/[0.08] flex items-center justify-center hover:scale-110 hover:border-white/30 transition-all cursor-pointer shadow-lg shrink-0">
-              <svg viewBox="0 0 24 24" className="w-6 h-6 stroke-white" strokeWidth="2" fill="none">
-                <circle cx="12" cy="12" r="9" />
-                <path d="M12 7a5 5 0 0 1 5 5c0 2.76-2.24 5-5 5s-5-2.24-5-5a2.5 2.5 0 0 1 2.5-2.5" />
-              </svg>
-            </div>
+                  {/* 6. Granola Spiral */}
+                  <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-[#121316] border border-white/[0.08] flex items-center justify-center hover:scale-110 hover:border-white/30 transition-all cursor-pointer shadow-lg shrink-0">
+                    <svg viewBox="0 0 24 24" className="w-6 h-6 stroke-white" strokeWidth="2" fill="none">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 7a5 5 0 0 1 5 5c0 2.76-2.24 5-5 5s-5-2.24-5-5a2.5 2.5 0 0 1 2.5-2.5" />
+                    </svg>
+                  </div>
 
-            {/* 7. Grid Matrix */}
-            <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-[#121316] border border-white/[0.08] flex items-center justify-center hover:scale-110 hover:border-white/30 transition-all cursor-pointer shadow-lg shrink-0">
-              <div className="grid grid-cols-3 gap-1">
-                {[...Array(9)].map((_, i) => (
-                  <div key={i} className="h-1.5 w-1.5 rounded-xs bg-white" />
-                ))}
-              </div>
-            </div>
+                  {/* 7. Grid Matrix */}
+                  <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-[#121316] border border-white/[0.08] flex items-center justify-center hover:scale-110 hover:border-white/30 transition-all cursor-pointer shadow-lg shrink-0">
+                    <div className="grid grid-cols-3 gap-1">
+                      {[...Array(9)].map((_, i) => (
+                        <div key={i} className="h-1.5 w-1.5 rounded-xs bg-white" />
+                      ))}
+                    </div>
+                  </div>
 
-            {/* 8. OpenAI */}
-            <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-[#121316] border border-white/[0.08] flex items-center justify-center hover:scale-110 hover:border-white/30 transition-all cursor-pointer shadow-lg shrink-0">
-              <svg viewBox="0 0 24 24" className="w-6 h-6 fill-white">
-                <path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.759a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.033.062L9.74 19.95a4.5 4.5 0 0 1-6.14-1.646zM2.34 8.76a4.485 4.485 0 0 1 2.37-2.024v5.7l5.843 3.37a.78.78 0 0 0 .39.106.758.758 0 0 0 .39-.106l-2.02-1.168a.08.08 0 0 1-.037-.06V9.083L4.44 6.326a4.495 4.495 0 0 1-2.1 2.434zm15.42-3.882l-4.78-2.76a.795.795 0 0 0-.78 0L6.357 5.487l2.02 1.167a.08.08 0 0 1 .038.062v5.584l4.839-2.793a4.495 4.495 0 0 1 4.506.12zm3.9 4.764a4.476 4.476 0 0 1-.535 3.014l-.142-.085-4.783-2.759a.771.771 0 0 0-.78 0l-5.843 3.369v-2.332a.08.08 0 0 1 .033-.062L14.26 8.05a4.5 4.5 0 0 1 6.14 1.646zM10.74 15.24l-2.39-1.38 2.39-1.38 2.39 1.38z" />
-              </svg>
-            </div>
+                  {/* 8. OpenAI */}
+                  <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-[#121316] border border-white/[0.08] flex items-center justify-center hover:scale-110 hover:border-white/30 transition-all cursor-pointer shadow-lg shrink-0">
+                    <svg viewBox="0 0 24 24" className="w-6 h-6 fill-white">
+                      <path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.759a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.033.062L9.74 19.95a4.5 4.5 0 0 1-6.14-1.646zM2.34 8.76a4.485 4.485 0 0 1 2.37-2.024v5.7l5.843 3.37a.78.78 0 0 0 .39.106.758.758 0 0 0 .39-.106l-2.02-1.168a.08.08 0 0 1-.037-.06V9.083L4.44 6.326a4.495 4.495 0 0 1-2.1 2.434zm15.42-3.882l-4.78-2.76a.795.795 0 0 0-.78 0L6.357 5.487l2.02 1.167a.08.08 0 0 1 .038.062v5.584l4.839-2.793a4.495 4.495 0 0 1 4.506.12zm3.9 4.764a4.476 4.476 0 0 1-.535 3.014l-.142-.085-4.783-2.759a.771.771 0 0 0-.78 0l-5.843 3.369v-2.332a.08.08 0 0 1 .033-.062L14.26 8.05a4.5 4.5 0 0 1 6.14 1.646zM10.74 15.24l-2.39-1.38 2.39-1.38 2.39 1.38z" />
+                    </svg>
+                  </div>
 
-            {/* 9. Stripe / S */}
-            <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-[#121316] border border-white/[0.08] flex items-center justify-center hover:scale-110 hover:border-white/30 transition-all cursor-pointer shadow-lg shrink-0">
-              <span className="text-white font-bold text-xl font-sans">S</span>
-            </div>
+                  {/* 9. Stripe / S */}
+                  <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-[#121316] border border-white/[0.08] flex items-center justify-center hover:scale-110 hover:border-white/30 transition-all cursor-pointer shadow-lg shrink-0">
+                    <span className="text-white font-bold text-xl font-sans">S</span>
+                  </div>
 
-            {/* 10. Swirl Icon */}
-            <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-[#121316] border border-white/[0.08] flex items-center justify-center hover:scale-110 hover:border-white/30 transition-all cursor-pointer shadow-lg shrink-0">
-              <svg viewBox="0 0 24 24" className="w-6 h-6 stroke-white" strokeWidth="2" fill="none">
-                <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 16a6 6 0 1 1 6-6 6 6 0 0 1-6 6zm0-8a2 2 0 1 0 2 2 2 2 0 0 0-2-2z" />
-              </svg>
-            </div>
+                  {/* 10. Swirl Icon */}
+                  <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-[#121316] border border-white/[0.08] flex items-center justify-center hover:scale-110 hover:border-white/30 transition-all cursor-pointer shadow-lg shrink-0">
+                    <svg viewBox="0 0 24 24" className="w-6 h-6 stroke-white" strokeWidth="2" fill="none">
+                      <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 16a6 6 0 1 1 6-6 6 6 0 0 1-6 6zm0-8a2 2 0 1 0 2 2 2 2 0 0 0-2-2z" />
+                    </svg>
+                  </div>
 
-            {/* 11. Anthropic Sunburst */}
-            <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-[#121316] border border-white/[0.08] flex items-center justify-center hover:scale-110 hover:border-white/30 transition-all cursor-pointer shadow-lg shrink-0">
-              <svg viewBox="0 0 24 24" className="w-6 h-6 stroke-white" strokeWidth="2.5" strokeLinecap="round">
-                <line x1="12" y1="2" x2="12" y2="6" />
-                <line x1="12" y1="18" x2="12" y2="22" />
-                <line x1="4.93" y1="4.93" x2="7.76" y2="7.76" />
-                <line x1="16.24" y1="16.24" x2="19.07" y2="19.07" />
-                <line x1="2" y1="12" x2="6" y2="12" />
-                <line x1="18" y1="12" x2="22" y2="12" />
-                <line x1="4.93" y1="19.07" x2="7.76" y2="16.24" />
-                <line x1="16.24" y1="7.76" x2="19.07" y2="4.93" />
-              </svg>
-            </div>
+                  {/* 11. Anthropic Sunburst */}
+                  <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-[#121316] border border-white/[0.08] flex items-center justify-center hover:scale-110 hover:border-white/30 transition-all cursor-pointer shadow-lg shrink-0">
+                    <svg viewBox="0 0 24 24" className="w-6 h-6 stroke-white" strokeWidth="2.5" strokeLinecap="round">
+                      <line x1="12" y1="2" x2="12" y2="6" />
+                      <line x1="12" y1="18" x2="12" y2="22" />
+                      <line x1="4.93" y1="4.93" x2="7.76" y2="7.76" />
+                      <line x1="16.24" y1="16.24" x2="19.07" y2="19.07" />
+                      <line x1="2" y1="12" x2="6" y2="12" />
+                      <line x1="18" y1="12" x2="22" y2="12" />
+                      <line x1="4.93" y1="19.07" x2="7.76" y2="16.24" />
+                      <line x1="16.24" y1="7.76" x2="19.07" y2="4.93" />
+                    </svg>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
           </div>
 
           {/* Bottom Technical Card: SDK. API. MCP. (Exact Image 2 Bottom) */}
@@ -738,41 +784,82 @@ export default function VerityLandingPage() {
                     <line x1="200" y1="20" x2="200" y2="220" />
                   </g>
 
-                  {/* Isometric Prism 1 (Left Wing) */}
-                  <polygon points="120,80 170,50 170,110 120,140" fill="url(#isoHatch)" stroke="rgba(255,255,255,0.25)" strokeWidth="1.2" />
-                  <polygon points="170,50 220,80 220,140 170,110" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+                  {/* Isometric Prisms (Connecting lines) - Animated to appear AFTER dots */}
+                  {[
+                    { points: "120,80 170,50 170,110 120,140", fill: "url(#isoHatch)", stroke: "rgba(255,255,255,0.25)", strokeWidth: 1.2 },
+                    { points: "170,50 220,80 220,140 170,110", fill: "none", stroke: "rgba(255,255,255,0.2)", strokeWidth: 1 },
+                    { points: "220,80 270,50 270,110 220,140", fill: "none", stroke: "rgba(255,255,255,0.2)", strokeWidth: 1 },
+                    { points: "270,50 320,80 320,140 270,110", fill: "url(#isoHatch)", stroke: "rgba(255,255,255,0.25)", strokeWidth: 1.2 },
+                    { points: "170,110 220,140 220,200 170,170", fill: "none", stroke: "rgba(255,255,255,0.2)", strokeWidth: 1 },
+                    { points: "220,140 270,110 270,170 220,200", fill: "url(#isoHatch)", stroke: "rgba(255,255,255,0.25)", strokeWidth: 1.2 },
+                  ].map((p, i) => (
+                    <motion.polygon
+                      key={`poly-${i}`}
+                      points={p.points}
+                      fill={p.fill}
+                      stroke={p.stroke}
+                      strokeWidth={p.strokeWidth}
+                      initial={{ pathLength: 0, opacity: 0 }}
+                      whileInView={{ pathLength: 1, opacity: 1 }}
+                      viewport={{ once: true, margin: "-50px" }}
+                      transition={{ duration: 1.5, ease: "easeInOut", delay: 1.0 + (i * 0.1) }}
+                    />
+                  ))}
 
-                  {/* Isometric Prism 2 (Right Wing) */}
-                  <polygon points="220,80 270,50 270,110 220,140" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
-                  <polygon points="270,50 320,80 320,140 270,110" fill="url(#isoHatch)" stroke="rgba(255,255,255,0.25)" strokeWidth="1.2" />
+                  {/* Constellation Nodes at Vertices - Animated to appear FIRST */}
+                  {[
+                    { cx: 120, cy: 80, r: 3.5, fill: "#ffffff" },
+                    { cx: 170, cy: 50, r: 3.5, fill: "#ffffff" },
+                    { cx: 220, cy: 80, r: 4.5, fill: "#ffffff", filter: "drop-shadow(0 0 6px #ffffff)" },
+                    { cx: 270, cy: 50, r: 3.5, fill: "#ffffff" },
+                    { cx: 320, cy: 80, r: 3.5, fill: "#ffffff" },
+                    { cx: 120, cy: 140, r: 3, fill: "#8896a6" },
+                    { cx: 170, cy: 110, r: 3, fill: "#8896a6" },
+                    { cx: 220, cy: 140, r: 3, fill: "#ffffff" },
+                    { cx: 270, cy: 110, r: 3, fill: "#8896a6" },
+                    { cx: 320, cy: 140, r: 3, fill: "#8896a6" },
+                    { cx: 170, cy: 170, r: 3, fill: "#8896a6" },
+                    { cx: 220, cy: 200, r: 3.5, fill: "#ffffff" },
+                    { cx: 270, cy: 170, r: 3, fill: "#8896a6" },
+                    { cx: 80, cy: 110, r: 2.5, fill: "#60a5fa" },
+                    { cx: 350, cy: 110, r: 2.5, fill: "#60a5fa" },
+                    { cx: 220, cy: 30, r: 2.5, fill: "#60a5fa" }
+                  ].map((c, i) => (
+                    <motion.circle
+                      key={`circle-${i}`}
+                      cx={c.cx}
+                      cy={c.cy}
+                      r={c.r}
+                      fill={c.fill}
+                      filter={c.filter}
+                      initial={{ scale: 0, opacity: 0 }}
+                      whileInView={{ scale: 1, opacity: 1 }}
+                      viewport={{ once: true, margin: "-50px" }}
+                      transition={{ type: "spring", bounce: 0.6, delay: i * 0.05 }}
+                      style={{ transformOrigin: `${c.cx}px ${c.cy}px` }}
+                    />
+                  ))}
 
-                  {/* Isometric Lower Extension */}
-                  <polygon points="170,110 220,140 220,200 170,170" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
-                  <polygon points="220,140 270,110 270,170 220,200" fill="url(#isoHatch)" stroke="rgba(255,255,255,0.25)" strokeWidth="1.2" />
-
-                  {/* Constellation Nodes at Vertices */}
-                  <circle cx="120" cy="80" r="3.5" fill="#ffffff" />
-                  <circle cx="170" cy="50" r="3.5" fill="#ffffff" />
-                  <circle cx="220" cy="80" r="4.5" fill="#ffffff" filter="drop-shadow(0 0 6px #ffffff)" />
-                  <circle cx="270" cy="50" r="3.5" fill="#ffffff" />
-                  <circle cx="320" cy="80" r="3.5" fill="#ffffff" />
-
-                  <circle cx="120" cy="140" r="3" fill="#8896a6" />
-                  <circle cx="170" cy="110" r="3" fill="#8896a6" />
-                  <circle cx="220" cy="140" r="3" fill="#ffffff" />
-                  <circle cx="270" cy="110" r="3" fill="#8896a6" />
-                  <circle cx="320" cy="140" r="3" fill="#8896a6" />
-
-                  <circle cx="170" cy="170" r="3" fill="#8896a6" />
-                  <circle cx="220" cy="200" r="3.5" fill="#ffffff" />
-                  <circle cx="270" cy="170" r="3" fill="#8896a6" />
-
-                  {/* Floating Micro Nodes */}
-                  <circle cx="80" cy="110" r="2.5" fill="#60a5fa" />
-                  <circle cx="350" cy="110" r="2.5" fill="#60a5fa" />
-                  <circle cx="220" cy="30" r="2.5" fill="#60a5fa" />
-                  <line x1="80" y1="110" x2="120" y2="80" stroke="rgba(96,165,250,0.3)" strokeWidth="1" strokeDasharray="3 3" />
-                  <line x1="320" y1="80" x2="350" y2="110" stroke="rgba(96,165,250,0.3)" strokeWidth="1" strokeDasharray="3 3" />
+                  {/* Floating Micro Nodes Connections */}
+                  {[
+                    { x1: 80, y1: 110, x2: 120, y2: 80 },
+                    { x1: 320, y1: 80, x2: 350, y2: 110 }
+                  ].map((l, i) => (
+                    <motion.line
+                      key={`line-${i}`}
+                      x1={l.x1}
+                      y1={l.y1}
+                      x2={l.x2}
+                      y2={l.y2}
+                      stroke="rgba(96,165,250,0.3)"
+                      strokeWidth="1"
+                      strokeDasharray="3 3"
+                      initial={{ pathLength: 0, opacity: 0 }}
+                      whileInView={{ pathLength: 1, opacity: 1 }}
+                      viewport={{ once: true, margin: "-50px" }}
+                      transition={{ duration: 1, ease: "easeOut", delay: 1.5 + (i * 0.2) }}
+                    />
+                  ))}
                 </svg>
               </div>
             </div>
@@ -819,12 +906,16 @@ export default function VerityLandingPage() {
             />
 
             {/* Sharp blue trajectory curve */}
-            <path
+            <motion.path
               d="M 0 585 C 680 585, 1120 340, 1440 0"
               stroke="#2563eb"
               strokeWidth="2.5"
               fill="none"
               strokeLinecap="round"
+              initial={{ pathLength: 0 }}
+              whileInView={{ pathLength: 1 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 1.8, ease: "easeOut" }}
             />
           </svg>
 
@@ -914,36 +1005,56 @@ export default function VerityLandingPage() {
         </div>
 
         {/* Horizontal Changelog Cards with Ruler Ticks Below */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+          variants={{
+            visible: { transition: { staggerChildren: 0.1 } }
+          }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+        >
           {[
             { date: 'August 28, 2026', title: 'New Control Packs', desc: 'Pre-built rules for FX, intercompany, and bank fee reconciliation.' },
             { date: 'August 28, 2026', title: 'Automated Repair Loops', desc: 'Deterministic block feedback returns directly to agent context.' },
             { date: 'August 28, 2026', title: 'Hash-Linked Ledger', desc: 'Sandbox ledger records with cryptographic block hashes.' },
             { date: 'August 28, 2026', title: 'A refreshed Finance PR', desc: 'High-density split diffs and citation source drawers.' },
           ].map((item, idx) => (
-            <div key={idx} className="space-y-2">
-              <div className="text-[10px] font-mono text-zinc-400">{item.date}</div>
-              <div className="text-xs font-semibold text-zinc-900">{item.title}</div>
-              <p className="text-[11px] text-zinc-500 leading-relaxed">{item.desc}</p>
-              <div className="ruler-pattern border-t border-black/[0.08] pt-1.5" />
-            </div>
+            <motion.div
+              key={idx}
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0, transition: { type: "spring", bounce: 0.4 } }
+              }}
+              className="group relative flex flex-col justify-between space-y-4 rounded-xl border border-zinc-200 bg-zinc-50/50 p-5 hover:bg-white hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+            >
+              {/* Subtle top glow on hover */}
+              <div className="absolute inset-x-4 -top-[1px] h-[1px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              
+              <div className="space-y-2">
+                <div className="text-[10px] font-mono text-zinc-400">{item.date}</div>
+                <div className="text-xs font-semibold text-zinc-900 group-hover:text-blue-600 transition-colors">{item.title}</div>
+                <p className="text-[11px] text-zinc-500 leading-relaxed">{item.desc}</p>
+              </div>
+              <div className="ruler-pattern border-t border-black/[0.08] pt-1.5 w-full opacity-60 group-hover:opacity-100 transition-opacity" />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         {/* Newsletter Box */}
-        <div className="flex flex-wrap items-center justify-between gap-6 p-5 rounded-2xl border border-black/[0.08] bg-white shadow-2xs">
+        <div className="flex flex-wrap items-center justify-between gap-6 p-6 rounded-2xl border border-zinc-200 bg-zinc-50/50 hover:bg-white hover:shadow-md transition-all duration-300">
           <div>
-            <div className="text-xs font-semibold text-zinc-900">Stay ahead of reconciliation.</div>
-            <div className="text-[11px] text-zinc-500">Merge control updates in your inbox.</div>
+            <div className="text-sm font-semibold text-zinc-900">Stay ahead of reconciliation.</div>
+            <div className="text-xs text-zinc-500 mt-1">Merge control updates in your inbox.</div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <input
               type="email"
               suppressHydrationWarning
               placeholder="Your work email..."
-              className="h-8 px-3 text-xs bg-zinc-50 border border-black/[0.1] rounded-lg text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:border-black w-60"
+              className="h-9 px-4 text-xs bg-white border border-zinc-200 rounded-lg text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 w-64 transition-all"
             />
-            <button suppressHydrationWarning className="h-8 px-3.5 text-xs font-semibold bg-black text-white rounded-lg hover:bg-zinc-800 transition-colors">
+            <button suppressHydrationWarning className="h-9 px-4 text-xs font-semibold bg-zinc-900 text-white rounded-lg hover:bg-black hover:shadow-lg hover:-translate-y-0.5 transition-all">
               Subscribe
             </button>
           </div>
@@ -953,13 +1064,27 @@ export default function VerityLandingPage() {
       {/* ========================================================================= */}
       {/* 8. ATTIO EXACT FOOTER HERO & MULTI-COLUMN NAVIGATION                      */}
       {/* ========================================================================= */}
-      <footer className="w-full bg-black text-white">
-        {/* Top Pinstriped CTA Hero Banner */}
-        <div className="w-full attio-pinstripe-dark border-y border-white/[0.08] py-24 sm:py-32 relative overflow-hidden flex flex-col items-center justify-center">
-          {/* Subtle radial center vignette */}
-          <div className="absolute inset-0 bg-radial-gradient from-transparent via-[#08090b]/60 to-[#08090b] pointer-events-none" />
+      <footer className="w-full bg-black text-white relative overflow-hidden">
+        {/* ========================================================================= */}
+        {/* BACKGROUND VIDEO PLACEHOLDER (ENTIRE FOOTER) */}
+        {/* USER: Replace the src below with your video URL if you want a video behind the footer */}
+        {/* ========================================================================= */}
+        <video 
+          autoPlay 
+          loop 
+          muted 
+          playsInline 
+          className="absolute inset-0 w-full h-full object-cover opacity-40 grayscale z-0 pointer-events-none"
+        >
+          <source src="/my-video.mp4" type="video/mp4" />
+        </video>
 
-          <div className="relative z-10 text-center space-y-6 max-w-3xl px-4 mx-auto">
+        {/* Top Pinstriped CTA Hero Banner */}
+        <div className="w-full attio-pinstripe-dark border-y border-white/[0.08] py-24 sm:py-32 relative flex flex-col items-center justify-center" style={{ backgroundColor: 'transparent' }}>
+          {/* Subtle radial center vignette */}
+          <div className="absolute inset-0 bg-radial-gradient from-transparent via-[#08090b]/60 to-[#08090b] pointer-events-none z-10" />
+
+          <div className="relative z-20 text-center space-y-6 max-w-3xl px-4 mx-auto">
             <h2 className="text-4xl sm:text-5xl md:text-[56px] font-bold tracking-[-0.035em] text-white leading-[1.08]">
               Agentic finance
               <br />
@@ -983,7 +1108,7 @@ export default function VerityLandingPage() {
         </div>
 
         {/* Main Multi-Column Navigation */}
-        <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 pt-20 pb-12">
+        <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 pt-20 pb-12 relative z-10">
           <div className="grid grid-cols-2 md:grid-cols-12 gap-10 lg:gap-8">
             {/* Column 1: Verity Logo & Mission */}
             <div className="col-span-2 md:col-span-12 lg:col-span-3">

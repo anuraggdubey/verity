@@ -19,7 +19,32 @@
   }
 }
 
+/* Custom Minimal Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent; 
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(160, 160, 160, 0.3); 
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(160, 160, 160, 0.5); 
+}
+
 /* Attio Pinstripes Backgrounds */
+@keyframes pinstripe-scroll {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 10px 0;
+  }
+}
+
 .attio-pinstripe-dark {
   background-color: #08090b;
   background-image: repeating-linear-gradient(
@@ -29,6 +54,7 @@
     transparent 1px,
     transparent 10px
   );
+  animation: pinstripe-scroll 0.5s linear infinite;
 }
 
 .attio-pinstripe-light {
@@ -63,6 +89,15 @@
 }
 
 /* Ruler Pattern for Changelog */
+@keyframes ruler-scroll {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: -12px 0;
+  }
+}
+
 .ruler-pattern {
   background-image: repeating-linear-gradient(
     to right,
@@ -72,6 +107,7 @@
     transparent 12px
   );
   height: 20px;
+  animation: ruler-scroll 1s linear infinite;
 }
 
 /* Subtle Film Grain */

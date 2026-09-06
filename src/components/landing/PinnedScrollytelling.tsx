@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   FileText,
   Search,
@@ -22,6 +23,8 @@ import {
   Copy,
   Terminal,
   Sliders,
+  Play,
+  Send,
   Database,
   AlertTriangle,
   ChevronRight,
@@ -44,8 +47,28 @@ const TABS: TabItem[] = [
 export function PinnedScrollytelling() {
   const [activeTab, setActiveTab] = useState<string>('stage-ingest');
   const [isManualScroll, setIsManualScroll] = useState<boolean>(false);
-  const [promptInput, setPromptInput] = useState<string>('Show me unposted FX variances > $1,000');
+  const [promptInput, setPromptInput] = useState<string>('');
   const [promptSubmitted, setPromptSubmitted] = useState<boolean>(false);
+
+  // Typing effect for the prompt input
+  useEffect(() => {
+    if (activeTab === 'stage-ingest') {
+      const fullText = 'Show me unposted FX variances > $1,000';
+      let currentText = '';
+      let i = 0;
+      setPromptInput('');
+      const typingInterval = setInterval(() => {
+        if (i < fullText.length) {
+          currentText += fullText.charAt(i);
+          setPromptInput(currentText);
+          i++;
+        } else {
+          clearInterval(typingInterval);
+        }
+      }, 40);
+      return () => clearInterval(typingInterval);
+    }
+  }, [activeTab]);
 
   // Scroll-spy: robust trigger line algorithm
   useEffect(() => {
@@ -269,7 +292,7 @@ export function PinnedScrollytelling() {
             </div>
 
             {/* Main Showcase Card: Soft Background Box with Table + Floating Popover (Image 1) */}
-            <div className="relative rounded-2xl border border-black/[0.08] bg-[#f0f3f8] p-4 sm:p-8 overflow-hidden shadow-xs min-h-[520px]">
+            <div className="relative rounded-2xl border border-black/[0.08] bg-[#f0f3f8] p-4 sm:p-8 shadow-xs min-h-[620px] sm:min-h-[660px]">
               {/* White Spreadsheet Table Card */}
               <div className="rounded-xl border border-black/[0.08] bg-white shadow-sm overflow-hidden text-xs max-w-2xl">
                 {/* Table Top Controls Bar */}
@@ -418,8 +441,19 @@ export function PinnedScrollytelling() {
               </div>
 
               {/* Exact Floating Popover Modal Card (Image 1 "Send email" Equivalent for Finance PR) */}
-              <div className="mt-4 sm:mt-0 sm:absolute sm:right-6 sm:top-10 w-full sm:w-[350px] rounded-xl border border-black/[0.12] bg-white p-4 shadow-2xl space-y-3">
-                <div className="flex items-center justify-between border-b border-black/[0.06] pb-2">
+              <motion.div 
+                initial="hidden"
+                animate={activeTab === 'stage-ingest' ? "visible" : "hidden"}
+                variants={{
+                  hidden: { opacity: 0, scale: 0.85 },
+                  visible: { 
+                    opacity: 1, scale: 1,
+                    transition: { type: "spring", damping: 20, stiffness: 200, staggerChildren: 0.1, delayChildren: 0.2 }
+                  }
+                }}
+                className="mt-4 sm:mt-0 sm:absolute sm:right-6 sm:top-10 w-full sm:w-[350px] rounded-xl border border-black/[0.12] bg-white p-4 shadow-2xl space-y-3 origin-center"
+              >
+                <motion.div variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }} className="flex items-center justify-between border-b border-black/[0.06] pb-2">
                   <div className="space-y-0.5">
                     <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider">Settlement Draft</span>
                     <h4 className="text-xs font-bold text-zinc-950">Draft Finance PR #2049</h4>
@@ -427,36 +461,61 @@ export function PinnedScrollytelling() {
                   <span className="text-[10px] font-mono bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-medium">
                     Priority: High
                   </span>
-                </div>
+                </motion.div>
 
-                <div className="text-[11px] text-zinc-500 leading-snug">
+                <motion.div variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }} className="text-[11.5px] text-zinc-500 leading-snug">
                   The proposal links wire #BNK-9921, invoice #INV-8821, and official ECB reference fix 1.0820.
-                </div>
+                </motion.div>
 
-                <div className="p-2.5 rounded-lg bg-zinc-50 border border-black/[0.04] text-[11px] space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-zinc-500">To:</span>
-                    <span className="font-semibold text-zinc-900 flex items-center gap-1">
-                      <span className="h-3 w-3 rounded-full bg-blue-600 text-white text-[7px] flex items-center justify-center">C</span>
-                      Lead Controller
-                    </span>
-                    <span className="text-[9px] text-zinc-400">CC/BCC</span>
+                <motion.div variants={{ hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1 } }} className="rounded-lg border border-black/[0.08] bg-white text-[12px] flex flex-col shadow-xs">
+                  {/* To Line */}
+                  <div className="flex items-center justify-between px-3 py-2.5 border-b border-black/[0.04]">
+                    <div className="flex items-center gap-4">
+                      <span className="text-zinc-400 text-[11px]">To</span>
+                      <span className="font-semibold text-zinc-900 flex items-center gap-1.5 text-[11px]">
+                        <span className="h-4 w-4 rounded-full bg-blue-600 text-white text-[8px] flex items-center justify-center font-bold">C</span>
+                        Lead Controller
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-zinc-400 font-medium">CC / BCC</span>
                   </div>
-                  <div className="border-t border-black/[0.04] pt-1 text-zinc-800">
-                    <span className="font-semibold">Subject:</span> Settlement Proposal for Acme Europe B.V. Wire
+                  
+                  {/* Subject Line */}
+                  <div className="px-3 py-2.5 border-b border-black/[0.04] text-[11.5px] font-medium text-zinc-800">
+                    Settlement Proposal for Acme Europe B.V. Wire
                   </div>
-                </div>
 
-                <div className="text-[11px] text-zinc-600 bg-white p-2 rounded-lg border border-black/[0.06] font-mono leading-relaxed space-y-1">
-                  <p className="font-sans text-zinc-800 font-medium">
-                    Settles €13,000.00 EUR against $14,200.00 USD.
-                  </p>
-                  <p className="text-[10px] text-zinc-500 font-sans">
-                    Queries official ECB fix 1.0820, books $134.00 Realized FX Gain, and balances double-entry lines before human sign-off.
-                  </p>
-                </div>
+                  {/* Body Content */}
+                  <div className="px-3 py-3 space-y-3 text-[11.5px]">
+                    <p className="text-zinc-800">Hi team,</p>
+                    
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={activeTab === 'stage-ingest' ? { opacity: 1, height: "auto" } : { opacity: 0, height: 0 }}
+                      transition={{ duration: 0.5, delay: 0.8 }}
+                      className="overflow-hidden space-y-3"
+                    >
+                      <p className="text-zinc-700 leading-relaxed">
+                        I've drafted a balanced PR for the Acme Europe B.V. wire. It settles <span className="font-semibold text-zinc-900">€13,000.00 EUR</span> against <span className="font-semibold text-zinc-900">$14,200.00 USD</span>.
+                      </p>
+                      
+                      <p className="text-zinc-700 leading-relaxed">
+                        I queried the official ECB fix (1.0820), booked the $134.00 Realized FX Gain, and balanced all double-entry ledger lines. Everything is hash-verified and ready for your sign-off.
+                      </p>
+                    </motion.div>
 
-                <div className="flex items-center gap-2 pt-1">
+                    <motion.p 
+                      initial={{ opacity: 0 }}
+                      animate={activeTab === 'stage-ingest' ? { opacity: 1 } : { opacity: 0 }}
+                      transition={{ duration: 0.5, delay: 1.5 }}
+                      className="text-zinc-800 pt-2 pb-1"
+                    >
+                      Best,<br/>Agent Alpha-03
+                    </motion.p>
+                  </div>
+                </motion.div>
+
+                <motion.div variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }} className="flex items-center gap-2 pt-1">
                   <Link
                     href="/cases/CASE-001"
                     className="flex-1 text-center py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors"
@@ -469,8 +528,8 @@ export function PinnedScrollytelling() {
                   <button type="button" className="text-zinc-400 hover:text-zinc-700 text-xs px-1">
                     Draft
                   </button>
-                </div>
-              </div>
+                </motion.div>
+              </motion.div>
             </div>
 
             {/* Lower 2-Column Split: Subcards with Hairline Divider (Exact Attio Image 1 Grid) */}
@@ -484,15 +543,15 @@ export function PinnedScrollytelling() {
                   </p>
                 </div>
 
-                {/* Minimal Interactive Prompt Bar (Image 1) */}
-                <div className="pt-1">
+                {/* Minimal Interactive Prompt Bar and List Group */}
+                <div className="pt-1 flex flex-col space-y-2">
                   <form
                     onSubmit={(e) => {
                       e.preventDefault();
                       setPromptSubmitted(true);
                       setTimeout(() => setPromptSubmitted(false), 3000);
                     }}
-                    className="flex items-center justify-between p-2 rounded-xl border border-black/[0.1] bg-white shadow-2xs focus-within:border-blue-500"
+                    className="flex items-center justify-between p-2 rounded-xl border border-black/[0.1] bg-white shadow-2xs focus-within:border-blue-500 relative z-10"
                   >
                     <input
                       type="text"
@@ -511,33 +570,40 @@ export function PinnedScrollytelling() {
                     </button>
                   </form>
                   {promptSubmitted && (
-                    <div className="text-[11px] text-emerald-600 font-medium mt-1.5 px-2 flex items-center gap-1">
+                    <div className="text-[11px] text-emerald-600 font-medium px-2 flex items-center gap-1">
                       <Check className="h-3 w-3" /> Found 1 unposted variance: Case #2049 (€13,000 / $14,200)
                     </div>
                   )}
-                </div>
 
-                {/* Accounts / Invoices Ready for Review Card (Image 1 bottom card) */}
-                <div className="rounded-xl border border-black/[0.08] bg-white p-3.5 shadow-2xs space-y-2 text-xs">
-                  <div className="text-[11px] font-mono text-zinc-400 font-medium">6 items ready for reconciliation</div>
-                  <div className="space-y-1 text-zinc-700">
-                    <div className="flex items-center justify-between py-1 border-b border-black/[0.03]">
-                      <span className="font-medium text-zinc-900">Acme Europe B.V.</span>
-                      <span className="text-[11px] text-amber-600 font-mono">€180 FX Discrepancy</span>
+                  {/* Accounts / Invoices Ready for Review Card */}
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0, y: -10 }}
+                    animate={activeTab === 'stage-ingest' ? { opacity: 1, height: 'auto', y: 0 } : { opacity: 0, height: 0, y: -10 }}
+                    transition={{ duration: 0.4, delay: 1.6, type: 'spring', bounce: 0.2 }}
+                    className="overflow-hidden relative z-0"
+                  >
+                    <div className="rounded-xl border border-black/[0.08] bg-white p-3.5 shadow-2xs space-y-2 text-xs">
+                      <div className="text-[11px] font-mono text-zinc-400 font-medium">6 items ready for reconciliation</div>
+                      <div className="space-y-1 text-zinc-700">
+                        <div className="flex items-center justify-between py-1 border-b border-black/[0.03]">
+                          <span className="font-medium text-zinc-900">Acme Europe B.V.</span>
+                          <span className="text-[11px] text-amber-600 font-mono">€180 FX Discrepancy</span>
+                        </div>
+                        <div className="flex items-center justify-between py-1 border-b border-black/[0.03]">
+                          <span className="font-medium text-zinc-900">Linear Software</span>
+                          <span className="text-[11px] text-zinc-500">SaaS Pre-paid Amortization</span>
+                        </div>
+                        <div className="flex items-center justify-between py-1 border-b border-black/[0.03]">
+                          <span className="font-medium text-zinc-900">Notion EMEA</span>
+                          <span className="text-[11px] text-zinc-500">VAT Cross-Border Treatment</span>
+                        </div>
+                        <div className="flex items-center justify-between py-1">
+                          <span className="font-medium text-zinc-900">OpenAI API</span>
+                          <span className="text-[11px] text-emerald-600">Monthly Usage Match</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between py-1 border-b border-black/[0.03]">
-                      <span className="font-medium text-zinc-900">Linear Software</span>
-                      <span className="text-[11px] text-zinc-500">SaaS Pre-paid Amortization</span>
-                    </div>
-                    <div className="flex items-center justify-between py-1 border-b border-black/[0.03]">
-                      <span className="font-medium text-zinc-900">Notion EMEA</span>
-                      <span className="text-[11px] text-zinc-500">VAT Cross-Border Treatment</span>
-                    </div>
-                    <div className="flex items-center justify-between py-1">
-                      <span className="font-medium text-zinc-900">OpenAI API</span>
-                      <span className="text-[11px] text-emerald-600">Monthly Usage Match</span>
-                    </div>
-                  </div>
+                  </motion.div>
                 </div>
               </div>
 
@@ -551,30 +617,100 @@ export function PinnedScrollytelling() {
                 </div>
 
                 {/* Circular Concentric Radar Graphic (Exact Replica from Image 1) */}
-                <div className="relative h-56 w-full flex items-center justify-center overflow-hidden rounded-xl bg-zinc-50/50 border border-black/[0.04]">
-                  {/* Concentric rings */}
-                  <div className="absolute h-48 w-48 rounded-full border border-black/[0.05]" />
-                  <div className="absolute h-36 w-36 rounded-full border border-black/[0.07]" />
-                  <div className="absolute h-24 w-24 rounded-full border border-blue-500/20 bg-blue-500/5 animate-pulse" />
+                <div className="relative h-64 w-full flex items-center justify-center overflow-visible">
+                  {/* Concentric rings with continuous subtle pulse */}
+                  <motion.div 
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={activeTab === 'stage-ingest' ? { scale: [1, 1.02, 1], opacity: 1 } : { scale: 0.8, opacity: 0 }}
+                    transition={{ 
+                      opacity: { duration: 1 }, 
+                      scale: { duration: 4, repeat: Infinity, ease: "easeInOut" } 
+                    }}
+                    className="absolute h-56 w-56 rounded-full border border-black/[0.06]" 
+                  />
+                  <motion.div 
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={activeTab === 'stage-ingest' ? { scale: [1, 1.03, 1], opacity: 1 } : { scale: 0.5, opacity: 0 }}
+                    transition={{ 
+                      opacity: { duration: 0.8, delay: 0.1 }, 
+                      scale: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.1 } 
+                    }}
+                    className="absolute h-40 w-40 rounded-full border border-black/[0.08]" 
+                  />
+                  <motion.div 
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={activeTab === 'stage-ingest' ? { scale: [1, 1.05, 1], opacity: 1 } : { scale: 0, opacity: 0 }}
+                    transition={{ 
+                      opacity: { duration: 0.6, delay: 0.2 },
+                      scale: { duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.2 }
+                    }}
+                    className="absolute h-24 w-24 rounded-full border border-blue-500/10 bg-gradient-to-tr from-blue-500/5 to-transparent" 
+                  />
 
                   {/* Center Node: Verity Logo / Shield */}
-                  <div className="relative z-10 h-12 w-12 rounded-full bg-white border border-black/[0.1] shadow-md flex items-center justify-center">
-                    <ShieldCheck className="h-6 w-6 text-zinc-900" />
-                  </div>
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={activeTab === 'stage-ingest' ? { scale: 1 } : { scale: 0 }}
+                    transition={{ type: 'spring', bounce: 0.5, delay: 0.3 }}
+                    className="relative z-10 h-16 w-16 rounded-full bg-white shadow-[0_0_20px_rgba(0,0,0,0.05)] flex items-center justify-center"
+                  >
+                    <motion.div animate={{ rotate: [0, -5, 5, -5, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}>
+                       <ShieldCheck className="h-7 w-7 text-zinc-900" strokeWidth={1.5} />
+                    </motion.div>
+                  </motion.div>
 
-                  {/* Floating Minimal Badges (Exact Positioning from Image 1) */}
-                  <span className="absolute top-4 right-8 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-[#fef9c3] text-[#854d0e] border border-amber-200 shadow-2xs">
-                    Variance: $134
-                  </span>
-                  <span className="absolute top-8 left-6 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-[#dcfce7] text-[#166534] border border-emerald-200 shadow-2xs">
-                    ECB Fix: 1.0820
-                  </span>
-                  <span className="absolute bottom-6 left-8 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-[#dbeafe] text-[#1e40af] border border-blue-200 shadow-2xs">
-                    MT940 Hash Verified
-                  </span>
-                  <span className="absolute bottom-5 right-6 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-[#f3e8ff] text-[#6b21a8] border border-purple-200 shadow-2xs">
-                    Zero Variance
-                  </span>
+                  {/* Floating Minimal Badges placed directly on orbits */}
+                  {/* Top Right on Outer Ring (radius ~112px) */}
+                  <div className="absolute top-1/2 left-1/2 z-20" style={{ transform: 'translate(calc(-50% + 80px), calc(-50% - 80px))' }}>
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={activeTab === 'stage-ingest' ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
+                      transition={{ type: 'spring', delay: 0.6 }}
+                    >
+                      <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-[#fef9c3]/95 backdrop-blur-sm text-[#854d0e] border border-amber-200/50 shadow-sm whitespace-nowrap">
+                        Variance: $134
+                      </span>
+                    </motion.div>
+                  </div>
+                  
+                  {/* Left on Middle Ring (radius ~80px) */}
+                  <div className="absolute top-1/2 left-1/2 z-20" style={{ transform: 'translate(calc(-50% - 75px), calc(-50% - 25px))' }}>
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={activeTab === 'stage-ingest' ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
+                      transition={{ type: 'spring', delay: 0.8 }}
+                    >
+                      <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-[#dcfce7]/95 backdrop-blur-sm text-[#166534] border border-emerald-200/50 shadow-sm whitespace-nowrap">
+                        ECB Fix: 1.0820
+                      </span>
+                    </motion.div>
+                  </div>
+                  
+                  {/* Bottom Left on Outer Ring (radius ~112px) */}
+                  <div className="absolute top-1/2 left-1/2 z-20" style={{ transform: 'translate(calc(-50% - 70px), calc(-50% + 85px))' }}>
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={activeTab === 'stage-ingest' ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
+                      transition={{ type: 'spring', delay: 1.0 }}
+                    >
+                      <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-[#dbeafe]/95 backdrop-blur-sm text-[#1e40af] border border-blue-200/50 shadow-sm whitespace-nowrap">
+                        MT940 Hash Verified
+                      </span>
+                    </motion.div>
+                  </div>
+                  
+                  {/* Bottom Right on Middle Ring (radius ~80px) */}
+                  <div className="absolute top-1/2 left-1/2 z-20" style={{ transform: 'translate(calc(-50% + 60px), calc(-50% + 55px))' }}>
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={activeTab === 'stage-ingest' ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
+                      transition={{ type: 'spring', delay: 1.2 }}
+                    >
+                      <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-[#f3e8ff]/95 backdrop-blur-sm text-[#6b21a8] border border-purple-200/50 shadow-sm whitespace-nowrap">
+                        Zero Variance
+                      </span>
+                    </motion.div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -592,67 +728,142 @@ export function PinnedScrollytelling() {
               </div>
 
               {/* Interactive Visual Node Diagram */}
-              <div className="space-y-6">
-                {/* Row 1: Trigger -> Worker */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 mt-4">
+                <div className="w-[840px] h-[380px] relative bg-[#f8fafc] rounded-2xl border border-black/[0.08] shadow-inner shrink-0 overflow-hidden">
+                  
+                  {/* Dot Grid Background */}
+                  <svg className="absolute inset-0 h-full w-full opacity-60" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                      <pattern id="dotGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+                        <circle cx="2" cy="2" r="1.5" fill="#cbd5e1" />
+                      </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#dotGrid)" />
+                  </svg>
+
+                  {/* SVG Paths with Flowing Animation */}
+                  <svg className="absolute inset-0 h-full w-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+                    <style>
+                      {`
+                        @keyframes flowData {
+                          from { stroke-dashoffset: 20; }
+                          to { stroke-dashoffset: 0; }
+                        }
+                        .data-flow {
+                          stroke-dasharray: 4 16;
+                          animation: flowData 1s linear infinite;
+                          stroke-linecap: round;
+                        }
+                      `}
+                    </style>
+                    {/* Base Solid Paths (Faint Blue/Grey) */}
+                    <path d="M 260 80 L 320 80" stroke="#dbeafe" strokeWidth="2" fill="none" />
+                    <path d="M 540 80 L 580 80 Q 592 80 592 92 L 592 138 Q 592 150 580 150 L 28 150 Q 16 150 16 162 L 16 208 Q 16 220 28 220 L 40 220" stroke="#dbeafe" strokeWidth="2" fill="none" />
+                    <path d="M 260 220 L 320 220" stroke="#dbeafe" strokeWidth="2" fill="none" />
+                    <path d="M 540 205 L 550 205 Q 562 205 562 193 L 562 192 Q 562 180 574 180 L 580 180" stroke="#dbeafe" strokeWidth="2" fill="none" />
+                    <path d="M 540 235 L 550 235 Q 562 235 562 247 L 562 288 Q 562 300 574 300 L 580 300" stroke="#f1f5f9" strokeWidth="2" fill="none" />
+
+                    {/* Animated Moving Dots overlay (Vibrant Blue/Grey) */}
+                    <path d="M 260 80 L 320 80" stroke="#3b82f6" strokeWidth="2.5" fill="none" className="data-flow" />
+                    <path d="M 540 80 L 580 80 Q 592 80 592 92 L 592 138 Q 592 150 580 150 L 28 150 Q 16 150 16 162 L 16 208 Q 16 220 28 220 L 40 220" stroke="#3b82f6" strokeWidth="2.5" fill="none" className="data-flow" />
+                    <path d="M 260 220 L 320 220" stroke="#3b82f6" strokeWidth="2.5" fill="none" className="data-flow" />
+                    <path d="M 540 205 L 550 205 Q 562 205 562 193 L 562 192 Q 562 180 574 180 L 580 180" stroke="#3b82f6" strokeWidth="2.5" fill="none" className="data-flow" />
+                    <path d="M 540 235 L 550 235 Q 562 235 562 247 L 562 288 Q 562 300 574 300 L 580 300" stroke="#94a3b8" strokeWidth="2.5" fill="none" className="data-flow" />
+                  </svg>
+
                   {/* Node 1: Trigger */}
-                  <div className="w-full sm:w-64 rounded-xl border border-blue-200 bg-white p-3 shadow-2xs relative space-y-1">
-                    <div className="flex items-center justify-between text-[10px]">
-                      <span className="px-1.5 py-0.5 rounded bg-blue-600 text-white font-medium">Trigger</span>
-                      <span className="text-emerald-600 font-medium">✓ Triggered</span>
+                  <div className="absolute top-[40px] left-[40px] w-[220px] rounded-xl border border-blue-500 bg-white p-3 shadow-sm flex flex-col gap-1.5 z-10">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 bg-blue-500 text-white rounded text-[10px] font-semibold">
+                        <Play className="h-3 w-3" fill="currentColor" /> Trigger
+                      </div>
+                      <span className="text-emerald-500 text-[10px] font-medium flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded">
+                        <Check className="h-3 w-3" /> Triggered
+                      </span>
                     </div>
-                    <div className="text-xs font-semibold text-zinc-900">Record Created</div>
-                    <div className="text-[11px] text-zinc-500">Bank wire received (MT940 feed)</div>
+                    <div className="text-sm font-semibold text-zinc-900 mt-1">Record created</div>
+                    <div className="text-[11px] text-zinc-500">Bank wire received (MT940)</div>
+                    <div className="absolute -right-[5px] top-1/2 -translate-y-1/2 w-[9px] h-[9px] rounded-full bg-blue-500 ring-2 ring-white" />
                   </div>
 
-                  {/* Connector Arrow */}
-                  <div className="hidden sm:block text-zinc-300 font-mono text-sm">────────▶</div>
-
-                  {/* Node 2: Web / Ledger Agent */}
-                  <div className="w-full sm:w-64 rounded-xl border border-pink-200 bg-white p-3 shadow-2xs relative space-y-1">
-                    <div className="flex items-center justify-between text-[10px]">
-                      <span className="px-1.5 py-0.5 rounded bg-pink-50 text-pink-700 font-medium border border-pink-200">Worker Agent</span>
-                      <span className="text-emerald-600 font-medium">✓ Completed</span>
+                  {/* Node 2: Web agent */}
+                  <div className="absolute top-[40px] left-[320px] w-[220px] rounded-xl border border-blue-400 bg-white p-3 shadow-sm flex flex-col gap-1.5 z-10">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 bg-pink-50 text-pink-600 rounded text-[10px] font-semibold border border-pink-100">
+                        <Search className="h-3 w-3" /> Web agent
+                      </div>
+                      <span className="text-emerald-500 text-[10px] font-medium flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded">
+                        <Check className="h-3 w-3" /> Completed
+                      </span>
                     </div>
-                    <div className="text-xs font-semibold text-zinc-900">Locate Invoice #INV-8821</div>
+                    <div className="text-sm font-semibold text-zinc-900 mt-1">Locate Invoice</div>
                     <div className="text-[11px] text-zinc-500">Query GL open balances</div>
+                    <div className="absolute -left-[5px] top-1/2 -translate-y-1/2 w-[9px] h-[9px] rounded-full bg-blue-500 ring-2 ring-white" />
+                    <div className="absolute -right-[5px] top-1/2 -translate-y-1/2 w-[9px] h-[9px] rounded-full bg-blue-500 ring-2 ring-white" />
                   </div>
-                </div>
 
-                {/* Row 2: Custom Agent -> Decision Gate -> Branches */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
-                  {/* Node 3: Custom Agent */}
-                  <div className="w-full sm:w-60 rounded-xl border border-emerald-200 bg-white p-3 shadow-2xs relative space-y-1">
-                    <div className="flex items-center justify-between text-[10px]">
-                      <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-medium border border-emerald-200">Oracle Agent</span>
-                      <span className="text-emerald-600 font-medium">✓ Completed</span>
+                  {/* Node 3: Custom agent */}
+                  <div className="absolute top-[180px] left-[40px] w-[220px] rounded-xl border border-blue-400 bg-white p-3 shadow-sm flex flex-col gap-1.5 z-10">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[10px] font-semibold border border-emerald-100">
+                        <Cpu className="h-3 w-3" /> Custom agent
+                      </div>
+                      <span className="text-emerald-500 text-[10px] font-medium flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded">
+                        <Check className="h-3 w-3" /> Completed
+                      </span>
                     </div>
-                    <div className="text-xs font-semibold text-zinc-900">Query ECB Daily Fix</div>
+                    <div className="text-sm font-semibold text-zinc-900 mt-1">Query ECB Daily Fix</div>
                     <div className="text-[11px] text-zinc-500">Extract official rate: 1.0820</div>
+                    <div className="absolute -left-[5px] top-1/2 -translate-y-1/2 w-[9px] h-[9px] rounded-full bg-blue-500 ring-2 ring-white" />
+                    <div className="absolute -right-[5px] top-1/2 -translate-y-1/2 w-[9px] h-[9px] rounded-full bg-blue-500 ring-2 ring-white" />
                   </div>
 
-                  <div className="hidden sm:block text-zinc-300 font-mono text-sm">──▶</div>
-
-                  {/* Node 4: Decision Gate (If) */}
-                  <div className="w-full sm:w-56 rounded-xl border border-purple-200 bg-white p-3 shadow-2xs relative space-y-1">
-                    <div className="flex items-center justify-between text-[10px]">
-                      <span className="px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 font-medium border border-purple-200">If</span>
-                      <span className="text-emerald-600 font-medium">✓ Evaluated</span>
+                  {/* Node 4: If */}
+                  <div className="absolute top-[180px] left-[320px] w-[220px] rounded-xl border border-blue-400 bg-white p-3 shadow-sm flex flex-col gap-1.5 z-10">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 bg-purple-50 text-purple-600 rounded text-[10px] font-semibold border border-purple-100">
+                        <GitBranch className="h-3 w-3" /> If
+                      </div>
+                      <span className="text-emerald-500 text-[10px] font-medium flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded">
+                        <Check className="h-3 w-3" /> Completed
+                      </span>
                     </div>
-                    <div className="text-xs font-semibold text-zinc-900">Check Tolerance</div>
-                    <div className="text-[10px] text-zinc-500 font-mono">Variance &lt; $500 Threshold</div>
+                    <div className="text-sm font-semibold text-zinc-900 mt-1">Check Tolerance</div>
+                    <div className="text-[10px] text-zinc-500 font-mono pb-1">Variance &lt; $500</div>
+                    
+                    <div className="absolute -right-8 top-[20px] text-[10px] text-zinc-500 font-medium bg-[#f8fafc] px-1">True</div>
+                    <div className="absolute -right-9 top-[50px] text-[10px] text-zinc-400 font-medium bg-[#f8fafc] px-1">False</div>
+
+                    <div className="absolute -left-[5px] top-1/2 -translate-y-1/2 w-[9px] h-[9px] rounded-full bg-blue-500 ring-2 ring-white" />
+                    <div className="absolute -right-[5px] top-[25px] w-[9px] h-[9px] rounded-full bg-blue-500 ring-2 ring-white" />
+                    <div className="absolute -right-[5px] top-[55px] w-[9px] h-[9px] rounded-full bg-zinc-300 ring-2 ring-white" />
                   </div>
 
-                  <div className="hidden sm:block text-zinc-300 font-mono text-sm">──▶</div>
-
-                  {/* Node 5: Enroll in Sequence / PR Action */}
-                  <div className="w-full sm:w-60 rounded-xl border border-amber-200 bg-white p-3 shadow-2xs relative space-y-1">
-                    <div className="flex items-center justify-between text-[10px]">
-                      <span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 font-medium border border-amber-200">CI Sequence</span>
-                      <span className="text-blue-600 font-medium">In Queue</span>
+                  {/* Node 5: Enroll in sequence (True) */}
+                  <div className="absolute top-[140px] left-[580px] w-[220px] rounded-xl border border-black/[0.08] bg-white p-3 shadow-sm flex flex-col gap-1.5 z-10">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-[10px] font-semibold border border-amber-100">
+                        <Send className="h-3 w-3" /> Action
+                      </div>
+                      <span className="text-purple-500 text-[10px] font-medium flex items-center gap-1 bg-purple-50 px-1.5 py-0.5 rounded">
+                        <RefreshCw className="h-3 w-3 animate-spin" /> Running
+                      </span>
                     </div>
-                    <div className="text-xs font-semibold text-zinc-900">Draft Balanced PR</div>
+                    <div className="text-sm font-semibold text-zinc-900 mt-1">Draft Balanced PR</div>
                     <div className="text-[11px] text-zinc-500">Route to Controller Review</div>
+                    <div className="absolute -left-[5px] top-1/2 -translate-y-1/2 w-[9px] h-[9px] rounded-full bg-blue-500 ring-2 ring-white" />
+                  </div>
+
+                  {/* Node 6: Enroll in sequence (False) */}
+                  <div className="absolute top-[260px] left-[580px] w-[220px] rounded-xl border border-black/[0.08] bg-white p-3 shadow-sm flex flex-col gap-1.5 z-10 opacity-60">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-[10px] font-semibold border border-amber-100">
+                        <Send className="h-3 w-3" /> Action
+                      </div>
+                    </div>
+                    <div className="text-sm font-semibold text-zinc-900 mt-1">Auto-Clear Ledger</div>
+                    <div className="text-[11px] text-zinc-500">Post directly to GL</div>
+                    <div className="absolute -left-[5px] top-1/2 -translate-y-1/2 w-[9px] h-[9px] rounded-full bg-zinc-300 ring-2 ring-white" />
                   </div>
                 </div>
               </div>
@@ -668,144 +879,220 @@ export function PinnedScrollytelling() {
               </h3>
             </div>
 
-            {/* 4-Column Kanban Exception Board (Exact Replica of Image 2 Kanban Board) */}
-            <div className="rounded-2xl border border-black/[0.08] bg-[#fbfbfd] p-4 sm:p-6 overflow-x-auto shadow-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 min-w-[720px]">
+            {/* 4-Column Kanban Exception Board (Replica of Attio style board) */}
+            <div className="overflow-x-auto pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
+              <div className="flex gap-4 min-w-[900px] h-[500px]">
                 {/* Column 1: Discovery / Auto-Cleared */}
-                <div className="space-y-3">
+                <div className="flex-1 rounded-2xl bg-[#f8fafc] border border-black/[0.04] p-3 space-y-3 flex flex-col shadow-inner">
                   <div className="flex items-center justify-between px-1 text-xs font-semibold text-zinc-800">
                     <div className="flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-full bg-amber-500" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-amber-500 shadow-sm" />
                       <span>Auto-Cleared</span>
-                      <span className="text-[10px] font-mono text-zinc-400 px-1 rounded bg-zinc-200/60">2</span>
+                      <span className="text-[10px] font-mono text-zinc-500 px-1.5 py-0.5 rounded-md bg-zinc-200/60 shadow-inner">2</span>
                     </div>
-                    <button type="button" className="text-zinc-400 hover:text-zinc-600">+</button>
+                    <button type="button" className="text-zinc-400 hover:text-zinc-600 transition-colors">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                    </button>
                   </div>
 
-                  {/* Card 1 */}
-                  <div className="rounded-xl border border-black/[0.08] bg-white p-3 space-y-2 shadow-2xs">
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="font-semibold text-zinc-900">Stripe Merchant Settlement</span>
-                    </div>
-                    <div className="text-[10px] text-zinc-400">📅 Sep 5, 2026</div>
-                    <div className="text-xs font-bold font-mono text-zinc-900">USD $18,940.20</div>
-                    <div className="flex items-center justify-between text-[10px] text-zinc-500 pt-1 border-t border-black/[0.04]">
-                      <span className="text-emerald-600 font-medium">✓ Exact Hash</span>
-                      <span>12ms</span>
-                    </div>
-                  </div>
+                  <div className="space-y-3 flex-1 overflow-y-auto pr-1 custom-scrollbar">
+                    {/* Card 1 */}
+                    <motion.div 
+                      initial={{ opacity: 0, x: -30 }}
+                      animate={activeTab === 'stage-workflows' ? { opacity: 1, x: 0 } : { opacity: 0, x: -30 }}
+                      transition={{ type: 'spring', bounce: 0.2, delay: 0.1 }}
+                      className="rounded-xl border border-black/[0.06] bg-white p-3.5 space-y-2.5 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                    >
+                      <div className="flex items-center justify-between text-[12px]">
+                        <span className="font-semibold text-zinc-900">Stripe Merchant Settlement</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 font-medium">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        Sep 5, 2026
+                      </div>
+                      <div className="text-[13px] font-bold font-mono text-zinc-900">USD $18,940.20</div>
+                      <div className="flex items-center justify-between text-[10px] text-zinc-500 pt-2 border-t border-black/[0.04]">
+                        <span className="text-emerald-600 font-medium flex items-center gap-1"><Check className="h-3 w-3"/> Exact Hash</span>
+                        <span className="flex items-center gap-1"><RefreshCw className="h-3 w-3"/> 12ms</span>
+                      </div>
+                    </motion.div>
 
-                  {/* Card 2 */}
-                  <div className="rounded-xl border border-black/[0.08] bg-white p-3 space-y-2 shadow-2xs">
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="font-semibold text-zinc-900">AWS Cloud EMEA</span>
-                    </div>
-                    <div className="text-[10px] text-zinc-400">📅 Sep 4, 2026</div>
-                    <div className="text-xs font-bold font-mono text-zinc-900">USD $4,210.50</div>
-                    <div className="flex items-center justify-between text-[10px] text-zinc-500 pt-1 border-t border-black/[0.04]">
-                      <span className="text-emerald-600 font-medium">✓ Vendor PO #4812</span>
-                      <span>Auto</span>
-                    </div>
+                    {/* Card 2 */}
+                    <motion.div 
+                      initial={{ opacity: 0, x: -30 }}
+                      animate={activeTab === 'stage-workflows' ? { opacity: 1, x: 0 } : { opacity: 0, x: -30 }}
+                      transition={{ type: 'spring', bounce: 0.2, delay: 0.2 }}
+                      className="rounded-xl border border-black/[0.06] bg-white p-3.5 space-y-2.5 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                    >
+                      <div className="flex items-center justify-between text-[12px]">
+                        <span className="font-semibold text-zinc-900">AWS Cloud EMEA</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 font-medium">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        Sep 4, 2026
+                      </div>
+                      <div className="text-[13px] font-bold font-mono text-zinc-900">USD $4,210.50</div>
+                      <div className="flex items-center justify-between text-[10px] text-zinc-500 pt-2 border-t border-black/[0.04]">
+                        <span className="text-emerald-600 font-medium flex items-center gap-1"><Check className="h-3 w-3"/> Vendor PO #4812</span>
+                        <span>Auto</span>
+                      </div>
+                    </motion.div>
                   </div>
                 </div>
 
                 {/* Column 2: Demo / Review Lane */}
-                <div className="space-y-3">
+                <div className="flex-1 rounded-2xl bg-[#f8fafc] border border-black/[0.04] p-3 space-y-3 flex flex-col shadow-inner">
                   <div className="flex items-center justify-between px-1 text-xs font-semibold text-zinc-800">
                     <div className="flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-full bg-blue-500" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-blue-500 shadow-sm" />
                       <span>Review Lane</span>
-                      <span className="text-[10px] font-mono text-zinc-400 px-1 rounded bg-zinc-200/60">1</span>
+                      <span className="text-[10px] font-mono text-zinc-500 px-1.5 py-0.5 rounded-md bg-zinc-200/60 shadow-inner">1</span>
                     </div>
-                    <button type="button" className="text-zinc-400 hover:text-zinc-600">+</button>
+                    <button type="button" className="text-zinc-400 hover:text-zinc-600 transition-colors">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                    </button>
                   </div>
 
-                  {/* Card 1 */}
-                  <div className="rounded-xl border border-blue-300 bg-white p-3 space-y-2 shadow-2xs ring-2 ring-blue-500/10">
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="font-bold text-zinc-900">Acme Europe B.V.</span>
-                    </div>
-                    <div className="text-[10px] text-zinc-400">📅 Sep 5, 2026</div>
-                    <div className="text-xs font-bold font-mono text-zinc-900">USD $14,200.00</div>
-                    <div className="flex items-center gap-1 text-[10px] text-zinc-600">
-                      <span className="h-3 w-3 rounded-full bg-blue-600 text-white text-[7px] flex items-center justify-center">α</span>
-                      <span>Agent Alpha-03 Assigned</span>
-                    </div>
-                    <div className="text-[10px] text-amber-700 font-medium bg-amber-50 px-1.5 py-0.5 rounded">
-                      €180 FX variance • Recheck ECB fix
-                    </div>
+                  <div className="space-y-3 flex-1 overflow-y-auto pr-1 custom-scrollbar">
+                    {/* Card 1 */}
+                    <motion.div 
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={activeTab === 'stage-workflows' ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+                      transition={{ type: 'spring', bounce: 0.2, delay: 0.3 }}
+                      className="rounded-xl border-2 border-blue-200 bg-white p-3.5 space-y-3 shadow-md hover:shadow-lg transition-shadow cursor-pointer relative"
+                    >
+                      <div className="absolute inset-0 bg-blue-50/20 rounded-xl pointer-events-none" />
+                      <div className="flex items-center justify-between text-[12px] relative z-10">
+                        <span className="font-bold text-zinc-900">Acme Europe B.V.</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 font-medium relative z-10">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        Sep 5, 2026
+                      </div>
+                      <div className="text-[13px] font-bold font-mono text-zinc-900 relative z-10">USD $14,200.00</div>
+                      
+                      <div className="flex flex-col gap-2 relative z-10 pt-2 border-t border-black/[0.04]">
+                        <div className="flex items-center gap-1.5 text-[10px] text-zinc-600 font-medium">
+                          <span className="h-4 w-4 rounded-full bg-blue-600 text-white text-[8px] flex items-center justify-center shadow-sm">α</span>
+                          <span>Agent Alpha-03 Assigned</span>
+                        </div>
+                        <div className="text-[10px] text-amber-700 font-medium bg-amber-50 px-2 py-1 rounded-md border border-amber-100 flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3" /> €180 FX variance
+                        </div>
+                      </div>
+                    </motion.div>
                   </div>
                 </div>
 
                 {/* Column 3: Proposal / In Repair */}
-                <div className="space-y-3">
+                <div className="flex-1 rounded-2xl bg-[#f8fafc] border border-black/[0.04] p-3 space-y-3 flex flex-col shadow-inner">
                   <div className="flex items-center justify-between px-1 text-xs font-semibold text-zinc-800">
                     <div className="flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-full bg-purple-500" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-purple-500 shadow-sm" />
                       <span>In CI Repair</span>
-                      <span className="text-[10px] font-mono text-zinc-400 px-1 rounded bg-zinc-200/60">2</span>
+                      <span className="text-[10px] font-mono text-zinc-500 px-1.5 py-0.5 rounded-md bg-zinc-200/60 shadow-inner">2</span>
                     </div>
-                    <button type="button" className="text-zinc-400 hover:text-zinc-600">+</button>
+                    <button type="button" className="text-zinc-400 hover:text-zinc-600 transition-colors">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                    </button>
                   </div>
 
-                  {/* Card 1 */}
-                  <div className="rounded-xl border border-black/[0.08] bg-white p-3 space-y-2 shadow-2xs">
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="font-semibold text-zinc-900">JPMorgan Treasury</span>
-                    </div>
-                    <div className="text-[10px] text-zinc-400">📅 Sep 3, 2026</div>
-                    <div className="text-xs font-bold font-mono text-zinc-900">USD $54,000.00</div>
-                    <div className="text-[10px] text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded font-medium">
-                      Lineage verification active
-                    </div>
-                  </div>
+                  <div className="space-y-3 flex-1 overflow-y-auto pr-1 custom-scrollbar">
+                    {/* Card 1 */}
+                    <motion.div 
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={activeTab === 'stage-workflows' ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+                      transition={{ type: 'spring', bounce: 0.2, delay: 0.4 }}
+                      className="rounded-xl border border-black/[0.06] bg-white p-3.5 space-y-2.5 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                    >
+                      <div className="flex items-center justify-between text-[12px]">
+                        <span className="font-semibold text-zinc-900">JPMorgan Treasury</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 font-medium">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        Sep 3, 2026
+                      </div>
+                      <div className="text-[13px] font-bold font-mono text-zinc-900">USD $54,000.00</div>
+                      <div className="text-[10px] text-purple-700 bg-purple-50 px-2 py-1 rounded-md font-medium border border-purple-100 flex items-center gap-1">
+                        <RefreshCw className="h-3 w-3 animate-spin" /> Lineage active
+                      </div>
+                    </motion.div>
 
-                  {/* Card 2 */}
-                  <div className="rounded-xl border border-black/[0.08] bg-white p-3 space-y-2 shadow-2xs">
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="font-semibold text-zinc-900">Driftwave Software</span>
-                    </div>
-                    <div className="text-[10px] text-zinc-400">📅 Sep 2, 2026</div>
-                    <div className="text-xs font-bold font-mono text-zinc-900">USD $31,200.00</div>
-                    <div className="text-[10px] text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded font-medium">
-                      Self-healing §4.2 rule retry
-                    </div>
+                    {/* Card 2 */}
+                    <motion.div 
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={activeTab === 'stage-workflows' ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+                      transition={{ type: 'spring', bounce: 0.2, delay: 0.5 }}
+                      className="rounded-xl border border-black/[0.06] bg-white p-3.5 space-y-2.5 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                    >
+                      <div className="flex items-center justify-between text-[12px]">
+                        <span className="font-semibold text-zinc-900">Driftwave Software</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 font-medium">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        Sep 2, 2026
+                      </div>
+                      <div className="text-[13px] font-bold font-mono text-zinc-900">USD $31,200.00</div>
+                      <div className="text-[10px] text-rose-700 bg-rose-50 px-2 py-1 rounded-md font-medium border border-rose-100">
+                        Self-healing §4.2 rule retry
+                      </div>
+                    </motion.div>
                   </div>
                 </div>
 
                 {/* Column 4: Signed Off / Closed */}
-                <div className="space-y-3">
+                <div className="flex-1 rounded-2xl bg-[#f8fafc] border border-black/[0.04] p-3 space-y-3 flex flex-col shadow-inner">
                   <div className="flex items-center justify-between px-1 text-xs font-semibold text-zinc-800">
                     <div className="flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-sm" />
                       <span>Signed Off</span>
-                      <span className="text-[10px] font-mono text-zinc-400 px-1 rounded bg-zinc-200/60">2</span>
+                      <span className="text-[10px] font-mono text-zinc-500 px-1.5 py-0.5 rounded-md bg-zinc-200/60 shadow-inner">2</span>
                     </div>
-                    <button type="button" className="text-zinc-400 hover:text-zinc-600">+</button>
+                    <button type="button" className="text-zinc-400 hover:text-zinc-600 transition-colors">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                    </button>
                   </div>
 
-                  {/* Card 1 */}
-                  <div className="rounded-xl border border-black/[0.08] bg-white p-3 space-y-2 shadow-2xs">
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="font-semibold text-zinc-900">Northpeak Global</span>
-                    </div>
-                    <div className="text-[10px] text-zinc-400">📅 Sep 1, 2026</div>
-                    <div className="text-xs font-bold font-mono text-zinc-900">USD $78,400.00</div>
-                    <div className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-medium">
-                      ✓ Merged to General Ledger
-                    </div>
-                  </div>
+                  <div className="space-y-3 flex-1 overflow-y-auto pr-1 custom-scrollbar">
+                    {/* Card 1 */}
+                    <motion.div 
+                      initial={{ opacity: 0, x: 30 }}
+                      animate={activeTab === 'stage-workflows' ? { opacity: 1, x: 0 } : { opacity: 0, x: 30 }}
+                      transition={{ type: 'spring', bounce: 0.2, delay: 0.6 }}
+                      className="rounded-xl border border-black/[0.06] bg-white p-3.5 space-y-2.5 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                    >
+                      <div className="flex items-center justify-between text-[12px]">
+                        <span className="font-semibold text-zinc-900">Northpeak Global</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 font-medium">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        Sep 1, 2026
+                      </div>
+                      <div className="text-[13px] font-bold font-mono text-zinc-900">USD $78,400.00</div>
+                      <div className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md font-medium border border-emerald-100 flex items-center gap-1">
+                        <Check className="h-3 w-3" /> Merged to Ledger
+                      </div>
+                    </motion.div>
 
-                  {/* Card 2 */}
-                  <div className="rounded-xl border border-black/[0.08] bg-white p-3 space-y-2 shadow-2xs">
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="font-semibold text-zinc-900">Westwind Logistics</span>
-                    </div>
-                    <div className="text-[10px] text-zinc-400">📅 Aug 30, 2026</div>
-                    <div className="text-xs font-bold font-mono text-zinc-900">USD $26,100.00</div>
-                    <div className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-medium">
-                      ✓ Audit Hash Sealed
-                    </div>
+                    {/* Card 2 */}
+                    <motion.div 
+                      initial={{ opacity: 0, x: 30 }}
+                      animate={activeTab === 'stage-workflows' ? { opacity: 1, x: 0 } : { opacity: 0, x: 30 }}
+                      transition={{ type: 'spring', bounce: 0.2, delay: 0.7 }}
+                      className="rounded-xl border border-black/[0.06] bg-white p-3.5 space-y-2.5 shadow-sm hover:shadow-md transition-shadow cursor-pointer opacity-60 hover:opacity-100"
+                    >
+                      <div className="flex items-center justify-between text-[12px]">
+                        <span className="font-semibold text-zinc-900">Westwind Logistics</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 font-medium">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        Aug 30, 2026
+                      </div>
+                      <div className="text-[13px] font-bold font-mono text-zinc-900">USD $26,100.00</div>
+                      <div className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md font-medium border border-emerald-100 flex items-center gap-1">
+                        <Check className="h-3 w-3" /> Audit Hash Sealed
+                      </div>
+                    </motion.div>
                   </div>
                 </div>
               </div>
@@ -1285,39 +1572,129 @@ export function PinnedScrollytelling() {
 
             {/* Lower 2-Column Split: Subcards with Hairline Divider */}
             <div className="grid grid-cols-1 md:grid-cols-2 border-t border-black/[0.08] pt-8 gap-8">
-              <div className="space-y-3 md:pr-6 md:border-r border-black/[0.08]">
-                <h4 className="text-sm font-bold text-zinc-900">Machine-readable error schemas.</h4>
-                <p className="text-xs text-[#64748b] leading-relaxed">
-                  Agents aren&apos;t fed ambiguous chat prompts. They receive structured error schemas detailing the exact policy clause and repair contract.
-                </p>
-                <div className="p-3 rounded-xl border border-black/[0.08] bg-white shadow-2xs space-y-1.5 text-xs font-mono">
-                  <div className="flex items-center justify-between text-[11px] text-zinc-500">
-                    <span>CONTRACT: VERITY-REPAIR-V1</span>
-                    <span className="text-blue-600">Schema Validated</span>
-                  </div>
-                  <div className="text-[11px] text-zinc-800 space-y-0.5">
-                    <div>error_code: &quot;VERITY-FX-003&quot;</div>
-                    <div>oracle_target: &quot;ECB_DAILY_FIX&quot;</div>
-                    <div>balancing_gain: &quot;$134.00 USD&quot;</div>
-                  </div>
+              <div className="space-y-4 md:pr-6 md:border-r border-black/[0.08]">
+                <div>
+                  <h4 className="text-base font-bold text-zinc-950 flex items-center gap-2">
+                    <Database className="h-4 w-4 text-blue-600" /> Machine-readable error schemas.
+                  </h4>
+                  <p className="text-xs text-zinc-500 leading-relaxed mt-1.5">
+                    Agents aren&apos;t fed ambiguous chat prompts. They receive structured error schemas detailing the exact policy clause and repair contract.
+                  </p>
                 </div>
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  className="relative p-[1px] rounded-xl bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-blue-500/20 shadow-sm overflow-hidden group"
+                >
+                  <motion.div 
+                    animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
+                    transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+                    className="absolute inset-0 bg-gradient-to-r from-blue-500/30 via-purple-500/30 to-blue-500/30 bg-[length:200%_auto] opacity-0 group-hover:opacity-100 transition-opacity"
+                  />
+                  
+                  <div className="relative bg-zinc-50/90 backdrop-blur-sm p-4 rounded-xl h-full w-full border border-black/[0.04]">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-xl" />
+                    
+                    <div className="relative z-10 space-y-3 font-mono text-[11px]">
+                      <div className="flex items-center justify-between text-zinc-500 border-b border-black/[0.06] pb-2">
+                        <span className="flex items-center gap-1.5 font-medium">
+                          <Terminal className="h-3.5 w-3.5 text-zinc-400" /> CONTRACT: VERITY-REPAIR-V1
+                        </span>
+                        <span className="flex items-center gap-1.5 text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full font-medium border border-blue-100">
+                          <motion.span 
+                            animate={{ opacity: [1, 0.4, 1] }} 
+                            transition={{ duration: 2, repeat: Infinity }}
+                            className="h-1.5 w-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.4)]"
+                          />
+                          Schema Validated
+                        </span>
+                      </div>
+                      <div className="text-zinc-600 space-y-1.5 pt-1 text-xs">
+                        <div><span className="text-purple-700 font-semibold">error_code:</span> <span className="text-emerald-700">&quot;VERITY-FX-003&quot;</span></div>
+                        <div><span className="text-purple-700 font-semibold">oracle_target:</span> <span className="text-emerald-700">&quot;ECB_DAILY_FIX&quot;</span></div>
+                        <div><span className="text-purple-700 font-semibold">balancing_gain:</span> <span className="text-emerald-700">&quot;$134.00 USD&quot;</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
               </div>
 
-              <div className="space-y-3 md:pl-2">
-                <h4 className="text-sm font-bold text-zinc-900">Immutable revision trail.</h4>
-                <p className="text-xs text-[#64748b] leading-relaxed">
-                  Flawed revisions are preserved forever in the audit database, giving internal controllers and Big Four auditors proof of control enforcement.
-                </p>
-                <div className="p-3 rounded-xl border border-black/[0.08] bg-white shadow-2xs space-y-2 text-xs">
-                  <div className="text-[11px] font-mono text-zinc-400">Auditor Timeline:</div>
-                  <div className="flex items-center gap-2 font-mono text-[11px]">
-                    <span className="px-2 py-0.5 rounded bg-rose-50 text-rose-700 line-through">Rev 1 (Blocked)</span>
-                    <span className="text-zinc-400">➔</span>
-                    <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700">Self-Repair</span>
-                    <span className="text-zinc-400">➔</span>
-                    <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 font-semibold">Rev 2 (Passed)</span>
-                  </div>
+              <div className="space-y-4 md:pl-2">
+                <div>
+                  <h4 className="text-base font-bold text-zinc-950 flex items-center gap-2">
+                    <GitBranch className="h-4 w-4 text-emerald-600" /> Immutable revision trail.
+                  </h4>
+                  <p className="text-xs text-zinc-500 leading-relaxed mt-1.5">
+                    Flawed revisions are preserved forever in the audit database, giving internal controllers and Big Four auditors proof of control enforcement.
+                  </p>
                 </div>
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  className="relative p-[1px] rounded-xl bg-gradient-to-r from-emerald-500/30 to-blue-500/30 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden group"
+                >
+                  <div className="relative bg-white p-5 rounded-xl h-full w-full">
+                    {/* Subtle animated background glow */}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                    
+                    <div className="relative z-10 space-y-4">
+                      <div className="text-[11px] font-mono text-zinc-400 font-medium tracking-wider uppercase flex items-center gap-1.5">
+                        <Layers className="h-3 w-3" /> Auditor Timeline
+                      </div>
+                      
+                      <div className="flex items-center justify-between font-mono text-[11px] mt-2 relative py-2">
+                        {/* Connecting Line with gradient and glowing pulse */}
+                        <div className="absolute left-4 right-4 top-1/2 -translate-y-1/2 h-0.5 bg-gradient-to-r from-rose-200 via-blue-200 to-emerald-200 rounded-full z-0 overflow-hidden">
+                          <motion.div 
+                            animate={{ x: ['-100%', '200%'] }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                            className="w-1/3 h-full bg-white/60 blur-sm"
+                          />
+                        </div>
+                        
+                        <motion.div 
+                          initial={{ opacity: 0, y: 10 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: 0.1 }}
+                          className="z-10 px-3 py-1.5 rounded-lg bg-rose-50 text-rose-700 line-through border border-rose-200 shadow-sm flex flex-col items-center gap-1 backdrop-blur-sm"
+                        >
+                          <span className="text-[9px] text-rose-400 uppercase tracking-wider">09:14:02</span>
+                          <span className="font-semibold">Rev 1</span>
+                        </motion.div>
+                        
+                        <motion.div 
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          whileInView={{ opacity: 1, scale: 1 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: 0.3 }}
+                          className="z-10 px-3 py-1.5 rounded-lg bg-blue-500 text-white shadow-md flex flex-col items-center gap-1 relative overflow-hidden group/btn"
+                        >
+                          <motion.div 
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                            className="absolute -right-2 -top-2 opacity-20 group-hover/btn:opacity-40 transition-opacity"
+                          >
+                            <RefreshCw className="h-8 w-8" />
+                          </motion.div>
+                          <span className="text-[9px] text-blue-100 uppercase tracking-wider relative z-10">Agent</span>
+                          <span className="font-semibold relative z-10">Self-Repair</span>
+                        </motion.div>
+                        
+                        <motion.div 
+                          initial={{ opacity: 0, y: 10 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: 0.5 }}
+                          className="z-10 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-sm flex flex-col items-center gap-1 backdrop-blur-sm relative"
+                        >
+                          {/* Inner glow on passed */}
+                          <div className="absolute inset-0 rounded-lg shadow-[0_0_10px_rgba(16,185,129,0.3)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <span className="text-[9px] text-emerald-500 uppercase tracking-wider relative z-10">09:14:18</span>
+                          <span className="font-bold relative z-10 flex items-center gap-1">Rev 2 <CheckCircle2 className="h-3 w-3" /></span>
+                        </motion.div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
               </div>
             </div>
           </section>
@@ -1408,28 +1785,40 @@ export function PinnedScrollytelling() {
                   </div>
 
                   {/* Interactive Sign-off Station */}
-                  <div className="rounded-xl border border-black/[0.08] bg-[#fafbfc] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
-                    <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-full bg-zinc-900 text-white flex items-center justify-center font-bold text-xs">
+                  <div className="relative rounded-xl border border-black/[0.08] bg-white p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/5 to-emerald-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
+                    
+                    <div className="relative z-10 flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-full bg-zinc-950 text-white flex items-center justify-center font-bold text-xs ring-2 ring-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
                         MV
                       </div>
                       <div>
-                        <div className="text-xs font-bold text-zinc-900">Marcus Vance</div>
+                        <div className="text-xs font-bold text-zinc-900 flex items-center gap-1.5">
+                          Marcus Vance
+                          <ShieldCheck className="h-3 w-3 text-blue-500" />
+                        </div>
                         <div className="text-[11px] text-zinc-500">Lead Controller • Authorized Signatory</div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href="/cases/CASE-001"
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-black hover:bg-zinc-800 text-white text-xs font-semibold shadow-xs transition-colors"
+                    <div className="relative z-10 flex items-center gap-2">
+                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                        <Link
+                          href="/cases/CASE-001"
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-950 hover:bg-black text-white text-xs font-semibold shadow-md transition-all border border-zinc-800 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]"
+                        >
+                          <kbd className="text-[10px] font-mono bg-zinc-800 text-emerald-400 px-1 py-0.5 rounded border border-zinc-700">A</kbd>
+                          <span>Approve & Merge to NetSuite GL</span>
+                        </Link>
+                      </motion.div>
+                      <motion.button 
+                        whileHover={{ scale: 1.02 }} 
+                        whileTap={{ scale: 0.98 }}
+                        type="button" 
+                        className="px-3 py-2 rounded-lg border border-black/[0.1] bg-white hover:bg-rose-50 text-xs font-medium text-zinc-700 hover:text-rose-700 hover:border-rose-200 transition-colors"
                       >
-                        <kbd className="text-[10px] font-mono bg-white/20 px-1 py-0.5 rounded">A</kbd>
-                        <span>Approve & Merge to NetSuite GL</span>
-                      </Link>
-                      <button type="button" className="px-3 py-2 rounded-lg border border-black/[0.1] hover:bg-zinc-100 text-xs font-medium text-zinc-700 transition-colors">
                         Reject [R]
-                      </button>
+                      </motion.button>
                     </div>
                   </div>
 
@@ -1462,19 +1851,52 @@ export function PinnedScrollytelling() {
                 </div>
               </div>
 
-              <div className="space-y-3 md:pl-2">
-                <h4 className="text-sm font-bold text-zinc-900">Tamper-proof audit seals.</h4>
-                <p className="text-xs text-[#64748b] leading-relaxed">
-                  Every sign-off produces a cryptographically sealed block hash linking evidence, citations, and journal entries for seamless compliance.
-                </p>
-                <div className="p-3 rounded-xl border border-black/[0.08] bg-white shadow-2xs space-y-1 text-xs font-mono">
-                  <div className="text-zinc-900 font-semibold flex items-center gap-1.5">
-                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" /> Cryptographic Ledger Seal
-                  </div>
-                  <div className="text-[11px] text-zinc-500 font-sans">
-                    Block #10492: 0x8a92fb0194c7...c31b • 0 Unreconciled Variances
-                  </div>
+              <div className="space-y-4 md:pl-2">
+                <div>
+                  <h4 className="text-base font-bold text-zinc-950 flex items-center gap-2">
+                    <Lock className="h-4 w-4 text-emerald-600" /> Tamper-proof audit seals.
+                  </h4>
+                  <p className="text-xs text-zinc-500 leading-relaxed mt-1.5">
+                    Every sign-off produces a cryptographically sealed block hash linking evidence, citations, and journal entries for seamless compliance.
+                  </p>
                 </div>
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  className="relative p-[1px] rounded-xl bg-gradient-to-r from-emerald-500/20 via-blue-500/20 to-emerald-500/20 shadow-sm overflow-hidden group"
+                >
+                  <motion.div 
+                    animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
+                    transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+                    className="absolute inset-0 bg-gradient-to-r from-emerald-500/30 via-blue-500/30 to-emerald-500/30 bg-[length:200%_auto] opacity-0 group-hover:opacity-100 transition-opacity"
+                  />
+                  <div className="relative bg-zinc-50/90 backdrop-blur-sm p-4 rounded-xl h-full w-full border border-black/[0.04]">
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-xl" />
+                    
+                    <div className="relative z-10 space-y-2 text-xs font-mono">
+                      <div className="text-emerald-700 font-semibold flex items-center gap-2 border-b border-black/[0.06] pb-2">
+                        <ShieldCheck className="h-4 w-4 text-emerald-600" /> 
+                        Cryptographic Ledger Seal
+                      </div>
+                      <div className="text-[11px] text-zinc-600 space-y-1.5 pt-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-zinc-500 font-medium">Block height:</span>
+                          <span className="text-zinc-900 font-bold">#10492</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-zinc-500 font-medium">SHA-256 Hash:</span>
+                          <span className="text-blue-700 bg-blue-50 border border-blue-100 px-1.5 rounded truncate max-w-[120px] font-semibold">0x8a92fb0194c7c31b</span>
+                        </div>
+                        <div className="flex items-center justify-between pt-1 border-t border-black/[0.06] mt-1">
+                          <span className="text-zinc-500 font-medium">State:</span>
+                          <span className="text-emerald-700 font-semibold flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
+                            <motion.span animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 2, repeat: Infinity }} className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+                            0 Unreconciled
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
               </div>
             </div>
           </section>
